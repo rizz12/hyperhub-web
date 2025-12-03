@@ -1,0 +1,59 @@
+/* css/styles.css */
+
+/* CSS variables for dark and light themes */
+:root {
+  --bg: #0F1117;
+  --panel: #121217;
+  --muted: #A0A0A0;
+  --text: #FFFFFF;
+  --green: #00FF7F;
+  --green2: #00CC66;
+  --ruby: #FF0033;
+  --ruby2: #CC0000;
+}
+
+html.light {
+  --bg: #f7f7f7;
+  --panel: #ffffff;
+  --muted: #4a4a4a;
+  --text: #111111;
+  --green: #00CC66;
+  --green2: #00AA55;
+  --ruby: #CC0000;
+  --ruby2: #990000;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.glass {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.06);
+  backdrop-filter: blur(6px);
+  border-radius: 12px;
+}
+
+.muted { color: var(--muted); }
+.tag-green { color: var(--green); }
+.tag-red { color: var(--ruby); }
+.brand-green { color: var(--green); }
+.brand-green-2 { color: var(--green2); }
+
+.ruby {
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+  transform: rotate(45deg);
+  background: var(--ruby);
+  margin-right: 8px;
+  border-radius: 1px;
+  box-shadow: 0 0 6px rgba(255,0,51,0.2);
+}
+
+@media (min-width: 1024px) {
+  .sidebar { width: 260px; }
+}
+
