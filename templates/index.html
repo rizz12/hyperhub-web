@@ -215,25 +215,25 @@
               </div>
             </div>
 
-            <!-- Right column: CBBI gauge + Governance quick -->
+            <!-- Right column: HSI index gauge + Governance quick -->
             <div class="card">
               <div class="flex items-center justify-between">
-                <div class="font-semibold">CBBI Light Index</div>
+                <div class="font-semibold">Hyperliquid Sentiment Index</div>
                 <div class="text-xs muted">0–100</div>
               </div>
               <div class="mt-4">
-                <canvas id="cbbiGauge" height="200"></canvas>
+                <canvas id="HSIGauge" height="200"></canvas>
                 <div class="mt-3 grid grid-cols-3 gap-2 text-xs muted">
                   <div class="text-center">
-                    <div class="font-bold" id="cbbiSent">--</div>
+                    <div class="font-bold" id="HSISent">--</div>
                     <div>Sentiment</div>
                   </div>
                   <div class="text-center">
-                    <div class="font-bold" id="cbbiWhales">--</div>
+                    <div class="font-bold" id="HSIWhales">--</div>
                     <div>Whales</div>
                   </div>
                   <div class="text-center">
-                    <div class="font-bold" id="cbbiOI">--</div>
+                    <div class="font-bold" id="HSIOI">--</div>
                     <div>Open Interest</div>
                   </div>
                 </div>
@@ -261,7 +261,7 @@
           <div class="card">
             <div class="flex items-center justify-between">
               <div class="font-semibold">Analytics</div>
-              <div class="text-xs muted">Sentiment · Whales · OI · CBBI</div>
+              <div class="text-xs muted">Sentiment · Whales · OI · HSI</div>
             </div>
 
             <div class="mt-4">
@@ -269,7 +269,7 @@
                 <button class="tabBtn px-3 py-1 rounded bg-white/5" data-tab="sentimentTab">Sentiment</button>
                 <button class="tabBtn px-3 py-1 rounded bg-white/5" data-tab="whalesTab">Whales</button>
                 <button class="tabBtn px-3 py-1 rounded bg-white/5" data-tab="oiTab">Open Interest</button>
-                <button class="tabBtn px-3 py-1 rounded bg-white/5" data-tab="cbbiTab">CBBI Index</button>
+                <button class="tabBtn px-3 py-1 rounded bg-white/5" data-tab="HSITab">HSI Index</button>
               </div>
 
               <div class="mt-4">
@@ -282,8 +282,8 @@
                 <div id="oiTab" class="tabPanel hidden">
                   <canvas id="oiLine" height="160"></canvas>
                 </div>
-                <div id="cbbiTab" class="tabPanel hidden">
-                  <canvas id="cbbiChart" height="160"></canvas>
+                <div id="HSITab" class="tabPanel hidden">
+                  <canvas id="HSIChart" height="160"></canvas>
                 </div>
               </div>
             </div>
