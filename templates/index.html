@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en" class="antialiased">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HyperHub — Unlock Hyperliquid Insights</title>
+  <meta name="description" content="HyperHub — Unlock Hyperliquid Insights: Track, Govern, Thrive. Made by Ruby Nodes.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22black%22/><rect x=%2235%22 y=%2235%22 width=%2230%22 height=%2230%22 transform=%22rotate(45 50 50)%22 fill=%22red%22/></svg>">
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            hhbg: '#0F1117',
+            hhbg2: '#121212',
+            hhgreen: '#00FF7F',
+            hhgreen2: '#00CC66',
+            hhruby: '#FF0033',
+            hhruby2: '#CC0000',
+            hhtxt: '#FFFFFF',
+            hhtxt2: '#A0A0A0'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body class="font-sans">
+
+  <div id="app" class="min-h-screen flex flex-col">
+
+    <!-- Top header -->
+    <header class="glass p-4 sticky top-0 z-50">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="ruby"></span>
+        <div>
+          <div class="text-2xl font-bold brand-green">HyperHub</div>
+          <div class="text-xs muted">Made by Ruby Nodes</div>
+        </div>
+      </div>
+      <nav class="flex items-center gap-6">
+        <a href="#dashboard" class="muted hover:text-white">Dashboard</a>
+        <a href="#analytics" class="muted hover:text-white">Analytics</a>
+        <a href="#governance" class="muted hover:text-white">Governance</a>
+        <a href="#education" class="muted hover:text-white">Education</a>
+        <a href="#about" class="muted hover:text-white">About</a>
+        <button id="themeToggle" class="px-3 py-1 rounded-md glass muted">Dark</button>
+      </nav>
+    </div>
+  </header>
+
+  <section class="p-6 glass rounded-lg mt-4">
+    <h1 class="text-3xl font-bold brand-green">Unlock Hyperliquid Insights</h1>
+    <p class="muted">Track, Govern, Thrive.</p>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4">
+      <div class="chip"><span>Price</span><strong id="kpiPrice">$--</strong></div>
+      <div class="chip"><span>24h</span><strong id="kpiChange">--</strong></div>
+      <div class="chip"><span>Volume</span><strong id="kpiVol">--</strong></div>
+      <div class="chip"><span>Market Cap</span><strong id="kpiMcap">--</strong></div>
+      <div class="chip"><span>Open Interest</span><strong id="kpiOI">--</strong></div>
+    </div>
+  </section>
+
+
+      <!-- Main content -->
+      <main class="flex-1 overflow-auto p-4">
+        <!-- Mobile nav (drawer) -->
+        <div id="mobileMenu" class="fixed inset-0 z-40 bg-black/60 hidden">
+          <div class="absolute left-0 top-0 bottom-0 w-64 p-4 glass">
+            <button id="mobileClose" class="mb-4">Close ✕</button>
+            <ul class="flex flex-col gap-2">
+              <li><a href="#dashboard" class="block py-2 px-3 rounded hover:bg-white/5">Dashboard</a></li>
+              <li><a href="#analytics" class="block py-2 px-3 rounded hover:bg-white/5">Analytics</a></li>
+              <li><a href="#governance" class="block py-2 px-3 rounded hover:bg-white/5">Governance</a></li>
+              <li><a href="#education" class="block py-2 px-3 rounded hover:bg-white/5">Education</a></li>
+              <li><a href="#about" class="block py-2 px-3 rounded hover:bg-white/5">About</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- HERO / Dashboard -->
+        <section id="dashboard" class="mb-8">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="col-span-2 glass p-4 rounded-lg">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h1 class="text-2xl font-bold brand-green">HyperHub</h1>
+                  <div class="muted">Realtime Dashboard · <span id="lastUpdated" class="text-xs muted"></span></div>
+                </div>
+                <div class="text-right">
+                  <div id="priceBlock" class="text-right">
+                    <div class="text-sm muted">HYPE</div>
+                    <div class="text-2xl font-semibold" id="hypePrice">$--</div>
+                    <div class="muted text-sm" id="hypeChange">--</div>
+                  </div>
+                </div>
+              </div>
+
+              <p class="mt-4 muted">“Unlock Hyperliquid Insights: Track, Govern, Thrive.”</p>
+
+              <!-- 3x2 grid of cards -->
+              <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Realtime Dashboard card -->
+                <div class="card">
+                  <div class="flex items-center justify-between">
+                    <div class="font-semibold">Realtime</div>
+                    <div class="text-xs muted">updates every 60s</div>
+                  </div>
+                  <div class="mt-3">
+                    <div class="text-sm muted">Price</div>
+                    <div id="cardPrice" class="text-xl font-bold">$--</div>
+                    <div class="mt-2 text-sm muted">24h Volume: <span id="cardVolume">--</span></div>
+                    <div class="text-sm muted">Market Cap: <span id="cardMarketCap">--</span></div>
+                  </div>
+                </div>
+
+                <!-- GIYP card -->
+                <div class="card">
+                  <div class="font-semibold">GIYP Predictor</div>
+                  <div class="text-xs muted">Governance Impact Yield</div>
+                  <div class="mt-3 text-sm" id="giypIndicator">Loading...</div>
+                </div>
+
+
+                <!-- GIYP chart -->
+                <div class="card">
+                  <div class="font-semibold">GIYP Predictor</div>
+                  <canvas id="giypChart" height="160"></canvas>
+                </div>
+
+                <!-- CCLB card -->
+                <div class="card">
+                  <div class="font-semibold">CCLB Benchmark</div>
+                  <div class="text-xs muted">Cross-Chain Latency</div>
+                  <div class="mt-3 text-sm" id="cclbIndicator">Loading...</div>
+                </div>
+
+                <!-- CCLB chart -->
+                <div class="card">
+                  <div class="font-semibold">CCLB Benchmark</div>
+                  <canvas id="cclbChart" height="160"></canvas>
+                </div>
+
+                <!-- News Aggregator card -->
+                <div class="card">
+                  <div class="flex items-center justify-between">
+                    <div class="font-semibold">News</div>
+                    <div class="text-xs muted">RSS & Reddit</div>
+                  </div>
+                  <div class="mt-3 max-h-40 overflow-auto" id="newsList">
+                    <div class="muted text-sm">Loading news...</div>
+                  </div>
+                </div>
+
+                <!-- Sentiment card -->
+                <div class="card">
+                  <div class="flex items-center justify-between">
+                    <div class="font-semibold">Sentiment</div>
+                    <div class="text-xs muted">Headlines + Reddit</div>
+                  </div>
+                  <div class="mt-3">
+                    <canvas id="sentimentChart" height="120"></canvas>
+                    <div class="mt-2 muted text-sm">Score: <span id="sentimentScore">--</span></div>
+                  </div>
+                </div>
+
+                <!-- Whale Activity card -->
+                <div class="card">
+                  <div class="flex items-center justify-between">
+                    <div class="font-semibold">Whales</div>
+                    <div class="text-xs muted">Large txs</div>
+                  </div>
+                  <div class="mt-3 max-h-40 overflow-auto" id="whaleList">
+                    <div class="muted text-sm">Loading whales...</div>
+                  </div>
+                </div>
+
+                <!-- Open Interest card -->
+                <div class="card">
+                  <div class="flex items-center justify-between">
+                    <div class="font-semibold">Open Interest</div>
+                    <div class="text-xs muted">Longs vs Shorts</div>
+                  </div>
+                  <div class="mt-3">
+                    <canvas id="oiChart" height="120"></canvas>
+                    <div class="mt-2 muted text-sm">Latest OI: <span id="oiLatest">--</span></div>
+                  </div>
+                </div>
+
+                <!-- RPC Offering card -->
+                <div class="card">
+                  <div class="flex items-center justify-between">
+                    <div class="font-semibold">Optimized RPC</div>
+                    <div class="text-xs muted">Low latency · 99.99% uptime</div>
+                  </div>
+                  <div class="mt-3">
+                    <p class="muted text-sm">Upgrade your trading with custom RPCs for Hyperliquid. Ultra-low latency, dedicated endpoints, and priority support.</p>
+                    <div class="mt-3">
+                      <a href="https://rubynodes.io" target="_blank" class="inline-block px-3 py-2 rounded bg-gradient-to-r from-[#00CC66] to-[#00FF7F] text-black font-semibold">Get 14-Day Free Trial</a>
+                      <a href="https://rubynodes.io" target="_blank" class="ml-2 inline-block px-3 py-2 rounded border border-white/10 muted">Order Custom RPC</a>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Right column: CBBI gauge + Governance quick -->
+            <div class="card">
+              <div class="flex items-center justify-between">
+                <div class="font-semibold">CBBI Light Index</div>
+                <div class="text-xs muted">0–100</div>
+              </div>
+              <div class="mt-4">
+                <canvas id="cbbiGauge" height="200"></canvas>
+                <div class="mt-3 grid grid-cols-3 gap-2 text-xs muted">
+                  <div class="text-center">
+                    <div class="font-bold" id="cbbiSent">--</div>
+                    <div>Sentiment</div>
+                  </div>
+                  <div class="text-center">
+                    <div class="font-bold" id="cbbiWhales">--</div>
+                    <div>Whales</div>
+                  </div>
+                  <div class="text-center">
+                    <div class="font-bold" id="cbbiOI">--</div>
+                    <div>Open Interest</div>
+                  </div>
+                </div>
+              </div>
+
+              <hr class="my-4 border-white/5">
+
+              <div>
+                <div class="font-semibold">Governance Snapshot</div>
+                <div class="mt-2 muted text-sm">Active HIPs</div>
+                <div id="govSnapshot" class="mt-2 max-h-40 overflow-auto">
+                  <div class="muted text-sm">Loading HIPs...</div>
+                </div>
+                <div class="mt-3">
+                  <a href="#governance" class="text-sm brand-green-2">View Governance →</a>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- Analytics page (tabbed) -->
+        <section id="analytics" class="mb-8">
+          <div class="card">
+            <div class="flex items-center justify-between">
+              <div class="font-semibold">Analytics</div>
+              <div class="text-xs muted">Sentiment · Whales · OI · CBBI</div>
+            </div>
+
+            <div class="mt-4">
+              <div class="flex gap-2">
+                <button class="tabBtn px-3 py-1 rounded bg-white/5" data-tab="sentimentTab">Sentiment</button>
+                <button class="tabBtn px-3 py-1 rounded bg-white/5" data-tab="whalesTab">Whales</button>
+                <button class="tabBtn px-3 py-1 rounded bg-white/5" data-tab="oiTab">Open Interest</button>
+                <button class="tabBtn px-3 py-1 rounded bg-white/5" data-tab="cbbiTab">CBBI Index</button>
+              </div>
+
+              <div class="mt-4">
+                <div id="sentimentTab" class="tabPanel">
+                  <canvas id="sentimentPie" height="160"></canvas>
+                </div>
+                <div id="whalesTab" class="tabPanel hidden">
+                  <canvas id="whalesBar" height="160"></canvas>
+                </div>
+                <div id="oiTab" class="tabPanel hidden">
+                  <canvas id="oiLine" height="160"></canvas>
+                </div>
+                <div id="cbbiTab" class="tabPanel hidden">
+                  <canvas id="cbbiChart" height="160"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Governance page -->
+        <section id="governance" class="mb-8">
+          <div class="card">
+            <div class="flex items-center justify-between">
+              <div class="font-semibold">Governance</div>
+              <div class="text-xs muted">HIPs & validator votes</div>
+            </div>
+
+            <div class="mt-4">
+              <div id="hipsList" class="grid grid-cols-1 gap-4">
+                <div class="muted text-sm">Loading HIPs...</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Education -->
+        <section id="education" class="mb-8">
+          <div class="card">
+            <div class="font-semibold">Education</div>
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-3 glass rounded">
+                <div class="font-semibold">What is Hyperliquid</div>
+                <div class="muted text-sm mt-2">Hyperliquid is a derivatives and liquidity protocol... (static summary)</div>
+              </div>
+              <div class="p-3 glass rounded">
+                <div class="font-semibold">How to stake $HYPE</div>
+                <div class="muted text-sm mt-2">Steps to stake, risks, and rewards... (static guide)</div>
+              </div>
+              <div class="p-3 glass rounded">
+                <div class="font-semibold">Governance 101</div>
+                <div class="muted text-sm mt-2">How HIPs work, voting, delegation, and validator roles.</div>
+              </div>
+              <div class="p-3 glass rounded">
+                <div class="font-semibold">Trading on Hyperliquid</div>
+                <div class="muted text-sm mt-2">Order types, margin, ADL risk, and best practices.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- About -->
+        <section id="about" class="mb-8">
+          <div class="card">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-semibold">About HyperHub</div>
+                <div class="muted text-sm mt-2">HyperHub — Unlock Hyperliquid Insights: Track, Govern, Thrive. Domain: <a href="https://hyperhub.xyz" class="brand-green">hyperhub.xyz</a></div>
+              </div>
+              <div class="text-right muted text-sm">
+                <div>Made by Ruby Nodes</div>
+                <div class="mt-2">Disclaimer: Data is aggregated from public sources. Use at your own risk.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="mt-6 text-center muted text-sm">
+          <div>Made by Ruby Nodes · <a href="https://rubynodes.io" class="brand-green">rubynodes.io</a></div>
+          <div class="mt-2">Optimize your Hyperliquid trading with our custom RPCs — <a href="https://rubynodes.io" class="brand-green">Get a trial</a></div>
+        </footer>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- App JS -->
+  <script src="./js/app.js"></script>
+</body>
+</html>

@@ -13,6 +13,32 @@
       // Add Hyperliquid blog RSS if available and CORS-allowed
     ],
 
+// GIYP mock
+function loadGiypMock() {
+  const giypMock = {
+    proposal: "HIP-3",
+    effect: "+1% beHYPE yield",
+    sentiment: "Positive",
+    timestamp: new Date().toLocaleTimeString()
+  };
+  document.getElementById("giypIndicator").textContent =
+    `${giypMock.proposal}: ${giypMock.effect} (${giypMock.sentiment})`;
+}
+
+// CCLB mock
+function loadCclbMock() {
+  const cclbMock = {
+    hyperliquid: "950ms",
+    aster: "1150ms",
+    lighter: "1200ms",
+    edge: "Hyperliquid faster by ~200ms",
+    timestamp: new Date().toLocaleTimeString()
+  };
+  document.getElementById("cclbIndicator").textContent =
+    `HL: ${cclbMock.hyperliquid}, Aster: ${cclbMock.aster}, Lighter: ${cclbMock.lighter} → ${cclbMock.edge}`;
+}
+
+
     // Placeholder JSON for whales / OI / governance (static demo)
     whalesDemo: [
       { pair: "HYPE/USDC", side: "long", size_usd: 250000, time: Date.now() },
@@ -411,4 +437,36 @@ document.getElementById("themeToggle").addEventListener("click", () => {
   document.documentElement.classList.toggle("light");
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  fetchPrice();       // už máš
+  loadGiypMock();     // nový mock
+  loadCclbMock();     // nový mock
+});
+
+// GIYP mock chart
+new Chart(document.getElementById("giypChart"), {
+  type: "line",
+  data: {
+    labels: ["Pre-vote", "Post-vote"],
+    datasets: [{
+      label: "Yield %",
+      data: [5, 6],
+      borderColor: "cyan",
+      fill: false
+    }]
+  }
+});
+
+// CCLB mock chart
+new Chart(document.getElementById("cclbChart"), {
+  type: "bar",
+  data: {
+    labels: ["Hyperliquid", "Aster", "Lighter"],
+    datasets: [{
+      label: "Latency (ms)",
+      data: [950, 1150, 1200],
+      backgroundColor: ["limegreen", "orange", "crimson"]
+    }]
+  }
+});
 
