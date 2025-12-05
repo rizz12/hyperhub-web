@@ -57,3 +57,43 @@ html, body {
   .sidebar { width: 260px; }
 }
 
+.chip {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  transition: .2s;
+}
+.chip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 1px rgba(0,255,127,.3), 0 6px 16px rgba(0,0,0,.4);
+}
+
+.card {
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  transition: .2s;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 10px 24px rgba(0,0,0,.5);
+}
+
+
+:root {
+  --bg: #0F1117;
+  --text: #FFFFFF;
+}
+html.light {
+  --bg: #f7f7f7;
+  --text: #111111;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+

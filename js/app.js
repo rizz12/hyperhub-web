@@ -406,3 +406,9 @@
   document.addEventListener("DOMContentLoaded", init);
 })();
 
+
+document.getElementById("themeToggle").addEventListener("click", () => {
+  document.documentElement.classList.toggle("light");
+});
+
+
