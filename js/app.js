@@ -13,32 +13,6 @@
       // Add Hyperliquid blog RSS if available and CORS-allowed
     ],
 
-// GIYP mock
-function loadGiypMock() {
-  const giypMock = {
-    proposal: "HIP-3",
-    effect: "+1% beHYPE yield",
-    sentiment: "Positive",
-    timestamp: new Date().toLocaleTimeString()
-  };
-  document.getElementById("giypIndicator").textContent =
-    `${giypMock.proposal}: ${giypMock.effect} (${giypMock.sentiment})`;
-}
-
-// CCLB mock
-function loadCclbMock() {
-  const cclbMock = {
-    hyperliquid: "950ms",
-    aster: "1150ms",
-    lighter: "1200ms",
-    edge: "Hyperliquid faster by ~200ms",
-    timestamp: new Date().toLocaleTimeString()
-  };
-  document.getElementById("cclbIndicator").textContent =
-    `HL: ${cclbMock.hyperliquid}, Aster: ${cclbMock.aster}, Lighter: ${cclbMock.lighter} → ${cclbMock.edge}`;
-}
-
-
     // Placeholder JSON for whales / OI / governance (static demo)
     whalesDemo: [
       { pair: "HYPE/USDC", side: "long", size_usd: 250000, time: Date.now() },
@@ -98,59 +72,137 @@ function loadCclbMock() {
   let whalesBar = null;
   let oiLine = null;
   let HSIChart = null;
+  let giypChart = null;
+  let cclbChart = null;
+
+  // GIYP mock (text)
+  function loadGiypMock() {
+    const giypMock = {
+      proposal: "HIP-3",
+      effect: "+1% beHYPE yield",
+      sentiment: "Positive",
+      timestamp: new Date().toLocaleTimeString()
+    };
+    const el = document.getElementById("giypIndicator");
+    if (el) {
+      el.textContent = `${giypMock.proposal}: ${giypMock.effect} (${giypMock.sentiment})`;
+    }
+  }
+
+  // CCLB mock (text)
+  function loadCclbMock() {
+    const cclbMock = {
+      hyperliquid: "950ms",
+      aster: "1150ms",
+      lighter: "1200ms",
+      edge: "Hyperliquid faster by ~200ms",
+      timestamp: new Date().toLocaleTimeString()
+    };
+    const el = document.getElementById("cclbIndicator");
+    if (el) {
+      el.textContent = `HL: ${cclbMock.hyperliquid}, Aster: ${cclbMock.aster}, Lighter: ${cclbMock.lighter} → ${cclbMock.edge}`;
+    }
+  }
 
   // Init charts
   function initCharts() {
-    const sCtx = document.getElementById("sentimentChart").getContext("2d");
-    sentimentChart = new Chart(sCtx, {
-      type: "doughnut",
-      data: { labels: ["Bullish", "Bearish"], datasets: [{ data: [50, 50], backgroundColor: ["#00FF7F", "#FF0033"] }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-    });
+    const sCanvas = document.getElementById("sentimentChart");
+    if (sCanvas) {
+      const sCtx = sCanvas.getContext("2d");
+      sentimentChart = new Chart(sCtx, {
+        type: "doughnut",
+        data: { labels: ["Bullish", "Bearish"], datasets: [{ data: [50, 50], backgroundColor: ["#00FF7F", "#FF0033"] }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      });
+    }
 
-    const oiCtx = document.getElementById("oiChart").getContext("2d");
-    oiChart = new Chart(oiCtx, {
-      type: "bar",
-      data: { labels: [], datasets: [{ label: "Longs", data: [], backgroundColor: "#00FF7F" }, { label: "Shorts", data: [], backgroundColor: "#FF0033" }] },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-    });
+    const oiCanvas = document.getElementById("oiChart");
+    if (oiCanvas) {
+      const oiCtx = oiCanvas.getContext("2d");
+      oiChart = new Chart(oiCtx, {
+        type: "bar",
+        data: { labels: [], datasets: [{ label: "Longs", data: [], backgroundColor: "#00FF7F" }, { label: "Shorts", data: [], backgroundColor: "#FF0033" }] },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      });
+    }
 
-    // Gauge
-    const HSICtx = document.getElementById("HSIGauge").getContext("2d");
-    HSIGauge = new Chart(HSICtx, {
-      type: "doughnut",
-      data: { labels: ["Index", "Remaining"], datasets: [{ data: [60, 40], backgroundColor: ["#00FF7F", "#222"] }] },
-      options: { rotation: -Math.PI, circumference: Math.PI, cutout: "70%", plugins: { legend: { display: false } } }
-    });
+    const HSICanvas = document.getElementById("HSIGauge");
+    if (HSICanvas) {
+      const HSICtx = HSICanvas.getContext("2d");
+      HSIGauge = new Chart(HSICtx, {
+        type: "doughnut",
+        data: { labels: ["Index", "Remaining"], datasets: [{ data: [60, 40], backgroundColor: ["#00FF7F", "#222"] }] },
+        options: { rotation: -Math.PI, circumference: Math.PI, cutout: "70%", plugins: { legend: { display: false } } }
+      });
+    }
 
-    // Analytics charts
-    const sentimentPieCtx = document.getElementById("sentimentPie").getContext("2d");
-    sentimentPie = new Chart(sentimentPieCtx, {
-      type: "pie",
-      data: { labels: ["Positive", "Negative"], datasets: [{ data: [60, 40], backgroundColor: ["#00FF7F", "#FF0033"] }] },
-      options: { responsive: true, maintainAspectRatio: false }
-    });
+    const sentimentPieCanvas = document.getElementById("sentimentPie");
+    if (sentimentPieCanvas) {
+      const sentimentPieCtx = sentimentPieCanvas.getContext("2d");
+      sentimentPie = new Chart(sentimentPieCtx, {
+        type: "pie",
+        data: { labels: ["Positive", "Negative"], datasets: [{ data: [60, 40], backgroundColor: ["#00FF7F", "#FF0033"] }] },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+    }
 
-    const whalesBarCtx = document.getElementById("whalesBar").getContext("2d");
-    whalesBar = new Chart(whalesBarCtx, {
-      type: "bar",
-      data: { labels: [], datasets: [{ label: "Whale USD", data: [], backgroundColor: "#00CC66" }] },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-    });
+    const whalesBarCanvas = document.getElementById("whalesBar");
+    if (whalesBarCanvas) {
+      const whalesBarCtx = whalesBarCanvas.getContext("2d");
+      whalesBar = new Chart(whalesBarCtx, {
+        type: "bar",
+        data: { labels: [], datasets: [{ label: "Whale USD", data: [], backgroundColor: "#00CC66" }] },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      });
+    }
 
-    const oiLineCtx = document.getElementById("oiLine").getContext("2d");
-    oiLine = new Chart(oiLineCtx, {
-      type: "line",
-      data: { labels: [], datasets: [{ label: "OI", data: [], borderColor: "#00FF7F", fill: false }] },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
-    });
+    const oiLineCanvas = document.getElementById("oiLine");
+    if (oiLineCanvas) {
+      const oiLineCtx = oiLineCanvas.getContext("2d");
+      oiLine = new Chart(oiLineCtx, {
+        type: "line",
+        data: { labels: [], datasets: [{ label: "OI", data: [], borderColor: "#00FF7F", fill: false }] },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      });
+    }
 
-    const HSIChartCtx = document.getElementById("HSIChart").getContext("2d");
-    HSIChart = new Chart(HSIChartCtx, {
-      type: "bar",
-      data: { labels: ["Sentiment", "Whales", "OI"], datasets: [{ label: "Components", data: [50, 50, 50], backgroundColor: ["#00FF7F", "#00CC66", "#FF0033"] }] },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
-    });
+    const HSIChartCanvas = document.getElementById("HSIChart");
+    if (HSIChartCanvas) {
+      const HSIChartCtx = HSIChartCanvas.getContext("2d");
+      HSIChart = new Chart(HSIChartCtx, {
+        type: "bar",
+        data: { labels: ["Sentiment", "Whales", "OI"], datasets: [{ label: "Components", data: [50, 50, 50], backgroundColor: ["#00FF7F", "#00CC66", "#FF0033"] }] },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
+      });
+    }
+
+    // GIYP mock chart
+    const giypCanvas = document.getElementById("giypChart");
+    if (giypCanvas) {
+      const giypCtx = giypCanvas.getContext("2d");
+      giypChart = new Chart(giypCtx, {
+        type: "line",
+        data: {
+          labels: ["Pre-vote", "Post-vote"],
+          datasets: [{ label: "Yield %", data: [5, 6], borderColor: "cyan", fill: false }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      });
+    }
+
+    // CCLB mock chart
+    const cclbCanvas = document.getElementById("cclbChart");
+    if (cclbCanvas) {
+      const cclbCtx = cclbCanvas.getContext("2d");
+      cclbChart = new Chart(cclbCtx, {
+        type: "bar",
+        data: {
+          labels: ["Hyperliquid", "Aster", "Lighter"],
+          datasets: [{ label: "Latency (ms)", data: [950, 1150, 1200], backgroundColor: ["limegreen", "orange", "crimson"] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      });
+    }
   }
 
   // Fetch and update
@@ -206,9 +258,7 @@ function loadCclbMock() {
   }
 
   async function fetchSentiment() {
-    // Use news titles + a simple dictionary to compute sentiment
     try {
-      // Reuse what we have in newsList; if empty, fetchNews first
       if (!newsListEl.children.length) await fetchNews();
       const titles = Array.from(newsListEl.querySelectorAll("a")).map(a => a.textContent.toLowerCase());
 
@@ -333,6 +383,7 @@ function loadCclbMock() {
     const mobileBtn = document.getElementById("mobileMenuBtn");
     const mobileMenu = document.getElementById("mobileMenu");
     const mobileClose = document.getElementById("mobileClose");
+    if (!mobileBtn || !mobileMenu || !mobileClose) return;
     mobileBtn.addEventListener("click", () => mobileMenu.classList.remove("hidden"));
     mobileClose.addEventListener("click", () => mobileMenu.classList.add("hidden"));
     mobileMenu.querySelectorAll("a").forEach(a => a.addEventListener("click", () => mobileMenu.classList.add("hidden")));
@@ -342,6 +393,7 @@ function loadCclbMock() {
   function initTheme() {
     const btn = document.getElementById("themeToggle");
     const html = document.documentElement;
+    if (!btn) return;
     const saved = localStorage.getItem("hyperhub-theme");
     if (saved === "light") {
       html.classList.add("light");
@@ -363,15 +415,6 @@ function loadCclbMock() {
     });
   }
 
-  function init() {
-    initCharts();
-    initTabs();
-    initMobileMenu();
-    initTheme();
-    fetchAll();
-    setInterval(fetchAll, 60 * 1000);
-  }
-
   function fetchAll() {
     fetchPrice();
     fetchNews();
@@ -379,6 +422,8 @@ function loadCclbMock() {
     fetchWhales();
     fetchOI();
     fetchGovernanceDemo();
+    loadGiypMock();
+    loadCclbMock();
   }
 
   function fetchGovernanceDemo() {
@@ -429,44 +474,15 @@ function loadCclbMock() {
     });
   }
 
+  function init() {
+    initCharts();
+    initTabs();
+    initMobileMenu();
+    initTheme();
+    fetchAll();
+    setInterval(fetchAll, 60 * 1000);
+  }
+
   document.addEventListener("DOMContentLoaded", init);
 })();
-
-
-document.getElementById("themeToggle").addEventListener("click", () => {
-  document.documentElement.classList.toggle("light");
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  fetchPrice();       // už máš
-  loadGiypMock();     // nový mock
-  loadCclbMock();     // nový mock
-});
-
-// GIYP mock chart
-new Chart(document.getElementById("giypChart"), {
-  type: "line",
-  data: {
-    labels: ["Pre-vote", "Post-vote"],
-    datasets: [{
-      label: "Yield %",
-      data: [5, 6],
-      borderColor: "cyan",
-      fill: false
-    }]
-  }
-});
-
-// CCLB mock chart
-new Chart(document.getElementById("cclbChart"), {
-  type: "bar",
-  data: {
-    labels: ["Hyperliquid", "Aster", "Lighter"],
-    datasets: [{
-      label: "Latency (ms)",
-      data: [950, 1150, 1200],
-      backgroundColor: ["limegreen", "orange", "crimson"]
-    }]
-  }
-});
 
