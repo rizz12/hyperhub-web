@@ -93,11 +93,11 @@ function loadCclbMock() {
   // Charts
   let sentimentChart = null;
   let oiChart = null;
-  let cbbiGauge = null;
+  let HSIGauge = null;
   let sentimentPie = null;
   let whalesBar = null;
   let oiLine = null;
-  let cbbiChart = null;
+  let HSIChart = null;
 
   // Init charts
   function initCharts() {
@@ -116,8 +116,8 @@ function loadCclbMock() {
     });
 
     // Gauge
-    const cbbiCtx = document.getElementById("cbbiGauge").getContext("2d");
-    cbbiGauge = new Chart(cbbiCtx, {
+    const HSICtx = document.getElementById("HSIGauge").getContext("2d");
+    HSIGauge = new Chart(HSICtx, {
       type: "doughnut",
       data: { labels: ["Index", "Remaining"], datasets: [{ data: [60, 40], backgroundColor: ["#00FF7F", "#222"] }] },
       options: { rotation: -Math.PI, circumference: Math.PI, cutout: "70%", plugins: { legend: { display: false } } }
@@ -145,8 +145,8 @@ function loadCclbMock() {
       options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
     });
 
-    const cbbiChartCtx = document.getElementById("cbbiChart").getContext("2d");
-    cbbiChart = new Chart(cbbiChartCtx, {
+    const HSIChartCtx = document.getElementById("HSIChart").getContext("2d");
+    HSIChart = new Chart(HSIChartCtx, {
       type: "bar",
       data: { labels: ["Sentiment", "Whales", "OI"], datasets: [{ label: "Components", data: [50, 50, 50], backgroundColor: ["#00FF7F", "#00CC66", "#FF0033"] }] },
       options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
@@ -234,8 +234,8 @@ function loadCclbMock() {
         sentimentPie.data.datasets[0].data = [pos, neg];
         sentimentPie.update();
       }
-      document.getElementById("cbbiSent").textContent = sentimentIndex;
-      computeCBBI();
+      document.getElementById("HSISent").textContent = sentimentIndex;
+      computeHSI();
     } catch (e) {
       console.warn("fetchSentiment error", e);
     }
@@ -262,8 +262,8 @@ function loadCclbMock() {
       }
       const totalWhaleVol = whales.reduce((s, w) => s + (w.size_usd || 0), 0);
       const whalesScore = Math.max(0, Math.min(100, Math.round(100 - Math.log10(1 + totalWhaleVol) * 10)));
-      document.getElementById("cbbiWhales").textContent = whalesScore;
-      computeCBBI();
+      document.getElementById("HSIWhales").textContent = whalesScore;
+      computeHSI();
     } catch (e) {
       console.warn("fetchWhales error", e);
     }
@@ -292,26 +292,26 @@ function loadCclbMock() {
         const latest = series[series.length - 1];
         const ratio = latest.longs / Math.max(1, latest.shorts);
         const oiScore = Math.max(0, Math.min(100, Math.round((ratio / 2) * 100)));
-        document.getElementById("cbbiOI").textContent = oiScore;
-        computeCBBI();
+        document.getElementById("HSIOI").textContent = oiScore;
+        computeHSI();
       }
     } catch (e) {
       console.warn("fetchOI error", e);
     }
   }
 
-  function computeCBBI() {
-    const s = Number(document.getElementById("cbbiSent").textContent) || 50;
-    const w = Number(document.getElementById("cbbiWhales").textContent) || 50;
-    const o = Number(document.getElementById("cbbiOI").textContent) || 50;
+  function computeHSI() {
+    const s = Number(document.getElementById("HSISent").textContent) || 50;
+    const w = Number(document.getElementById("HSIWhales").textContent) || 50;
+    const o = Number(document.getElementById("HSIOI").textContent) || 50;
     const overall = Math.round((s + w + o) / 3);
-    if (cbbiGauge) {
-      cbbiGauge.data.datasets[0].data = [overall, 100 - overall];
-      cbbiGauge.update();
+    if (HSIGauge) {
+      HSIGauge.data.datasets[0].data = [overall, 100 - overall];
+      HSIGauge.update();
     }
-    if (cbbiChart) {
-      cbbiChart.data.datasets[0].data = [s, w, o];
-      cbbiChart.update();
+    if (HSIChart) {
+      HSIChart.data.datasets[0].data = [s, w, o];
+      HSIChart.update();
     }
   }
 

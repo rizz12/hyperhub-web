@@ -17,7 +17,7 @@ This repository contains a small Flask backend that proxies public data sources 
 - **Open Interest Tracker**: Simulated OI series (replace with CoinGlass/Coinalyze).
 - **Optimized RPC Offering**: Subtle promotional card linking to rubynodes.io.
 - **Education**: Static cards for onboarding content.
-- **CBBI Light Index**: Gauge combining sentiment, whales, and OI.
+- **HSI Index**: Hyperliquid sentiment index combining sentiment, whales, and OI.
 - **Governance Tracker**: HIPs with aye/nay lists (simulated placeholders).
 - **Responsive**: Mobile-first, sidebar/hamburger, dark mode.
 
