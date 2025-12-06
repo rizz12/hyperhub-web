@@ -97,3 +97,10 @@ body {
   color: var(--text);
 }
 
+
+canvas {
+  max-height: 160px;
+  width: 100%;
+  display: block;
+}
+
