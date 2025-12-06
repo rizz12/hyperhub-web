@@ -104,6 +104,12 @@
     }
   }
 
+// Chart.js global defaults (fixuje “roztahování” výšky)
+if (typeof Chart !== "undefined") {
+  Chart.defaults.responsive = true;
+  Chart.defaults.maintainAspectRatio = false;
+}
+
   // Init charts
   function initCharts() {
     const sCanvas = document.getElementById("sentimentChart");

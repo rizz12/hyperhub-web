@@ -97,11 +97,18 @@ body {
   color: var(--text);
 }
 
-
 canvas {
-  height: 160px;
+  height: 160px !important;
   max-height: 160px;
   width: 100%;
   display: block;
 }
 
+.chart-box {
+  height: 160px;
+  overflow: hidden;
+}
+
+.card canvas {
+  flex: 0 0 auto;
+}

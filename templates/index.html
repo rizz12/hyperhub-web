@@ -124,6 +124,27 @@
                   </div>
                 </div>
 
+
+
+                <div class="card">
+                  <div class="font-semibold">Chart test</div>
+                  <div class="chart-box">
+                    <canvas id="chartTest"></canvas>
+                  </div>
+                </div>
+                <script>
+                  if (typeof Chart !== "undefined") {
+                    const ctx = document.getElementById("chartTest").getContext("2d");
+                    new Chart(ctx, {
+                      type: "line",
+                      data: { labels: ["A","B"], datasets: [{ data: [1,2], borderColor: "#00FF7F", fill: false }] },
+                      options: { responsive: true, maintainAspectRatio: false }
+                    });
+                  }
+                </script>
+
+
+
                 <!-- GIYP card -->
                 <div class="card">
                   <div class="font-semibold">GIYP Predictor</div>
@@ -135,20 +156,18 @@
                 <!-- GIYP chart -->
                 <div class="card">
                   <div class="font-semibold">GIYP Predictor</div>
-                  <div style="height:160px; overflow:hidden;">
+                  <div class="chart-box">
                     <canvas id="giypChart"></canvas>
                   </div>
                 </div>
 
-
                 <!-- CCLB chart -->
                 <div class="card">
                   <div class="font-semibold">CCLB Benchmark</div>
-                  <div class="h-40 overflow-hidden">
+                  <div class="chart-box">
                     <canvas id="cclbChart"></canvas>
                   </div>
                 </div>
-
 
                 <!-- CCLB chart -->
                 <div class="card">
