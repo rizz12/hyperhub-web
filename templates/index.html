@@ -143,193 +143,81 @@
                   }
                 </script>
 
+                <!-- Row start -->
+                <div class="flex gap-4 items-start flex-wrap">
 
+                  <!-- GIYP text card -->
+                  <div class="card self-start">
+                    <div class="font-semibold">GIYP Predictor</div>
+                    <div class="text-xs muted">Governance Impact Yield</div>
+                    <div class="mt-3 text-sm" id="giypIndicator">Loading...</div>
+                  </div>
 
-                <!-- GIYP card -->
-                <div class="card">
-                  <div class="font-semibold">GIYP Predictor</div>
-                  <div class="text-xs muted">Governance Impact Yield</div>
-                  <div class="mt-3 text-sm" id="giypIndicator">Loading...</div>
-                </div>
-
-
-                <!-- GIYP chart -->
-                <div class="card">
-                  <div class="font-semibold">GIYP Predictor</div>
-                  <div class="chart-box">
-                    <canvas id="giypChart"></canvas>
-                  </div>
-                </div>
-
-                <!-- CCLB chart -->
-                <div class="card">
-                  <div class="font-semibold">CCLB Benchmark</div>
-                  <div class="chart-box">
-                    <canvas id="cclbChart"></canvas>
-                  </div>
-                </div>
-
-                <!-- CCLB chart -->
-                <div class="card">
-                  <div class="font-semibold">CCLB Benchmark</div>
-                  <div class="h-40 overflow-hidden">
-                  <canvas id="cclbChart" height="160"></canvas>
-                </div>
-
-                <!-- News Aggregator card -->
-                <div class="card">
-                  <div class="flex items-center justify-between">
-                    <div class="font-semibold">News</div>
-                    <div class="text-xs muted">RSS & Reddit</div>
-                  </div>
-                  <div class="mt-3 max-h-40 overflow-auto" id="newsList">
-                    <div class="muted text-sm">Loading news...</div>
-                  </div>
-                </div>
-
-                <!-- Sentiment card -->
-                <div class="card">
-                  <div class="flex items-center justify-between">
-                    <div class="font-semibold">Sentiment</div>
-                    <div class="text-xs muted">Headlines + Reddit</div>
-                  </div>
-                  <div class="mt-3">
-                    <canvas id="sentimentChart" height="120"></canvas>
-                    <div class="mt-2 muted text-sm">Score: <span id="sentimentScore">--</span></div>
-                  </div>
-                </div>
-
-                <!-- Whale Activity card -->
-                <div class="card">
-                  <div class="flex items-center justify-between">
-                    <div class="font-semibold">Whales</div>
-                    <div class="text-xs muted">Large txs</div>
-                  </div>
-                  <div class="mt-3 max-h-40 overflow-auto" id="whaleList">
-                    <div class="muted text-sm">Loading whales...</div>
-                  </div>
-                </div>
-
-                <!-- Open Interest card -->
-                <div class="card">
-                  <div class="flex items-center justify-between">
-                    <div class="font-semibold">Open Interest</div>
-                    <div class="text-xs muted">Longs vs Shorts</div>
-                  </div>
-                  <div class="mt-3">
-                    <canvas id="oiChart" height="120"></canvas>
-                    <div class="mt-2 muted text-sm">Latest OI: <span id="oiLatest">--</span></div>
-                  </div>
-                </div>
-
-                <!-- RPC Offering card -->
-                <div class="card">
-                  <div class="flex items-center justify-between">
-                    <div class="font-semibold">Optimized RPC</div>
-                    <div class="text-xs muted">Low latency · 99.99% uptime</div>
-                  </div>
-                  <div class="mt-3">
-                    <p class="muted text-sm">Upgrade your trading with custom RPCs for Hyperliquid. Ultra-low latency, dedicated endpoints, and priority support.</p>
-                    <div class="mt-3">
-                      <a href="https://rubynodes.io" target="_blank" class="inline-block px-3 py-2 rounded bg-gradient-to-r from-[#00CC66] to-[#00FF7F] text-black font-semibold">Get 14-Day Free Trial</a>
-                      <a href="https://rubynodes.io" target="_blank" class="ml-2 inline-block px-3 py-2 rounded border border-white/10 muted">Order Custom RPC</a>
+                  <!-- GIYP chart card -->
+                  <div class="card self-start">
+                    <div class="font-semibold">GIYP Predictor</div>
+                    <div class="h-40 overflow-hidden">
+                      <canvas id="giypChart"></canvas>
                     </div>
                   </div>
-                </div>
 
-              </div>
-            </div>
-
-            <!-- Right column: HSI index gauge + Governance quick -->
-            <div class="card">
-              <div class="flex items-center justify-between">
-                <div class="font-semibold">Hyperliquid Sentiment Index</div>
-                <div class="text-xs muted">0–100</div>
-              </div>
-              <div class="mt-4">
-                <canvas id="HSIGauge" height="200"></canvas>
-                <div class="mt-3 grid grid-cols-3 gap-2 text-xs muted">
-                  <div class="text-center">
-                    <div class="font-bold" id="HSISent">--</div>
-                    <div>Sentiment</div>
+                  <!-- HSI / CCLB chart card -->
+                  <div class="card self-start">
+                    <div class="font-semibold">HSI Benchmark</div>
+                    <div class="h-40 overflow-hidden">
+                      <canvas id="cclbChart"></canvas>
+                    </div>
                   </div>
-                  <div class="text-center">
-                    <div class="font-bold" id="HSIWhales">--</div>
-                    <div>Whales</div>
+
+                  <!-- News Aggregator card -->
+                  <div class="card self-start">
+                    <div class="flex items-center justify-between">
+                      <div class="font-semibold">News</div>
+                      <div class="text-xs muted">RSS & Reddit</div>
+                    </div>
+                    <div class="mt-3 max-h-40 overflow-auto" id="newsList">
+                      <div class="muted text-sm">Loading news...</div>
+                    </div>
                   </div>
-                  <div class="text-center">
-                    <div class="font-bold" id="HSIOI">--</div>
-                    <div>Open Interest</div>
+
+                  <!-- Sentiment card -->
+                  <div class="card self-start">
+                    <div class="flex items-center justify-between">
+                      <div class="font-semibold">Sentiment</div>
+                      <div class="text-xs muted">Headlines + Reddit</div>
+                    </div>
+                    <div class="mt-3 h-40 overflow-hidden">
+                      <canvas id="sentimentChart"></canvas>
+                    </div>
+                    <div class="mt-2 muted text-sm">Score: <span id="sentimentScore">--</span></div>
                   </div>
-                </div>
-              </div>
 
-              <hr class="my-4 border-white/5">
+                  <!-- Whale Activity card -->
+                  <div class="card self-start">
+                    <div class="flex items-center justify-between">
+                      <div class="font-semibold">Whales</div>
+                      <div class="text-xs muted">Large txs</div>
+                    </div>
+                    <div class="mt-3 max-h-40 overflow-auto" id="whaleList">
+                      <div class="muted text-sm">Loading whales...</div>
+                    </div>
+                  </div>
 
-              <div>
-                <div class="font-semibold">Governance Snapshot</div>
-                <div class="mt-2 muted text-sm">Active HIPs</div>
-                <div id="govSnapshot" class="mt-2 max-h-40 overflow-auto">
-                  <div class="muted text-sm">Loading HIPs...</div>
-                </div>
-                <div class="mt-3">
-                  <a href="#governance" class="text-sm brand-green-2">View Governance →</a>
-                </div>
-              </div>
+                  <!-- Open Interest card -->
+                  <div class="card self-start">
+                    <div class="flex items-center justify-between">
+                      <div class="font-semibold">Open Interest</div>
+                      <div class="text-xs muted">Longs vs Shorts</div>
+                    </div>
+                    <div class="mt-3 h-40 overflow-hidden">
+                      <canvas id="oiChart"></canvas>
+                    </div>
+                    <div class="mt-2 muted text-sm">Latest OI: <span id="oiLatest">--</span></div>
+                  </div>
 
-            </div>
-          </div>
-        </section>
-
-        <!-- Analytics page (tabbed) -->
-        <section id="analytics" class="mb-8">
-          <div class="card">
-            <div class="flex items-center justify-between">
-              <div class="font-semibold">Analytics</div>
-              <div class="text-xs muted">Sentiment · Whales · OI · HSI</div>
-            </div>
-
-            <div class="mt-4">
-              <div class="flex gap-2">
-                <button class="tabBtn px-3 py-1 rounded bg-white/5" data-tab="sentimentTab">Sentiment</button>
-                <button class="tabBtn px-3 py-1 rounded bg-white/5" data-tab="whalesTab">Whales</button>
-                <button class="tabBtn px-3 py-1 rounded bg-white/5" data-tab="oiTab">Open Interest</button>
-                <button class="tabBtn px-3 py-1 rounded bg-white/5" data-tab="HSITab">HSI Index</button>
-              </div>
-
-              <div class="mt-4">
-                <div id="sentimentTab" class="tabPanel">
-                  <canvas id="sentimentPie" height="160"></canvas>
-                </div>
-                <div id="whalesTab" class="tabPanel hidden">
-                  <canvas id="whalesBar" height="160"></canvas>
-                </div>
-                <div id="oiTab" class="tabPanel hidden">
-                  <canvas id="oiLine" height="160"></canvas>
-                </div>
-                <div id="HSITab" class="tabPanel hidden">
-                  <canvas id="HSIChart" height="160"></canvas>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Governance page -->
-        <section id="governance" class="mb-8">
-          <div class="card">
-            <div class="flex items-center justify-between">
-              <div class="font-semibold">Governance</div>
-              <div class="text-xs muted">HIPs & validator votes</div>
-            </div>
-
-            <div class="mt-4">
-              <div id="hipsList" class="grid grid-cols-1 gap-4">
-                <div class="muted text-sm">Loading HIPs...</div>
-              </div>
-            </div>
-          </div>
-        </section>
+                  <!-- RPC Offering card -->
+                  <div class="card self-start">
+                    <div class="flex items-center justify-between">
 
         <!-- Education -->
         <section id="education" class="mb-8">

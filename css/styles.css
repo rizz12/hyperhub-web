@@ -104,9 +104,33 @@ canvas {
   display: block;
 }
 
-.chart-box {
+/* pevné chování wrapperu a zabránění stretch v rodičích */
+.chart-box, .h-40 {
   height: 160px;
   overflow: hidden;
+}
+
+/* pokud rodič používá flex, zajisti, že karty nebudou stretchovat */
+.row-cards, .cards-row, .card-row {
+  display: flex;
+  gap: 16px; /* nebo co používáš */
+  align-items: flex-start; /* klíčové: zabrání stretch */
+  flex-wrap: wrap;
+}
+
+/* zajistí, že jednotlivé karty nebudou růst do výšky rodiče */
+.card {
+  align-self: flex-start;
+  flex: 0 0 auto;
+}
+
+/* pevná výška canvasu */
+canvas {
+  height: 160px !important;
+  max-height: 160px;
+  width: 100%;
+  display: block;
+  object-fit: contain;
 }
 
 .card canvas {
