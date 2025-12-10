@@ -2,11 +2,6 @@
   const ENABLE_CHARTS = true;
   const HAS_CHART = typeof Chart !== "undefined";
 
- // ... zbytek API atd.
-// dočasně deaktivováno 
-//   const HAS_CHART = typeof Chart !== "undefined";
-//   const ENABLE_CHARTS = false; // <- až bude vše OK, přepni na true
-
   // Direct API endpoints for static site (no backend)
   const API = {
     price: "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=hyperliquid&order=market_cap_desc&per_page=1&page=1&sparkline=false",
