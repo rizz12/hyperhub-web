@@ -1,7 +1,11 @@
 (() => {
-  // Feature flags
+  const ENABLE_CHARTS = false;          // <-- přidat
   const HAS_CHART = typeof Chart !== "undefined";
-  const ENABLE_CHARTS = false; // <- až bude vše OK, přepni na true
+
+ // ... zbytek API atd.
+// dočasně deaktivováno 
+//   const HAS_CHART = typeof Chart !== "undefined";
+//   const ENABLE_CHARTS = false; // <- až bude vše OK, přepni na true
 
   // Direct API endpoints for static site (no backend)
   const API = {
@@ -97,5 +101,40 @@
   }
 
   // INIT CHARTS
-  function
+  function initCharts() {
+    if (!ENABLE_CHARTS || !HAS_CHART) return;  // <-- přidat
+
+    const sCanvas = document.getElementById("sentimentChart");
+    if (sCanvas) {
+      sentimentChart = new Chart(sCanvas.getContext("2d"), {
+        type: "doughnut",
+        data: { labels: ["Bullish", "Bearish"], datasets: [{ data: [50, 50], backgroundColor: ["#00FF7F", "#FF0033"] }] }
+      });
+    }
+
+    const oiCanvas = document.getElementById("oiChart");
+    if (oiCanvas) {
+      oiChart = new Chart(oiCanvas.getContext("2d"), {
+        type: "bar",
+        data: { labels: [], datasets: [{ label: "Longs", data: [], backgroundColor: "#00FF7F" }, { label: "Shorts", data: [], backgroundColor: "#FF0033" }] }
+      });
+    }
+
+    const HSICanvas = document.getElementById("HSIGauge");
+    if (HSICanvas) {
+      HSIGauge = new Chart(HSICanvas.getContext("2d"), {
+        type: "doughnut",
+        data: { labels: ["Index", "Remaining"], datasets: [{ data: [60, 40], backgroundColor: ["#00FF7F", "#222"] }] },
+        options: { rotation: -Math.PI, circumference: Math.PI, cutout: "70%" }
+      });
+    }
+
+    const sentimentPieCanvas = document.getElementById("sentimentPie");
+    if (sentimentPieCanvas) {
+      sentimentPie = new Chart(sentimentPieCanvas.getContext("2d"), {
+        type: "pie",
+        data: { labels: ["Positive", "Negative"], datasets: [{ data: [60, 40], backgroundColor: ["#00FF7F", "#FF0033"] }] }
+      });
+    }
+  }
 
