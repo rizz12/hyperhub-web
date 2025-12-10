@@ -6,12 +6,11 @@
     price: "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=hyperliquid&order=market_cap_desc&per_page=1&page=1&sparkline=false",
 
     // RSS feeds: some may have CORS. Reddit supports CORS; others might need a proxy in production.
-    newsFeeds: [
-      "https://www.reddit.com/r/Hyperliquid/.rss",
-      "https://cointelegraph.com/rss",
-      "https://www.theblock.co/rss"
-      // Add Hyperliquid blog RSS if available and CORS-allowed
-    ],
+newsFeeds: [
+  "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://www.reddit.com/r/Hyperliquid/.rss"),
+  "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://cointelegraph.com/rss"),
+  "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://www.theblock.co/rss")
+],
 
     // Placeholder JSON for whales / OI / governance (static demo)
     whalesDemo: [
@@ -234,42 +233,47 @@ if (typeof Chart !== "undefined") {
   }
 
 async function fetchNews() {
-  console.log("fetchNews STARTED - checking DOM");  // Nový log: Ukáže se hned
+  console.log("fetchNews STARTED with proxy");
   if (!newsListEl) {
-    console.error("newsListEl is null - check HTML id='newsList'");
+    console.error("newsListEl null");
     return;
   }
-  newsListEl.innerHTML = "";
-  console.log("fetchNews called, cleared list, children now:", newsListEl.children.length);  // Tvůj původní log
+  newsListEl.innerHTML = '<div class="text-sm muted">Loading news...</div>';
+  console.log("fetchNews: cleared to loading, children:", newsListEl.children.length);
   try {
     const feeds = API.newsFeeds;
-    console.log("Fetching from feeds:", feeds);  // Nový: Ukáže, jestli RSS funguje
-    const responses = await Promise.all(feeds.map(url => fetch(url).then(r => r.text()).catch(e => { console.warn("RSS fetch error:", e, "for", url); return ""; })));
+    console.log("Fetching", feeds.length, "proxy URLs");
+    const responses = await Promise.all(feeds.map(url => fetch(url).then(r => {
+      if (!r.ok) throw new Error(r.status);
+      return r.text();
+    }).catch(e => {
+      console.warn("Fetch error:", e.message);
+      return "";
+    })));
     let items = [];
     responses.forEach((xml, i) => {
-      if (xml) {
-        const titles = [...xml.matchAll(/<title>([^<]+)<\/title>/g)].map(m => m[1]).slice(0, 3);  // Z kódu
-        items = items.concat(titles.map(title => ({ title, source: feeds[i] })));
+      if (xml && xml.includes('<title>')) {
+        const titles = [...xml.matchAll(/<title>([^<]+)<\/title>/g)].slice(1, 4).map(m => m[1].trim());  // Skip channel, take 3
+        items.push(...titles.map(title => ({ title, source: feeds[i].split('url=')[1]?.split('%')[0] || 'RSS' })));
       }
     });
-    items = items.slice(0, 8).reverse();  // Z kódu
-    newsListEl.innerHTML = '<div class="text-sm muted mb-2">Loading news...</div>';  // Reset loading, pokud prázdné
+    items = items.slice(0, 8).reverse();
+    console.log("Parsed", items.length, "items");
     if (!items.length) {
-      console.log("No news items fetched - showing loading");
-      newsListEl.innerHTML = '<div class="text-sm muted">No news available</div>';
+      newsListEl.innerHTML = '<div class="text-sm muted">No news (RSS down?)</div>';
       return;
     }
-    newsListEl.innerHTML = "";  // Clear loading
+    newsListEl.innerHTML = "";
     items.forEach(item => {
       const el = document.createElement("div");
       el.className = "mb-2 p-2 glass rounded text-sm";
       el.innerHTML = `<a href="#" class="hover:underline">${item.title}</a><div class="muted text-xs mt-1">${item.source}</div>`;
       newsListEl.appendChild(el);
     });
-    console.log("fetchNews done, appended", items.length, "items, total children:", newsListEl.children.length);  // Tvůj log
+    console.log("fetchNews DONE, appended", items.length, "children:", newsListEl.children.length);
   } catch (e) {
-    console.error("fetchNews full error:", e);
-    newsListEl.innerHTML = '<div class="text-sm muted">Error loading news</div>';
+    console.error("fetchNews ERROR:", e);
+    newsListEl.innerHTML = '<div class="text-sm muted">Error: ' + e.message + '</div>';
   }
 }
 
@@ -398,20 +402,30 @@ if (!newsListEl.children.length) {
     if (first) first.click();
   }
 
-  function initMobileMenu() {
+function initMobileMenu() {
   const mobileBtn = document.getElementById("mobileMenuBtn");
   const mobileMenu = document.getElementById("mobileMenu");
   const mobileClose = document.getElementById("mobileClose");
   if (!mobileBtn || !mobileMenu || !mobileClose) {
-    console.log("Mobile menu elements missing, skipping init");  // Debug log pro nás
+    console.log("Mobile menu elements missing - skipping (no error)");  // Log místo erroru
     return;
   }
-  mobileBtn.addEventListener("click", () => mobileMenu.classList.remove("hidden"));
-  mobileClose.addEventListener("click", () => mobileMenu.classList.add("hidden"));
+  // Extra check před addEventListener
+  if (mobileBtn.addEventListener) {
+    mobileBtn.addEventListener("click", () => mobileMenu.classList.remove("hidden"));
+  }
+  if (mobileClose.addEventListener) {
+    mobileClose.addEventListener("click", () => mobileMenu.classList.add("hidden"));
+  }
   const links = mobileMenu.querySelectorAll("a");
   if (links.length > 0) {
-    links.forEach(a => a.addEventListener("click", () => mobileMenu.classList.add("hidden")));
+    links.forEach(a => {
+      if (a.addEventListener) {
+        a.addEventListener("click", () => mobileMenu.classList.add("hidden"));
+      }
+    });
   }
+  console.log("Mobile menu inited OK");
 }
 
   // Theme toggle: toggles "light" class on html and CSS variables handle colors
@@ -506,13 +520,11 @@ async function fetchAll() {
     initTheme();
     fetchAll();
 setInterval(() => {
-  if (newsListEl) newsListEl.innerHTML = "";  
-  if (sentimentScoreEl) sentimentScoreEl.innerHTML = "";  
-  console.log("Interval tick - cleared lists");  
+  if (newsListEl) newsListEl.innerHTML = "";
+  if (sentimentScoreEl) sentimentScoreEl.innerHTML = "";
+  console.log("Interval: cleared sloupce");
   fetchAll();
 }, 60 * 1000);
-  }
-
   document.addEventListener("DOMContentLoaded", init);
 })();
 
