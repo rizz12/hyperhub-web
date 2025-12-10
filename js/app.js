@@ -1,6 +1,6 @@
-// js/app.js – FINÁLNÍ OPRAVA 2025: bezpečné načítání, demo data, žádné chyby ani růst sloupců
+// js/app.js – FINÁLNÍ OPRAVA: žádné pády, demo data, HSI, bez nekonečného růstu
 (() => {
-  // Globální nastavení Chart.js (pokud je knihovna načtena)
+  // Globální nastavení Chart.js (pokud je načten)
   if (typeof Chart !== "undefined") {
     Chart.defaults.responsive = true;
     Chart.defaults.maintainAspectRatio = false;
@@ -10,11 +10,11 @@
   const API = {
     price: "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=hyperliquid&order=market_cap_desc&per_page=1&page=1&sparkline=false",
     demoNews: [
-      { title: "Hyperliquid API výpadek kvůli přetížení (ne hack)", source: "CoinSpeaker, červenec 2025" },
-      { title: "Hyperliquid Strategies oznamuje zpětný odkup akcií za 30M USD", source: "StockTitan, prosinec 2025" },
-      { title: "HIP-6 prošel: spalování poplatků pro držitele HYPE", source: "TheBlock" },
-      { title: "Velryby nakoupily 2M HYPE při integraci Aster", source: "r/hyperliquid1" },
-      { title: "beHYPE staking výnosy dosáhly 15% APY během bull runu", source: "Oficiální blog" }
+      { title: "Hyperliquid API výpadek kvůli přetížení (ne hack)", source: "CoinSpeaker, 2025" },
+      { title: "Hyperliquid Strategies: zpětný odkup akcií za 30M USD", source: "StockTitan, 2025" },
+      { title: "HIP-6 prošel: spalování fee pro držitele HYPE", source: "TheBlock" },
+      { title: "Velryby nakoupily 2M HYPE při integraci Aster", source: "Reddit (mirror)" },
+      { title: "beHYPE staking výnosy dosáhly 15% APY", source: "Oficiální blog" }
     ],
     whalesDemo: [
       { pair: "HYPE/USDC", side: "long", size_usd: 250000, time: Date.now() },
@@ -40,7 +40,7 @@
     ]
   };
 
-  // Pomocné formátovací funkce
+  // Pomocné formátování
   function fmtUSD(v) {
     if (v === null || v === undefined) return "--";
     if (v >= 1e9) return "$" + (v / 1e9).toFixed(2) + "B";
@@ -67,7 +67,7 @@
   const govSnapshotEl = $("govSnapshot");
   const sentimentScoreEl = $("sentimentScore");
 
-  // Demo načítání
+  // Demo načítání (bez fetch, ihned)
   function loadNewsDemo() {
     if (!newsListEl) return;
     newsListEl.innerHTML = "";
@@ -91,7 +91,7 @@
     API.whalesDemo.forEach(whale => {
       const el = document.createElement("div");
       el.className = "mb-2 p-2 glass rounded text-sm";
-      el.innerHTML = `<div>${whale.pair} - ${whale.side.toUpperCase()} $${fmtNum(whale.size_usd)} (${new Date(whale.time).toLocaleString()})</div>`;
+      el.innerHTML = `<div>${whale.pair} · ${whale.side.toUpperCase()} $${fmtNum(whale.size_usd)} (${new Date(whale.time).toLocaleString()})</div>`;
       whaleListEl.appendChild(el);
     });
   }
@@ -137,4 +137,139 @@
       const res = await fetch(API.price);
       const data = await res.json();
       const coin = data[0] || {};
+      if (hypePriceEl) hypePriceEl.textContent = coin.current_price ? `$${Number(coin.current_price).toFixed(4)}` : "--";
+      if (hypeChangeEl) hypeChangeEl.textContent = coin.price_change_percentage_24h != null ? `${coin.price_change_percentage_24h.toFixed(2)}%` : "--";
+      if (cardPriceEl) cardPriceEl.textContent = coin.current_price ? `$${Number(coin.current_price).toFixed(4)}` : "--";
+      if (cardVolumeEl) cardVolumeEl.textContent = fmtUSD(coin.total_volume);
+      if (cardMarketCapEl) cardMarketCapEl.textContent = fmtUSD(coin.market_cap);
+      if (lastUpdatedEl) lastUpdatedEl.textContent = "Updated: " + new Date().toLocaleTimeString();
+    } catch (e) {
+      console.warn("Price error:", e);
+    }
+  }
+
+  // Charts – inicializace jen pokud existují canvasy
+  let sentimentChart = null;
+  let oiChart = null;
+  let HSIGauge = null;
+  let giypChart = null;
+  let hsiChart = null;
+
+  function initCharts() {
+    const sCanvas = $("sentimentChart");
+    if (sCanvas && typeof Chart !== "undefined") {
+      const sCtx = sCanvas.getContext("2d");
+      sentimentChart = new Chart(sCtx, {
+        type: "doughnut",
+        data: { labels: ["Positive", "Negative"], datasets: [{ data: [75, 25], backgroundColor: ["#00FF7F", "#FF0033"] }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      });
+    }
+
+    const oiCanvas = $("oiChart");
+    if (oiCanvas && typeof Chart !== "undefined") {
+      const oiCtx = oiCanvas.getContext("2d");
+      oiChart = new Chart(oiCtx, {
+        type: "bar",
+        data: { labels: ["T-2h","T-1h","Now"], datasets: [{ label: "Longs", data: [1.1e6, 1.2e6, 1.25e6], backgroundColor: "#00FF7F" }, { label: "Shorts", data: [0.85e6, 0.9e6, 0.95e6], backgroundColor: "#FF0033" }] },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      });
+    }
+
+    // HSI gauge (pokud používáš polokruhový gauge – volitelně)
+    const hsiGaugeCanvas = $("HSIGauge");
+    if (hsiGaugeCanvas && typeof Chart !== "undefined") {
+      const hsiGaugeCtx = hsiGaugeCanvas.getContext("2d");
+      HSIGauge = new Chart(hsiGaugeCtx, {
+        type: "doughnut",
+        data: { labels: ["Index","Remaining"], datasets: [{ data: [60, 40], backgroundColor: ["#00FF7F", "#222"] }] },
+        options: { rotation: -Math.PI, circumference: Math.PI, cutout: "70%", plugins: { legend: { display: false } } }
+      });
+    }
+
+    // GIYP
+    const giypCanvas = $("giypChart");
+    if (giypCanvas && typeof Chart !== "undefined") {
+      const giypCtx = giypCanvas.getContext("2d");
+      giypChart = new Chart(giypCtx, {
+        type: "line",
+        data: { labels: ["Pre-vote", "Post-vote"], datasets: [{ label: "Yield %", data: [5, 6], borderColor: "cyan", fill: false }] },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      });
+    }
+
+    // HSI (dříve CBBI/CCLB)
+    const hsiCanvas = $("hsiChart");
+    if (hsiCanvas && typeof Chart !== "undefined") {
+      const hsiCtx = hsiCanvas.getContext("2d");
+      hsiChart = new Chart(hsiCtx, {
+        type: "bar",
+        data: { labels: ["Sentiment", "Whales", "OI"], datasets: [{ label: "HSI Components", data: [60, 55, 50], backgroundColor: ["#00FF7F", "#00CC66", "#FF0033"] }] },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
+      });
+    }
+  }
+
+  // Bezpečný theme toggle (nebude padat, když chybí tlačítko)
+  function initTheme() {
+    const btn = $("themeToggle");
+    const html = document.documentElement;
+    if (!btn) return;
+    const saved = localStorage.getItem("hyperhub-theme");
+    if (saved === "light") {
+      html.classList.add("light");
+      btn.textContent = "Light";
+    } else {
+      html.classList.remove("light");
+      btn.textContent = "Dark";
+    }
+    btn.addEventListener("click", () => {
+      html.classList.toggle("light");
+      localStorage.setItem("hyperhub-theme", html.classList.contains("light") ? "light" : "dark");
+      btn.textContent = html.classList.contains("light") ? "Light" : "Dark";
+    });
+  }
+
+  // VYPNUTO: mobilní menu (způsobovalo pád, protože prvky chybí)
+  function initMobileMenu() {
+    // Záměrně prázdné – nic neinicializovat, dokud nebudou v HTML skutečné prvky s id:
+    // mobileMenuBtn, mobileMenu, mobileClose
+    return;
+  }
+
+  // Načti vše
+  async function loadAll() {
+    loadNewsDemo();
+    loadSentimentDemo();
+    loadWhalesDemo();
+    loadOIDemo();
+    loadGovernanceDemo();
+    await fetchPrice();
+  }
+
+  // Interval bez duplikací
+  function startIntervals() {
+    setInterval(() => {
+      if (newsListEl) newsListEl.innerHTML = "";
+      if (whaleListEl) whaleListEl.innerHTML = "";
+      if (sentimentScoreEl) sentimentScoreEl.textContent = "";
+      loadAll();
+    }, 60000);
+  }
+
+  // Start
+  function init() {
+    initCharts();
+    initTheme();
+    initMobileMenu(); // bezpečně nic nedělá
+    loadAll();
+    startIntervals();
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+  window.addEventListener("load", () => {
+    // Fallback – pokud by DOMContentLoaded proběhlo dřív, než jsou prvky dostupné
+    init();
+  });
+})();
 
