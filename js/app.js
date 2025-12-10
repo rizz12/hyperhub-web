@@ -119,6 +119,14 @@
         ],
       },
     ],
+
+    giypDemo: [
+      { hip: "HIP-1", before: 4.2, after: 5.1, expectedLow: 4.9, expectedHigh: 5.6 },
+      { hip: "HIP-2", before: 3.8, after: 3.4, expectedLow: 3.2, expectedHigh: 3.6 },
+      { hip: "HIP-3", before: 5.0, after: 5.8, expectedLow: 5.5, expectedHigh: 6.2 }
+    ],
+
+
   };
 
   // 3) Utils
@@ -177,11 +185,27 @@
   }
 
   // HSI + GIYP Mock text
+   // GIYP text summary – uses demo data
   function loadGiypMock() {
     const el = document.getElementById("giypIndicator");
     if (!el) return;
-    el.textContent = "HIP-3: +1% beHYPE yield (Positive)";
+
+    const series = API.giypDemo;
+    if (!series.length) {
+      el.textContent = "No governance impact data available yet.";
+      return;
+    }
+
+    const latest = series[series.length - 1];
+    const delta = latest.after - latest.before;
+    const sign = delta >= 0 ? "+" : "";
+    const rangeText = `${latest.expectedLow.toFixed(1)}–${latest.expectedHigh.toFixed(1)}%`;
+
+    el.textContent =
+      `After ${latest.hip}: expected yield change ${sign}${delta.toFixed(1)}% ` +
+      `(${latest.before.toFixed(1)}% → ${rangeText}). This is a static demo based on mock HIP data.`;
   }
+
   function loadCclbMock() {
     const el = document.getElementById("cclbIndicator");
     if (!el) return;
@@ -291,6 +315,84 @@
       });
     }
 
+    // GIYP line chart (HIP -> yields before/after)
+    const giypCanvas = document.getElementById("giypChart");
+    if (giypCanvas) {
+      const series = API.giypDemo;
+      const labels = series.map((p) => p.hip);
+      const beforeData = series.map((p) => p.before);
+      const afterData = series.map((p) => p.after);
+
+      giypChart = new Chart(giypCanvas.getContext("2d"), {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Yield before vote",
+              data: beforeData,
+              borderColor: "#9CA3AF",
+              backgroundColor: "rgba(156,163,175,0.1)",
+              borderWidth: 2,
+              tension: 0.3,
+              pointRadius: 3,
+              pointBackgroundColor: "#9CA3AF",
+            },
+            {
+              label: "Yield after vote",
+              data: afterData,
+              borderColor: "#22C55E",
+              backgroundColor: "rgba(34,197,94,0.1)",
+              borderWidth: 2,
+              tension: 0.3,
+              pointRadius: 3,
+              pointBackgroundColor: "#22C55E",
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: "index",
+            intersect: false,
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: "#6B7280", font: { size: 10 } },
+            },
+            y: {
+              grid: { color: "rgba(55,65,81,0.4)" },
+              ticks: {
+                color: "#6B7280",
+                font: { size: 10 },
+                callback: (v) => v + "%",
+              },
+            },
+          },
+          plugins: {
+            legend: {
+              display: true,
+              labels: {
+                color: "#9CA3AF",
+                font: { size: 10 },
+              },
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  const v = ctx.parsed.y;
+                  return ctx.dataset.label + ": " + v.toFixed(2) + "%";
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+
+
     const HSICanvas = document.getElementById("HSIGauge");
     if (HSICanvas) {
       HSIGauge = new Chart(HSICanvas.getContext("2d"), {
@@ -307,6 +409,69 @@
         options: { rotation: -Math.PI, circumference: Math.PI, cutout: "70%" },
       });
     }
+
+
+    // GIYP line chart (HIP -> yields before/after)
+    const giypCanvas = document.getElementById("giypChart");
+    if (giypCanvas) {
+      const series = API.giypDemo;
+      const labels = series.map((p) => p.hip);
+      const beforeData = series.map((p) => p.before);
+      const afterData = series.map((p) => p.after);
+
+      giypChart = new Chart(giypCanvas.getContext("2d"), {
+        type: "line",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Yield before vote",
+              data: beforeData,
+              borderColor: "#9CA3AF",
+              backgroundColor: "rgba(156,163,175,0.2)",
+              tension: 0.3,
+            },
+            {
+              label: "Yield after vote",
+              data: afterData,
+              borderColor: "#22C55E",
+              backgroundColor: "rgba(34,197,94,0.2)",
+              tension: 0.3,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              ticks: {
+                callback: (v) => v + "%",
+              },
+            },
+          },
+          plugins: {
+            legend: {
+              display: true,
+              labels: {
+                color: "#9CA3AF",
+                font: { size: 10 },
+              },
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  const v = ctx.parsed.y;
+                  return ctx.dataset.label + ": " + v.toFixed(2) + "%";
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+
+
 
     const sentimentPieCanvas = document.getElementById("sentimentPie");
     if (sentimentPieCanvas) {
@@ -381,6 +546,39 @@
     });
   }
 
+    governanceDemo: [
+      {
+        id: "HIP-1",
+        title: "Increase beHYPE staking rewards",
+        status: "active",
+        proposer: "0xabc",
+        aye: [
+          { validator: "val1", stake: 12000 },
+          { validator: "val2", stake: 8000 },
+        ],
+        nay: [{ validator: "val3", stake: 2000 }],
+      },
+      {
+        id: "HIP-2",
+        title: "Adjust fee structure",
+        status: "closed",
+        proposer: "0xdef",
+        aye: [{ validator: "val2", stake: 5000 }],
+        nay: [
+          { validator: "val1", stake: 3000 },
+          { validator: "val4", stake: 1000 },
+        ],
+      },
+    ],
+
+    // GIYP demo data – static for now
+    giypDemo: [
+      { hip: "HIP-1", before: 4.2, after: 5.1, expectedLow: 4.9, expectedHigh: 5.6 },
+      { hip: "HIP-2", before: 3.8, after: 3.4, expectedLow: 3.2, expectedHigh: 3.6 },
+      { hip: "HIP-3", before: 5.0, after: 5.8, expectedLow: 5.5, expectedHigh: 6.2 }
+    ],
+
+
   // Very naive sentiment from news titles
   function fetchSentimentDemo() {
     try {
@@ -443,6 +641,14 @@
     fetchAll();
     setInterval(fetchAll, 60 * 1000);
   }
+
+giypDemo: [
+  { hip: "HIP-1", before: 4.2, after: 5.1, expected: 5.0 },
+  { hip: "HIP-2", before: 3.8, after: 3.4, expected: 3.5 },
+  { hip: "HIP-3", before: 5.0, after: 5.8, expected: 5.7 }
+],
+
+
 
   document.addEventListener("DOMContentLoaded", init);
 })();
