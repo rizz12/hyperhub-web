@@ -59,7 +59,7 @@
         pair: "BTC/USDC",
         side: "long",
         size_usd: 500000,
-                time: Date.now() - 2 * 60 * 60 * 1000,
+        time: Date.now() - 2 * 60 * 60 * 1000,
       },
       {
         pair: "ETH/USDC",
@@ -120,13 +120,30 @@
       },
     ],
 
+    // GIYP demo data – static for now
     giypDemo: [
-      { hip: "HIP-1", before: 4.2, after: 5.1, expectedLow: 4.9, expectedHigh: 5.6 },
-      { hip: "HIP-2", before: 3.8, after: 3.4, expectedLow: 3.2, expectedHigh: 3.6 },
-      { hip: "HIP-3", before: 5.0, after: 5.8, expectedLow: 5.5, expectedHigh: 6.2 }
+      {
+        hip: "HIP-1",
+        before: 4.2,
+        after: 5.1,
+        expectedLow: 4.9,
+        expectedHigh: 5.6,
+      },
+      {
+        hip: "HIP-2",
+        before: 3.8,
+        after: 3.4,
+        expectedLow: 3.2,
+        expectedHigh: 3.6,
+      },
+      {
+        hip: "HIP-3",
+        before: 5.0,
+        after: 5.8,
+        expectedLow: 5.5,
+        expectedHigh: 6.2,
+      },
     ],
-
-
   };
 
   // 3) Utils
@@ -184,8 +201,7 @@
     Chart.defaults.plugins.legend.display = false;
   }
 
-  // HSI + GIYP Mock text
-   // GIYP text summary – uses demo data
+  // GIYP text summary – uses demo data
   function loadGiypMock() {
     const el = document.getElementById("giypIndicator");
     if (!el) return;
@@ -331,8 +347,8 @@
             {
               label: "Yield before vote",
               data: beforeData,
-              borderColor: "#9CA3AF",
-              backgroundColor: "rgba(156,163,175,0.1)",
+              borderColor: "#6B7280",
+              backgroundColor: "rgba(156,163,175,0.15)",
               borderWidth: 2,
               tension: 0.3,
               pointRadius: 3,
@@ -342,7 +358,7 @@
               label: "Yield after vote",
               data: afterData,
               borderColor: "#22C55E",
-              backgroundColor: "rgba(34,197,94,0.1)",
+              backgroundColor: "rgba(34,197,94,0.15)",
               borderWidth: 2,
               tension: 0.3,
               pointRadius: 3,
@@ -392,7 +408,6 @@
       });
     }
 
-
     const HSICanvas = document.getElementById("HSIGauge");
     if (HSICanvas) {
       HSIGauge = new Chart(HSICanvas.getContext("2d"), {
@@ -409,69 +424,6 @@
         options: { rotation: -Math.PI, circumference: Math.PI, cutout: "70%" },
       });
     }
-
-
-    // GIYP line chart (HIP -> yields before/after)
-    const giypCanvas = document.getElementById("giypChart");
-    if (giypCanvas) {
-      const series = API.giypDemo;
-      const labels = series.map((p) => p.hip);
-      const beforeData = series.map((p) => p.before);
-      const afterData = series.map((p) => p.after);
-
-      giypChart = new Chart(giypCanvas.getContext("2d"), {
-        type: "line",
-        data: {
-          labels,
-          datasets: [
-            {
-              label: "Yield before vote",
-              data: beforeData,
-              borderColor: "#9CA3AF",
-              backgroundColor: "rgba(156,163,175,0.2)",
-              tension: 0.3,
-            },
-            {
-              label: "Yield after vote",
-              data: afterData,
-              borderColor: "#22C55E",
-              backgroundColor: "rgba(34,197,94,0.2)",
-              tension: 0.3,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              ticks: {
-                callback: (v) => v + "%",
-              },
-            },
-          },
-          plugins: {
-            legend: {
-              display: true,
-              labels: {
-                color: "#9CA3AF",
-                font: { size: 10 },
-              },
-            },
-            tooltip: {
-              callbacks: {
-                label: (ctx) => {
-                  const v = ctx.parsed.y;
-                  return ctx.dataset.label + ": " + v.toFixed(2) + "%";
-                },
-              },
-            },
-          },
-        },
-      });
-    }
-
-
 
     const sentimentPieCanvas = document.getElementById("sentimentPie");
     if (sentimentPieCanvas) {
@@ -511,7 +463,9 @@
     API.whalesDemo.forEach((w) => {
       const el = document.createElement("div");
       el.className = "mb-2";
-      el.innerHTML = `<div class="flex justify-between text-sm"><div>${w.pair} · ${w.side}</div><div>${fmtUSD(
+      el.innerHTML = `<div class="flex justify-between text-sm"><div>${w.pair} · ${
+        w.side
+      }</div><div>${fmtUSD(
         w.size_usd
       )}</div></div><div class="text-xs text-gray-500">${fmtAgo(
         w.time
@@ -545,39 +499,6 @@
       govSnapshotEl.appendChild(s);
     });
   }
-
-    governanceDemo: [
-      {
-        id: "HIP-1",
-        title: "Increase beHYPE staking rewards",
-        status: "active",
-        proposer: "0xabc",
-        aye: [
-          { validator: "val1", stake: 12000 },
-          { validator: "val2", stake: 8000 },
-        ],
-        nay: [{ validator: "val3", stake: 2000 }],
-      },
-      {
-        id: "HIP-2",
-        title: "Adjust fee structure",
-        status: "closed",
-        proposer: "0xdef",
-        aye: [{ validator: "val2", stake: 5000 }],
-        nay: [
-          { validator: "val1", stake: 3000 },
-          { validator: "val4", stake: 1000 },
-        ],
-      },
-    ],
-
-    // GIYP demo data – static for now
-    giypDemo: [
-      { hip: "HIP-1", before: 4.2, after: 5.1, expectedLow: 4.9, expectedHigh: 5.6 },
-      { hip: "HIP-2", before: 3.8, after: 3.4, expectedLow: 3.2, expectedHigh: 3.6 },
-      { hip: "HIP-3", before: 5.0, after: 5.8, expectedLow: 5.5, expectedHigh: 6.2 }
-    ],
-
 
   // Very naive sentiment from news titles
   function fetchSentimentDemo() {
@@ -634,24 +555,12 @@
   function init() {
     console.log("HyperHub INIT");
     initCharts();
-borderColor: "#6B7280",
-backgroundColor: "rgba(156,163,175,0.15)",
-pointBackgroundColor: "#9CA3AF",
-    // pokud máš taby / mobile menu / theme, můžeš je sem doplnit
     // initTabs();
     // initMobileMenu();
     // initTheme();
     fetchAll();
     setInterval(fetchAll, 60 * 1000);
   }
-
-giypDemo: [
-  { hip: "HIP-1", before: 4.2, after: 5.1, expected: 5.0 },
-  { hip: "HIP-2", before: 3.8, after: 3.4, expected: 3.5 },
-  { hip: "HIP-3", before: 5.0, after: 5.8, expected: 5.7 }
-],
-
-
 
   document.addEventListener("DOMContentLoaded", init);
 })();
