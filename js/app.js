@@ -233,37 +233,45 @@ if (typeof Chart !== "undefined") {
     }
   }
 
-  async function fetchNews() {
-    // Best-effort: try multiple feeds; CORS may block some
-    newsListEl.innerHTML = "";
-    const items = [];
-    for (const feed of API.newsFeeds) {
-      try {
-      console.log("fetchNews called, cleared list, children now:", newsListEl.children.length);
-        const res = await fetch(feed);
-        const text = await res.text();
-        // Naive RSS title extraction
-        const titles = [...text.matchAll(/<title>([^<]+)<\/title>/gi)].map(m => m[1]).slice(1); // skip channel title
-        const links = [...text.matchAll(/<link[^>]*>([^<]+)<\/link>/gi)].map(m => m[1]);
-        titles.slice(0, 3).forEach((t, i) => {
-          items.push({ title: t, link: links[i] || feed, source: feed });
-        });
-        console.log("fetchNews done, appended", items.length, "items, total children:", newsListEl.children.length);
-      } catch (e) {
-        console.warn("RSS fetch failed:", feed, e);
+async function fetchNews() {
+  console.log("fetchNews STARTED - checking DOM");  // Nový log: Ukáže se hned
+  if (!newsListEl) {
+    console.error("newsListEl is null - check HTML id='newsList'");
+    return;
+  }
+  newsListEl.innerHTML = "";
+  console.log("fetchNews called, cleared list, children now:", newsListEl.children.length);  // Tvůj původní log
+  try {
+    const feeds = API.newsFeeds;
+    console.log("Fetching from feeds:", feeds);  // Nový: Ukáže, jestli RSS funguje
+    const responses = await Promise.all(feeds.map(url => fetch(url).then(r => r.text()).catch(e => { console.warn("RSS fetch error:", e, "for", url); return ""; })));
+    let items = [];
+    responses.forEach((xml, i) => {
+      if (xml) {
+        const titles = [...xml.matchAll(/<title>([^<]+)<\/title>/g)].map(m => m[1]).slice(0, 3);  // Z kódu
+        items = items.concat(titles.map(title => ({ title, source: feeds[i] })));
       }
-    }
-    if (items.length === 0) {
-      newsListEl.innerHTML = '<div class="muted text-sm">No news available</div>';
+    });
+    items = items.slice(0, 8).reverse();  // Z kódu
+    newsListEl.innerHTML = '<div class="text-sm muted mb-2">Loading news...</div>';  // Reset loading, pokud prázdné
+    if (!items.length) {
+      console.log("No news items fetched - showing loading");
+      newsListEl.innerHTML = '<div class="text-sm muted">No news available</div>';
       return;
     }
-    items.slice(0, 8).forEach(it => {
+    newsListEl.innerHTML = "";  // Clear loading
+    items.forEach(item => {
       const el = document.createElement("div");
-      el.className = "mb-2";
-      el.innerHTML = `<a href="${it.link}" target="_blank" class="text-sm brand-green">${it.title}</a><div class="muted text-xs">${new URL(it.source).hostname}</div>`;
+      el.className = "mb-2 p-2 glass rounded text-sm";
+      el.innerHTML = `<a href="#" class="hover:underline">${item.title}</a><div class="muted text-xs mt-1">${item.source}</div>`;
       newsListEl.appendChild(el);
     });
+    console.log("fetchNews done, appended", items.length, "items, total children:", newsListEl.children.length);  // Tvůj log
+  } catch (e) {
+    console.error("fetchNews full error:", e);
+    newsListEl.innerHTML = '<div class="text-sm muted">Error loading news</div>';
   }
+}
 
   async function fetchSentiment() {
     try {
@@ -497,7 +505,12 @@ async function fetchAll() {
     initMobileMenu();
     initTheme();
     fetchAll();
-    setInterval(fetchAll, 60 * 1000);
+setInterval(() => {
+  if (newsListEl) newsListEl.innerHTML = "";  
+  if (sentimentScoreEl) sentimentScoreEl.innerHTML = "";  
+  console.log("Interval tick - cleared lists");  
+  fetchAll();
+}, 60 * 1000);
   }
 
   document.addEventListener("DOMContentLoaded", init);

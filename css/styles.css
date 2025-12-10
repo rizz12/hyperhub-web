@@ -27,8 +27,11 @@ html, body {
   height: 100%;
   background: var(--bg);
   color: var(--text);
+  margin: 0;
+  padding: 0;
 }
 
+/* Obecné styly pro komponenty */
 .glass {
   background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
   border: 1px solid rgba(255,255,255,0.06);
@@ -72,93 +75,106 @@ html, body {
 }
 
 .card {
-  border: 1px solid rgba(255,255,255,0.06);;
+  border: 1px solid rgba(255,255,255,0.06);
   border-radius: 12px;
   padding: 16px;
   background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
   transition: .2s;
+  align-self: flex-start;  /* Zabrání stretchu v flex */
+  flex: 0 0 auto;  /* Fixní velikost, bez růstu */
 }
 .card:hover {
   transform: translateY(-2px);
   box-shadow: 0 0 0 1px rgba(255,255,255,.06), 0 10px 24px rgba(0,0,0,.5);
 }
 
-
-:root {
-  --bg: #0F1117;
-  --text: #FFFFFF;
-}
-html.light {
-  --bg: #f7f7f7;
-  --text: #111111;
-}
-body {
-  background: var(--bg);
-  color: var(--text);
-}
-
+/* Fix pro charts (canvas) – pevná výška, bez stretchu */
 canvas {
   height: 160px !important;
-  max-height: 160px;
-  width: 100%;
-  display: block;
+  max-height: 160px !important;
+  width: 100% !important;
+  display: block !important;
+  object-fit: contain !important;
 }
 
-/* pevné chování wrapperu a zabránění stretch v rodičích */
 .chart-box, .h-40 {
-  height: 160px;
-  overflow: hidden;
+  height: 160px !important;
+  overflow: hidden !important;
+  position: relative;  /* Pro lepší containment */
 }
 
-/* pokud rodič používá flex, zajisti, že karty nebudou stretchovat */
 .row-cards, .cards-row, .card-row {
   display: flex;
-  gap: 16px; /* nebo co používáš */
-  align-items: flex-start; /* klíčové: zabrání stretch */
+  gap: 16px;
+  align-items: flex-start;  /* Zabrání stretchu karet */
   flex-wrap: wrap;
 }
 
-/* zajistí, že jednotlivé karty nebudou růst do výšky rodiče */
-.card {
-  align-self: flex-start;
-  flex: 0 0 auto;
-}
-
-/* pevná výška canvasu */
-canvas {
-  height: 160px !important;
-  max-height: 160px;
-  width: 100%;
-  display: block;
-  object-fit: contain;
-}
-
 .card canvas {
-  flex: 0 0 auto;
+  flex: 0 0 auto !important;
 }
 
-/* Fix pro nekonečné rozšiřování sloupců */
-#newsList, #sentiment {  /* Nahraď ID podle tvého HTML, např. .news-column nebo #newsList */
-  max-height: 500px;  /* Maximální výška sloupce */
-  overflow-y: auto;   /* Scroll uvnitř, místo růstu */
-  padding-right: 10px; /* Pro scrollbar */
-}
-#whaleList, .sentiment-section {  /* Stejně pro další sloupce */
-  max-height: 400px;
-  overflow-y: auto;
+/* FIX PRO SLOUPCE – max výška + scroll, proti nekonečnému růstu (integrované do Tailwind kompatibility) */
+#newsList, 
+.news-section,
+.flex.flex-col:has(#newsList) {  /* Cílí na News sloupec a jeho flex kontejner */
+  max-height: 60vh !important;  /* 60% viewport, responsivní */
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding-right: 8px !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: var(--muted) transparent;  /* Šedý thumb, průhledný track */
 }
 
-/* Fix nekonečného růstu sloupců – scroll místo rozšiřování */
-#newsList, .news-section {  /* Nahraď .news-section, pokud máš jinou třídu */
-  max-height: 500px;
-  overflow-y: auto;
-  padding-right: 5px;  /* Pro scrollbar */
+#sentimentScore, 
+.sentiment-section,
+[id*="sentiment"] {
+  max-height: 50vh !important;
+  overflow-y: auto !important;
+  padding-right: 8px !important;
+  scrollbar-width: thin !important;
 }
-#sentimentScore, .sentiment-section {
-  max-height: 400px;
-  overflow-y: auto;
+
+#whaleList, 
+.whales-section,
+.sentiment-column {
+  max-height: 40vh !important;
+  overflow-y: auto !important;
+  padding-right: 8px !important;
+  scrollbar-width: thin !important;
 }
-.whales-section, #whaleList {  /* Pro Whales, pokud roste */
-  max-height: 300px;
-  overflow-y: auto;
+
+/* Obecný fix pro grid sloupce (Tailwind grid-cols-3) – zabrání reflow celé stránky */
+.grid.grid-cols-1.md\:grid-cols-3 > div,
+.news-column,
+.sentiment-column {
+  overflow: hidden !important;
+  min-height: 0 !important;  /* Zabrání flex-grow růstu */
+  max-height: 100vh !important;  /* Globální cap pro celý grid */
+}
+
+/* Scrollbar styly pro Webkit (Chrome/Edge) – dark/light theme */
+#newsList::-webkit-scrollbar,
+#sentimentScore::-webkit-scrollbar,
+#whaleList::-webkit-scrollbar {
+  width: 6px;
+}
+
+#newsList::-webkit-scrollbar-track,
+#sentimentScore::-webkit-scrollbar-track,
+#whaleList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#newsList::-webkit-scrollbar-thumb,
+#sentimentScore::-webkit-scrollbar-thumb,
+#whaleList::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 3px;
+}
+
+html.light #newsList::-webkit-scrollbar-thumb,
+html.light #sentimentScore::-webkit-scrollbar-thumb,
+html.light #whaleList::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
 }
