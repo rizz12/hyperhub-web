@@ -136,3 +136,29 @@ canvas {
 .card canvas {
   flex: 0 0 auto;
 }
+
+/* Fix pro nekonečné rozšiřování sloupců */
+#newsList, #sentiment {  /* Nahraď ID podle tvého HTML, např. .news-column nebo #newsList */
+  max-height: 500px;  /* Maximální výška sloupce */
+  overflow-y: auto;   /* Scroll uvnitř, místo růstu */
+  padding-right: 10px; /* Pro scrollbar */
+}
+#whaleList, .sentiment-section {  /* Stejně pro další sloupce */
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* Fix nekonečného růstu sloupců – scroll místo rozšiřování */
+#newsList, .news-section {  /* Nahraď .news-section, pokud máš jinou třídu */
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 5px;  /* Pro scrollbar */
+}
+#sentimentScore, .sentiment-section {
+  max-height: 400px;
+  overflow-y: auto;
+}
+.whales-section, #whaleList {  /* Pro Whales, pokud roste */
+  max-height: 300px;
+  overflow-y: auto;
+}

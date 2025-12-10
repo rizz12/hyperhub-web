@@ -391,14 +391,20 @@ if (!newsListEl.children.length) {
   }
 
   function initMobileMenu() {
-    const mobileBtn = document.getElementById("mobileMenuBtn");
-    const mobileMenu = document.getElementById("mobileMenu");
-    const mobileClose = document.getElementById("mobileClose");
-    if (!mobileBtn || !mobileMenu || !mobileClose) return;
-    mobileBtn.addEventListener("click", () => mobileMenu.classList.remove("hidden"));
-    mobileClose.addEventListener("click", () => mobileMenu.classList.add("hidden"));
-    mobileMenu.querySelectorAll("a").forEach(a => a.addEventListener("click", () => mobileMenu.classList.add("hidden")));
+  const mobileBtn = document.getElementById("mobileMenuBtn");
+  const mobileMenu = document.getElementById("mobileMenu");
+  const mobileClose = document.getElementById("mobileClose");
+  if (!mobileBtn || !mobileMenu || !mobileClose) {
+    console.log("Mobile menu elements missing, skipping init");  // Debug log pro nás
+    return;
   }
+  mobileBtn.addEventListener("click", () => mobileMenu.classList.remove("hidden"));
+  mobileClose.addEventListener("click", () => mobileMenu.classList.add("hidden"));
+  const links = mobileMenu.querySelectorAll("a");
+  if (links.length > 0) {
+    links.forEach(a => a.addEventListener("click", () => mobileMenu.classList.add("hidden")));
+  }
+}
 
   // Theme toggle: toggles "light" class on html and CSS variables handle colors
   function initTheme() {
