@@ -634,6 +634,9 @@
   function init() {
     console.log("HyperHub INIT");
     initCharts();
+borderColor: "#6B7280",
+backgroundColor: "rgba(156,163,175,0.15)",
+pointBackgroundColor: "#9CA3AF",
     // pokud máš taby / mobile menu / theme, můžeš je sem doplnit
     // initTabs();
     // initMobileMenu();
