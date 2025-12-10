@@ -1,15 +1,14 @@
-// js/app.js - FINÁLNÍ FIX: No errors, demo news, no růst sloupců
+// js/app.js - FINÁLNÍ FIX 2025: Demo data, no errors, no růst
 (() => {
-  // API with demo news (RSS down in 2025)
+  // API - demo only (RSS down in 2025)
   const API = {
     price: "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=hyperliquid&order=market_cap_desc&per_page=1&page=1&sparkline=false",
-    newsFeeds: [], // Skip RSS, use demo
     demoNews: [
-      { title: "Hyperliquid TVL surpasses $1B in Q4 2025", source: "CoinTelegraph" },
-      { title: "HIP-6 vote: Fee burn for HYPE holders passes", source: "TheBlock" },
-      { title: "Whales load 2M HYPE on Aster integration", source: "Reddit r/Hyperliquid" },
-      { title: "beHYPE staking yields hit 15% APY", source: "Official Blog" },
-      { title: "Hyperliquid partners with Lighter for faster DEX", source: "Twitter" }
+      { title: "Hyperliquid API outage due to traffic spike (no hack)", source: "CoinSpeaker, Jul 2025" },
+      { title: "Hyperliquid Strategies announces $30M stock buyback", source: "StockTitan, Dec 2025" },
+      { title: "HIP-6 vote passes: Fee burn for HYPE holders", source: "TheBlock" },
+      { title: "Whales load 2M HYPE on Aster integration", source: "r/hyperliquid1" },
+      { title: "beHYPE staking yields hit 15% APY amid bull run", source: "Official Blog" }
     ],
     whalesDemo: [
       { pair: "HYPE/USDC", side: "long", size_usd: 250000, time: Date.now() },
@@ -61,29 +60,32 @@
   const govSnapshotEl = document.getElementById("govSnapshot");
   const sentimentScoreEl = document.getElementById("sentimentScore");
 
-  // Load demo news (no fetch, instant)
+  // Load demo news (instant, no fetch)
   function loadNewsDemo() {
-    if (!newsListEl) return;
+    if (!newsListEl) {
+      console.warn("newsListEl null - check HTML");
+      return;
+    }
     newsListEl.innerHTML = "";  // Clear loading
-    const items = API.demoNews.slice(0, 5);  // 5 items
+    const items = API.demoNews.slice(0, 5);
     items.forEach(item => {
       const el = document.createElement("div");
       el.className = "mb-2 p-2 glass rounded text-sm";
       el.innerHTML = `<a href="#" class="hover:underline">${item.title}</a><div class="muted text-xs mt-1">${item.source}</div>`;
       newsListEl.appendChild(el);
     });
-    console.log("Demo news loaded, items:", items.length);
+    console.log("Demo news loaded:", items.length, "items");
   }
 
-  // Sentiment from demo news
+  // Demo sentiment
   function loadSentimentDemo() {
     if (!sentimentScoreEl) return;
-    const score = 75;  // Positive demo
+    const score = 75;  // Positive
     sentimentScoreEl.textContent = score + "%";
-    console.log("Demo sentiment:", score);
+    console.log("Sentiment loaded:", score + "%");
   }
 
-  // Whales demo
+  // Demo whales
   function loadWhalesDemo() {
     if (!whaleListEl) return;
     whaleListEl.innerHTML = "";
@@ -93,21 +95,21 @@
       el.innerHTML = `<div>${whale.pair} - ${whale.side.toUpperCase()} $${fmtNum(whale.size_usd)} (${new Date(whale.time).toLocaleString()})</div>`;
       whaleListEl.appendChild(el);
     });
-    console.log("Demo whales loaded");
+    console.log("Whales loaded");
   }
 
-  // OI demo
+  // Demo OI
   function loadOIDemo() {
     if (!oiLatestEl) return;
     const latest = API.oiDemo[API.oiDemo.length - 1];
     oiLatestEl.textContent = fmtUSD(latest.oi);
-    console.log("Demo OI loaded");
+    console.log("OI loaded");
   }
 
-  // Governance demo
+  // Demo governance
   function loadGovernanceDemo() {
-    const hips = API.governanceDemo;
     if (!govSnapshotEl) return;
+    const hips = API.governanceDemo;
     govSnapshotEl.innerHTML = "";
     const hipsListEl = document.getElementById("hipsList");
     if (!hipsListEl) return;
@@ -148,10 +150,10 @@
         nayEl.appendChild(el);
       });
     });
-    console.log("Demo governance loaded");
+    console.log("Governance loaded");
   }
 
-  // Price fetch
+  // Price fetch (async)
   async function fetchPrice() {
     try {
       const res = await fetch(API.price);
@@ -163,12 +165,13 @@
       if (cardVolumeEl) cardVolumeEl.textContent = fmtUSD(coin.total_volume);
       if (cardMarketCapEl) cardMarketCapEl.textContent = fmtUSD(coin.market_cap);
       if (lastUpdatedEl) lastUpdatedEl.textContent = "Updated: " + new Date().toLocaleTimeString();
+      console.log("Price loaded");
     } catch (e) {
-      console.warn("Price fetch error:", e);
+      console.warn("Price error:", e);
     }
   }
 
-  // All load (demo + price)
+  // Load all (demo + price)
   async function loadAll() {
     console.log("loadAll started");
     loadNewsDemo();
@@ -180,27 +183,26 @@
     console.log("loadAll done");
   }
 
-  // Init charts/tabs/theme (safe)
+  // Safe init functions
   function initCharts() {
-    console.log("Charts inited (placeholder)");
+    console.log("Charts OK");
   }
 
   function initTabs() {
     try {
       const btns = document.querySelectorAll(".tabBtn");
-      btns.forEach(btn => {
-        btn.addEventListener("click", (e) => {
+      if (btns.length > 0) {
+        btns.forEach(btn => btn.addEventListener("click", e => {
           const t = btn.dataset.tab;
           document.querySelectorAll(".tab-content").forEach(c => c.classList.add("hidden"));
           document.getElementById(t).classList.remove("hidden");
           btns.forEach(b => b.classList.remove("bg-white/10"));
           btn.classList.add("bg-white/10");
-        });
-      });
-      const first = document.querySelector(".tabBtn");
-      if (first) first.click();
+        }));
+        btns[0].click();
+      }
     } catch (e) {
-      console.warn("Tabs init error:", e);
+      console.warn("Tabs error:", e);
     }
   }
 
@@ -209,14 +211,10 @@
       const mobileBtn = document.getElementById("mobileMenuBtn");
       const mobileMenu = document.getElementById("mobileMenu");
       const mobileClose = document.getElementById("mobileClose");
-      if (!mobileBtn || !mobileMenu || !mobileClose) {
-        console.log("Mobile menu missing - skipping");
-        return;
-      }
+      if (!mobileBtn || !mobileMenu || !mobileClose) return;
       mobileBtn.addEventListener("click", () => mobileMenu.classList.remove("hidden"));
       mobileClose.addEventListener("click", () => mobileMenu.classList.add("hidden"));
       mobileMenu.querySelectorAll("a").forEach(a => a.addEventListener("click", () => mobileMenu.classList.add("hidden")));
-      console.log("Mobile menu inited");
     } catch (e) {
       console.warn("Mobile menu error:", e);
     }
@@ -225,8 +223,8 @@
   function initTheme() {
     try {
       const btn = document.getElementById("themeToggle");
-      const html = document.documentElement;
       if (!btn) return;
+      const html = document.documentElement;
       const saved = localStorage.getItem("hyperhub-theme");
       if (saved === "light") {
         html.classList.add("light");
@@ -236,44 +234,38 @@
         btn.textContent = "Dark";
       }
       btn.addEventListener("click", () => {
-        if (html.classList.contains("light")) {
-          html.classList.remove("light");
-          localStorage.setItem("hyperhub-theme", "dark");
-          btn.textContent = "Dark";
-        } else {
-          html.classList.add("light");
-          localStorage.setItem("hyperhub-theme", "light");
-          btn.textContent = "Light";
-        }
+        html.classList.toggle("light");
+        localStorage.setItem("hyperhub-theme", html.classList.contains("light") ? "light" : "dark");
+        btn.textContent = html.classList.contains("light") ? "Light" : "Dark";
       });
     } catch (e) {
-      console.warn("Theme init error:", e);
+      console.warn("Theme error:", e);
     }
   }
 
-  // Main init with try-catch
+  // Main init with full try-catch
   function init() {
     try {
-      console.log("App init started");
+      console.log("Init started");
       initCharts();
       initTabs();
       initMobileMenu();
       initTheme();
       loadAll();
       setInterval(() => {
-        // Clear sloupce před reload
         if (newsListEl) newsListEl.innerHTML = "";
         if (sentimentScoreEl) sentimentScoreEl.innerHTML = "";
         if (whaleListEl) whaleListEl.innerHTML = "";
-        console.log("Interval clear + loadAll");
+        console.log("Interval clear");
         loadAll();
-      }, 60 * 1000);
-      console.log("App init OK - no errors");
+      }, 60000);
+      console.log("Init OK - dashboard ready!");
     } catch (e) {
-      console.error("Critical init error:", e);
-      // Fallback load
+      console.error("Init error:", e);
+      // Emergency fallback
       loadNewsDemo();
       loadSentimentDemo();
+      console.log("Emergency fallback loaded");
     }
   }
 
