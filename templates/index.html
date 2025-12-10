@@ -1,171 +1,156 @@
 <!doctype html>
-<html lang="en" class="antialiased">
+<html lang="en" class="dark">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>HyperHub — Unlock Hyperliquid Insights</title>
-  <meta name="description" content="HyperHub — Unlock Hyperliquid Insights: Track, Govern, Thrive. Made by Ruby Nodes.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22black%22/><rect x=%2235%22 y=%2235%22 width=%2230%22 height=%2230%22 transform=%22rotate(45 50 50)%22 fill=%22red%22/></svg>">
 
-  <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            hhbg: '#0F1117',
-            hhbg2: '#121212',
-            hhgreen: '#00FF7F',
-            hhgreen2: '#00CC66',
-            hhruby: '#FF0033',
-            hhruby2: '#CC0000',
-            hhtxt: '#FFFFFF',
-            hhtxt2: '#A0A0A0'
-          }
-        }
-      }
-    }
-  </script>
-
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="./css/styles.css">
+  <style>
+    /* Základní dark mode barvy pro jistotu */
+    body { background-color: #0F1117; color: #ffffff; }
+    .glass {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+    }
+    /* Vlastní scrollbar pro Webkit */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+  </style>
 </head>
-<body class="font-sans">
+<body class="font-sans antialiased min-h-screen flex flex-col">
 
-  <div id="app" class="min-h-screen flex flex-col">
+  <div id="mobileMenu" class="fixed inset-0 z-50 bg-black/90 hidden flex flex-col p-8">
+    <button id="mobileClose" class="self-end text-2xl mb-8">&times;</button>
+    <nav class="flex flex-col gap-6 text-xl text-center">
+        <a href="#dashboard" class="hover:text-green-400">Dashboard</a>
+        <a href="#analytics" class="hover:text-green-400">Analytics</a>
+        <a href="#governance" class="hover:text-green-400">Governance</a>
+    </nav>
+  </div>
 
-    <!-- Top header -->
-    <header class="glass p-4 sticky top-0 z-50">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <span class="ruby"></span>
-        <div>
-          <div class="text-2xl font-bold brand-green">HyperHub</div>
-          <div class="text-xs muted">Made by Ruby Nodes</div>
-        </div>
+  <header class="glass sticky top-0 z-40 border-b border-white/5">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-3 h-3 bg-red-500 rotate-45"></div>
+        <span class="text-xl font-bold tracking-tight text-green-400">HyperHub</span>
       </div>
-      <nav class="flex items-center gap-6">
-        <a href="#dashboard" class="muted hover:text-white">Dashboard</a>
-        <a href="#analytics" class="muted hover:text-white">Analytics</a>
-        <a href="#governance" class="muted hover:text-white">Governance</a>
-        <a href="#education" class="muted hover:text-white">Education</a>
-        <a href="#about" class="muted hover:text-white">About</a>
-        <button id="themeToggle" class="px-3 py-1 rounded-md glass muted">Dark</button>
+
+      <nav class="hidden md:flex items-center gap-6 text-sm text-gray-400">
+        <a href="#dashboard" class="hover:text-white transition">Dashboard</a>
+        <a href="#analytics" class="hover:text-white transition">Analytics</a>
+        <a href="#governance" class="hover:text-white transition">Governance</a>
       </nav>
+
+      <button id="mobileMenuBtn" class="md:hidden p-2 text-gray-300">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+      </button>
     </div>
   </header>
 
-  <section class="p-6 glass rounded-lg mt-4">
-    <h1 class="text-3xl font-bold brand-green">Unlock Hyperliquid Insights</h1>
-    <p class="muted">Track, Govern, Thrive.</p>
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4">
-      <div class="chip"><span>Price</span><strong id="kpiPrice">$--</strong></div>
-      <div class="chip"><span>24h</span><strong id="kpiChange">--</strong></div>
-      <div class="chip"><span>Volume</span><strong id="kpiVol">--</strong></div>
-      <div class="chip"><span>Market Cap</span><strong id="kpiMcap">--</strong></div>
-      <div class="chip"><span>Open Interest</span><strong id="kpiOI">--</strong></div>
-    </div>
-  </section>
+  <main class="flex-1 max-w-7xl mx-auto w-full p-4 space-y-6">
 
+    <section>
+        <h1 class="text-2xl font-bold mb-1">Market Overview</h1>
+        <p class="text-xs text-gray-500 mb-4">Realtime Hyperliquid metrics</p>
 
-  <!-- Main content -->
-  <main class="flex-1 overflow-auto p-4">
-    <!-- Mobile nav (drawer) -->
-    <div id="mobileMenu" class="fixed inset-0 z-40 bg-black/60 hidden">
-      <div class="absolute left-0 top-0 bottom-0 w-64 p-4 glass">
-        <button id="mobileClose" class="mb-4">Close ✕</button>
-        <ul class="flex flex-col gap-2">
-          <li><a href="#dashboard" class="block py-2 px-3 rounded hover:bg-white/5">Dashboard</a></li>
-          <li><a href="#analytics" class="block py-2 px-3 rounded hover:bg-white/5">Analytics</a></li>
-          <li><a href="#governance" class="block py-2 px-3 rounded hover:bg-white/5">Governance</a></li>
-          <li><a href="#education" class="block py-2 px-3 rounded hover:bg-white/5">Education</a></li>
-          <li><a href="#about" class="block py-2 px-3 rounded hover:bg-white/5">About</a></li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- HERO / Dashboard -->
-    <section id="dashboard" class="mb-8">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="col-span-2 glass p-4 rounded-lg">
-          <div class="flex items-center justify-between">
-            <div>
-              <h1 class="text-2xl font-bold brand-green">HyperHub</h1>
-              <div class="muted">Realtime Dashboard · <span id="lastUpdated" class="text-xs muted"></span></div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="glass p-3 rounded-lg flex flex-col">
+                <span class="text-xs text-gray-500">HYPE Price</span>
+                <span id="hypePrice" class="text-lg font-mono font-bold text-green-400">Loading...</span>
             </div>
-            <div class="text-right">
-              <div id="priceBlock" class="text-right">
-                <div class="text-sm muted">HYPE</div>
-                <div class="text-2xl font-semibold" id="hypePrice">$--</div>
-                <div class="muted text-sm" id="hypeChange">--</div>
-              </div>
+            <div class="glass p-3 rounded-lg flex flex-col">
+                <span class="text-xs text-gray-500">24h Change</span>
+                <span id="hypeChange" class="text-lg font-mono font-bold text-gray-300">--</span>
             </div>
-          </div>
-
-          <p class="mt-4 muted">“Unlock Hyperliquid Insights: Track, Govern, Thrive.”</p>
-
-          <!-- 3x2 grid of cards -->
-          <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-            <!-- Realtime Dashboard card -->
-            <div class="card self-start">
-              <div class="flex items-center justify-between">
-
-        <!-- Education -->
-        <section id="education" class="mb-8">
-          <div class="card">
-            <div class="font-semibold">Education</div>
-            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="p-3 glass rounded">
-                <div class="font-semibold">What is Hyperliquid</div>
-                <div class="muted text-sm mt-2">Hyperliquid is a derivatives and liquidity protocol... (static summary)</div>
-              </div>
-              <div class="p-3 glass rounded">
-                <div class="font-semibold">How to stake $HYPE</div>
-                <div class="muted text-sm mt-2">Steps to stake, risks, and rewards... (static guide)</div>
-              </div>
-              <div class="p-3 glass rounded">
-                <div class="font-semibold">Governance 101</div>
-                <div class="muted text-sm mt-2">How HIPs work, voting, delegation, and validator roles.</div>
-              </div>
-              <div class="p-3 glass rounded">
-                <div class="font-semibold">Trading on Hyperliquid</div>
-                <div class="muted text-sm mt-2">Order types, margin, ADL risk, and best practices.</div>
-              </div>
+            <div class="glass p-3 rounded-lg flex flex-col">
+                <span class="text-xs text-gray-500">24h Volume</span>
+                <span class="text-lg font-mono font-bold text-gray-300">$142.5M</span>
             </div>
-          </div>
-        </section>
-
-        <!-- About -->
-        <section id="about" class="mb-8">
-          <div class="card">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="font-semibold">About HyperHub</div>
-                <div class="muted text-sm mt-2">HyperHub — Unlock Hyperliquid Insights: Track, Govern, Thrive. Domain: <a href="https://hyperhub.xyz" class="brand-green">hyperhub.xyz</a></div>
-              </div>
-              <div class="text-right muted text-sm">
-                <div>Made by Ruby Nodes</div>
-                <div class="mt-2">Disclaimer: Data is aggregated from public sources. Use at your own risk.</div>
-              </div>
+            <div class="glass p-3 rounded-lg flex flex-col">
+                <span class="text-xs text-gray-500">Open Interest</span>
+                <span class="text-lg font-mono font-bold text-gray-300">$89.2M</span>
             </div>
-          </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- Footer -->
-        <footer class="mt-6 text-center muted text-sm">
-          <div>Made by Ruby Nodes · <a href="https://rubynodes.io" class="brand-green">rubynodes.io</a></div>
-          <div class="mt-2">Optimize your Hyperliquid trading with our custom RPCs — <a href="https://rubynodes.io" class="brand-green">Get a trial</a></div>
-        </footer>
+    <section id="dashboard" class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-      </main>
-    </div>
-  </div>
+        <div class="glass rounded-xl p-4 flex flex-col h-[420px]">
+            <div class="flex justify-between items-center mb-3 pb-2 border-b border-white/5">
+                <h2 class="font-semibold text-gray-200">Latest News</h2>
+                <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-500">RSS & Social</span>
+            </div>
+            <div id="newsList" class="flex-1 overflow-y-auto space-y-2 pr-1">
+                <div class="animate-pulse text-xs text-gray-500">Loading feeds...</div>
+            </div>
+        </div>
 
-  <!-- App JS -->
+        <div class="flex flex-col gap-4 h-[420px]">
+
+            <div class="glass rounded-xl p-4 flex-1 flex flex-col relative overflow-hidden">
+                <div class="flex justify-between items-center mb-2 z-10">
+                    <h2 class="font-semibold text-gray-200">Sentiment Score</h2>
+                    <span id="sentimentScore" class="text-xl font-bold text-green-400">--</span>
+                </div>
+                <div class="flex-1 relative min-h-0">
+                    <canvas id="sentimentChart"></canvas>
+                </div>
+            </div>
+
+            <div class="glass rounded-xl p-4 flex-1 flex flex-col overflow-hidden">
+                <div class="flex justify-between items-center mb-2 pb-2 border-b border-white/5">
+                    <h2 class="font-semibold text-gray-200">Whale Activity</h2>
+                    <span class="text-xs text-gray-500">> $100k</span>
+                </div>
+                <div id="whaleList" class="flex-1 overflow-y-auto space-y-2 pr-1">
+                    <div class="text-xs text-gray-500">Watching chain...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-4 h-[420px]">
+
+            <div class="glass rounded-xl p-4 flex-1 flex flex-col">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="font-semibold text-gray-200">Open Interest</h2>
+                    <span id="oiLatest" class="text-xs text-gray-400">--</span>
+                </div>
+                <div class="flex-1 relative min-h-0">
+                    <canvas id="oiChart"></canvas>
+                </div>
+            </div>
+
+            <div class="glass rounded-xl p-4 flex-1 flex flex-col overflow-hidden">
+                <div class="flex justify-between items-center mb-2 pb-2 border-b border-white/5">
+                    <h2 class="font-semibold text-gray-200">Governance</h2>
+                    <span class="text-xs text-green-400">1 Active</span>
+                </div>
+                <div id="govSnapshot" class="flex-1 overflow-y-auto space-y-2 pr-1">
+                    <div class="text-xs text-gray-500">Loading proposals...</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="glass rounded-xl p-6 text-center mt-4">
+        <h2 class="text-xl font-bold mb-2 text-white">Need Faster Execution?</h2>
+        <p class="text-gray-400 text-sm mb-4">Stop losing money on public RPC latency. Get direct access to Hyperliquid nodes.</p>
+        <a href="#" class="inline-block bg-green-500 hover:bg-green-600 text-black font-bold py-2 px-6 rounded-lg transition">
+            Get 14-Day Free RPC Trial
+        </a>
+    </section>
+
+  </main>
+
+  <footer class="mt-8 py-6 text-center text-xs text-gray-600 border-t border-white/5">
+    <p>HyperHub &copy; 2025 · Made by Ruby Nodes</p>
+  </footer>
+
   <script src="./js/app.js"></script>
 </body>
 </html>
