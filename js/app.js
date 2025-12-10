@@ -189,6 +189,76 @@
       "HL:950ms  Aster:1150ms  Lighter:1200ms → Hyperliquid faster";
   }
 
+  // PRICE FETCH (vložit sem)
+  async function fetchPrice() {
+    try {
+      const res = await fetch(API.price, {
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      if (!res.ok) {
+        console.warn("fetchPrice: HTTP error", res.status, res.statusText);
+        hypePriceEl.textContent = "API error";
+        cardPriceEl.textContent = "API error";
+        return;
+      }
+
+      const data = await res.json();
+      console.log("CoinGecko response:", data);
+
+      const item = Array.isArray(data) ? data[0] || {} : {};
+
+      const price = item.current_price ?? null;
+      const vol = item.total_volume ?? null;
+      const mcap = item.market_cap ?? null;
+      const change = item.price_change_percentage_24h ?? null;
+
+      if (price == null) {
+        hypePriceEl.textContent = "No price";
+        cardPriceEl.textContent = "No price";
+      } else {
+        const pStr = "$" + Number(price).toFixed(4);
+        hypePriceEl.textContent = pStr;
+        cardPriceEl.textContent = pStr;
+      }
+
+      cardVolumeEl.textContent = vol == null ? "--" : fmtUSD(vol);
+      cardMarketCapEl.textContent = mcap == null ? "--" : fmtUSD(mcap);
+
+      if (change == null) {
+        hypeChangeEl.textContent = "--";
+      } else {
+        const chStr = (change >= 0 ? "+" : "") + change.toFixed(2) + "%";
+        hypeChangeEl.textContent = chStr;
+      }
+
+      if (lastUpdatedEl) {
+        lastUpdatedEl.textContent = new Date().toLocaleTimeString();
+      }
+    } catch (e) {
+      console.warn("fetchPrice error", e);
+      hypePriceEl.textContent = "API error";
+      cardPriceEl.textContent = "API error";
+      cardVolumeEl.textContent = "--";
+      cardMarketCapEl.textContent = "--";
+      hypeChangeEl.textContent = "--";
+    }
+  }
+ function init() {
+    console.log("HyperHub INIT");
+    initCharts();
+    initTabs();
+    initMobileMenu();
+    initTheme();
+    fetchAll();
+    setInterval(fetchAll, 60 * 1000);
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+})();
+
   // INIT CHARTS wired to mock data
   function initCharts() {
     if (!ENABLE_CHARTS || !HAS_CHART) return;
