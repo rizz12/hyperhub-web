@@ -1,156 +1,347 @@
-<!doctype html>
-<html lang="en" class="dark">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>HyperHub — Unlock Hyperliquid Insights</title>
-  
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+(() => {
+  // Direct API endpoints for static site (no backend)
+  const API = {
+    price: "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=hyperliquid&order=market_cap_desc&per_page=1&page=1&sparkline=false",
 
-  <style>
-    /* Základní dark mode barvy pro jistotu */
-    body { background-color: #0F1117; color: #ffffff; }
-    .glass {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(10px);
+    newsFeeds: [
+      "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://www.reddit.com/r/Hyperliquid/.rss"),
+      "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://cointelegraph.com/rss"),
+      "https://api.allorigins.win/raw?url=" + encodeURIComponent("https://www.theblock.co/rss")
+    ],
+
+    whalesDemo: [
+      { pair: "HYPE/USDC", side: "long", size_usd: 250000, time: Date.now() },
+      { pair: "HYPE/ETH", side: "short", size_usd: 180000, time: Date.now() - 3600_000 },
+      { pair: "BTC/USDC", side: "long", size_usd: 500000, time: Date.now() - 7200_000 }
+    ],
+
+    oiDemo: (() => {
+      const now = Math.floor(Date.now() / 1000);
+      const series = [];
+      for (let i = 0; i < 12; i++) {
+        const ts = now - (11 - i) * 3600;
+        const longs = 1000000 + (i * 20000) + ((i % 3) * 50000);
+        const shorts = 800000 + (i * 15000) + (((i + 1) % 4) * 30000);
+        const oi = longs + shorts;
+        const ratio = longs / Math.max(1, shorts);
+        series.push({ ts, longs, shorts, oi, long_short_ratio: Number(ratio.toFixed(3)) });
+      }
+      return series;
+    })(),
+
+    governanceDemo: [
+      { id: "HIP-1", title: "Increase beHYPE staking rewards", status: "active", proposer: "0xabc", aye: [{ validator: "val1", stake: 12000 }, { validator: "val2", stake: 8000 }], nay: [{ validator: "val3", stake: 2000 }] },
+      { id: "HIP-2", title: "Adjust fee structure", status: "closed", proposer: "0xdef", aye: [{ validator: "val2", stake: 5000 }], nay: [{ validator: "val1", stake: 3000 }, { validator: "val4", stake: 1000 }] }
+    ]
+  };
+
+  // Utils
+  function fmtUSD(v) {
+    if (v === null || v === undefined) return "--";
+    if (v >= 1e9) return "$" + (v / 1e9).toFixed(2) + "B";
+    if (v >= 1e6) return "$" + (v / 1e6).toFixed(2) + "M";
+    if (v >= 1e3) return "$" + (v / 1e3).toFixed(2) + "K";
+    return "$" + Number(v).toFixed(2);
+  }
+  function fmtNum(v) {
+    if (v === null || v === undefined) return "--";
+    return Number(v).toLocaleString();
+  }
+
+  // DOM refs
+  const hypePriceEl = document.getElementById("hypePrice");
+  const hypeChangeEl = document.getElementById("hypeChange");
+  const cardPriceEl = document.getElementById("cardPrice");
+  const cardVolumeEl = document.getElementById("cardVolume");
+  const cardMarketCapEl = document.getElementById("cardMarketCap");
+  const lastUpdatedEl = document.getElementById("lastUpdated");
+  const newsListEl = document.getElementById("newsList");
+  const whaleListEl = document.getElementById("whaleList");
+  const oiLatestEl = document.getElementById("oiLatest");
+  const govSnapshotEl = document.getElementById("govSnapshot");
+  const sentimentScoreEl = document.getElementById("sentimentScore");
+
+  // Chart variables
+  let sentimentChart = null;
+  let oiChart = null;
+  let HSIGauge = null;
+  let sentimentPie = null;
+  let whalesBar = null;
+  let oiLine = null;
+  let HSIChart = null;
+  let giypChart = null;
+  let cclbChart = null;
+
+  // Chart.js defaults
+  if (typeof Chart !== "undefined") {
+    Chart.defaults.responsive = true;
+    Chart.defaults.maintainAspectRatio = false;
+    Chart.defaults.animation = false;
+    Chart.defaults.plugins.legend.display = false;
+  }
+
+  // HSI + GIYP Mock
+  function loadGiypMock() {
+    const el = document.getElementById("giypIndicator");
+    if (!el) return;
+    el.textContent = "HIP-3: +1% beHYPE yield (Positive)";
+  }
+  function loadCclbMock() {
+    const el = document.getElementById("cclbIndicator");
+    if (!el) return;
+    el.textContent = "HL:950ms  Aster:1150ms  Lighter:1200ms → Hyperliquid faster";
+  }
+
+  // INIT CHARTS
+  function initCharts() {
+    const sCanvas = document.getElementById("sentimentChart");
+    if (sCanvas) {
+      sentimentChart = new Chart(sCanvas.getContext("2d"), {
+        type: "doughnut",
+        data: { labels: ["Bullish", "Bearish"], datasets: [{ data: [50, 50], backgroundColor: ["#00FF7F", "#FF0033"] }] }
+      });
     }
-    /* Vlastní scrollbar pro Webkit */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-  </style>
-</head>
-<body class="font-sans antialiased min-h-screen flex flex-col">
 
-  <div id="mobileMenu" class="fixed inset-0 z-50 bg-black/90 hidden flex flex-col p-8">
-    <button id="mobileClose" class="self-end text-2xl mb-8">&times;</button>
-    <nav class="flex flex-col gap-6 text-xl text-center">
-        <a href="#dashboard" class="hover:text-green-400">Dashboard</a>
-        <a href="#analytics" class="hover:text-green-400">Analytics</a>
-        <a href="#governance" class="hover:text-green-400">Governance</a>
-    </nav>
-  </div>
+    const oiCanvas = document.getElementById("oiChart");
+    if (oiCanvas) {
+      oiChart = new Chart(oiCanvas.getContext("2d"), {
+        type: "bar",
+        data: { labels: [], datasets: [{ label: "Longs", data: [], backgroundColor: "#00FF7F" }, { label: "Shorts", data: [], backgroundColor: "#FF0033" }] }
+      });
+    }
 
-  <header class="glass sticky top-0 z-40 border-b border-white/5">
-    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <div class="w-3 h-3 bg-red-500 rotate-45"></div>
-        <span class="text-xl font-bold tracking-tight text-green-400">HyperHub</span>
-      </div>
-      
-      <nav class="hidden md:flex items-center gap-6 text-sm text-gray-400">
-        <a href="#dashboard" class="hover:text-white transition">Dashboard</a>
-        <a href="#analytics" class="hover:text-white transition">Analytics</a>
-        <a href="#governance" class="hover:text-white transition">Governance</a>
-      </nav>
+    const HSICanvas = document.getElementById("HSIGauge");
+    if (HSICanvas) {
+      HSIGauge = new Chart(HSICanvas.getContext("2d"), {
+        type: "doughnut",
+        data: { labels: ["Index", "Remaining"], datasets: [{ data: [60, 40], backgroundColor: ["#00FF7F", "#222"] }] },
+        options: { rotation: -Math.PI, circumference: Math.PI, cutout: "70%" }
+      });
+    }
 
-      <button id="mobileMenuBtn" class="md:hidden p-2 text-gray-300">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-      </button>
-    </div>
-  </header>
+    const sentimentPieCanvas = document.getElementById("sentimentPie");
+    if (sentimentPieCanvas) {
+      sentimentPie = new Chart(sentimentPieCanvas.getContext("2d"), {
+        type: "pie",
+        data: { labels: ["Positive", "Negative"], datasets: [{ data: [60, 40], backgroundColor: ["#00FF7F", "#FF0033"] }] }
+      });
+    }
+  }
 
-  <main class="flex-1 max-w-7xl mx-auto w-full p-4 space-y-6">
-    
-    <section>
-        <h1 class="text-2xl font-bold mb-1">Market Overview</h1>
-        <p class="text-xs text-gray-500 mb-4">Realtime Hyperliquid metrics</p>
-        
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div class="glass p-3 rounded-lg flex flex-col">
-                <span class="text-xs text-gray-500">HYPE Price</span>
-                <span id="hypePrice" class="text-lg font-mono font-bold text-green-400">Loading...</span>
-            </div>
-            <div class="glass p-3 rounded-lg flex flex-col">
-                <span class="text-xs text-gray-500">24h Change</span>
-                <span id="hypeChange" class="text-lg font-mono font-bold text-gray-300">--</span>
-            </div>
-            <div class="glass p-3 rounded-lg flex flex-col">
-                <span class="text-xs text-gray-500">24h Volume</span>
-                <span class="text-lg font-mono font-bold text-gray-300">$142.5M</span>
-            </div>
-            <div class="glass p-3 rounded-lg flex flex-col">
-                <span class="text-xs text-gray-500">Open Interest</span>
-                <span class="text-lg font-mono font-bold text-gray-300">$89.2M</span>
-            </div>
-        </div>
-    </section>
+  // PRICE FETCH
+  async function fetchPrice() {
+    try {
+      const res = await fetch(API.price);
+      const data = await res.json();
+      const item = data[0] || {};
 
-    <section id="dashboard" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        
-        <div class="glass rounded-xl p-4 flex flex-col h-[420px]">
-            <div class="flex justify-between items-center mb-3 pb-2 border-b border-white/5">
-                <h2 class="font-semibold text-gray-200">Latest News</h2>
-                <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-500">RSS & Social</span>
-            </div>
-            <div id="newsList" class="flex-1 overflow-y-auto space-y-2 pr-1">
-                <div class="animate-pulse text-xs text-gray-500">Loading feeds...</div>
-            </div>
-        </div>
+      const price = item.current_price || 0;
+      const vol = item.total_volume || 0;
+      const mcap = item.market_cap || 0;
+      const change = item.price_change_percentage_24h || 0;
 
-        <div class="flex flex-col gap-4 h-[420px]">
-            
-            <div class="glass rounded-xl p-4 flex-1 flex flex-col relative overflow-hidden">
-                <div class="flex justify-between items-center mb-2 z-10">
-                    <h2 class="font-semibold text-gray-200">Sentiment Score</h2>
-                    <span id="sentimentScore" class="text-xl font-bold text-green-400">--</span>
-                </div>
-                <div class="flex-1 relative min-h-0">
-                    <canvas id="sentimentChart"></canvas>
-                </div>
-            </div>
+      hypePriceEl.textContent = `$${Number(price).toFixed(4)}`;
+      cardPriceEl.textContent = `$${Number(price).toFixed(4)}`;
+      cardVolumeEl.textContent = fmtUSD(vol);
+      cardMarketCapEl.textContent = fmtUSD(mcap);
+      hypeChangeEl.textContent = (change >= 0 ? "+" : "") + change.toFixed(2) + "%";
 
-            <div class="glass rounded-xl p-4 flex-1 flex flex-col overflow-hidden">
-                <div class="flex justify-between items-center mb-2 pb-2 border-b border-white/5">
-                    <h2 class="font-semibold text-gray-200">Whale Activity</h2>
-                    <span class="text-xs text-gray-500">> $100k</span>
-                </div>
-                <div id="whaleList" class="flex-1 overflow-y-auto space-y-2 pr-1">
-                    <div class="text-xs text-gray-500">Watching chain...</div>
-                </div>
-            </div>
-        </div>
+      lastUpdatedEl.textContent = new Date().toLocaleTimeString();
+    } catch (e) {
+      console.warn("fetchPrice error", e);
+    }
+  }
 
-        <div class="flex flex-col gap-4 h-[420px]">
-            
-            <div class="glass rounded-xl p-4 flex-1 flex flex-col">
-                <div class="flex justify-between items-center mb-2">
-                    <h2 class="font-semibold text-gray-200">Open Interest</h2>
-                    <span id="oiLatest" class="text-xs text-gray-400">--</span>
-                </div>
-                <div class="flex-1 relative min-h-0">
-                    <canvas id="oiChart"></canvas>
-                </div>
-            </div>
+  // NEWS FETCH
+  async function fetchNews() {
+    try {
+      newsListEl.innerHTML = '<div class="text-sm muted">Loading news...</div>';
 
-            <div class="glass rounded-xl p-4 flex-1 flex flex-col overflow-hidden">
-                <div class="flex justify-between items-center mb-2 pb-2 border-b border-white/5">
-                    <h2 class="font-semibold text-gray-200">Governance</h2>
-                    <span class="text-xs text-green-400">1 Active</span>
-                </div>
-                <div id="govSnapshot" class="flex-1 overflow-y-auto space-y-2 pr-1">
-                    <div class="text-xs text-gray-500">Loading proposals...</div>
-                </div>
-            </div>
-        </div>
-    </section>
+      const responses = await Promise.all(
+        API.newsFeeds.map(url => fetch(url).then(r => r.text()).catch(() => ""))
+      );
 
-    <section class="glass rounded-xl p-6 text-center mt-4">
-        <h2 class="text-xl font-bold mb-2 text-white">Need Faster Execution?</h2>
-        <p class="text-gray-400 text-sm mb-4">Stop losing money on public RPC latency. Get direct access to Hyperliquid nodes.</p>
-        <a href="#" class="inline-block bg-green-500 hover:bg-green-600 text-black font-bold py-2 px-6 rounded-lg transition">
-            Get 14-Day Free RPC Trial
-        </a>
-    </section>
+      let items = [];
+      responses.forEach((xml, i) => {
+        if (xml.includes("<title>")) {
+          const titles = [...xml.matchAll(/<title>([^<]+)<\/title>/g)]
+            .slice(1, 4)
+            .map(m => m[1].trim());
+          items.push(...titles.map(t => ({ title: t, source: "RSS" })));
+        }
+      });
 
-  </main>
+      if (!items.length) {
+        newsListEl.innerHTML = '<div class="text-sm muted">No news available</div>';
+        return;
+      }
 
-  <footer class="mt-8 py-6 text-center text-xs text-gray-600 border-t border-white/5">
-    <p>HyperHub &copy; 2025 · Made by Ruby Nodes</p>
-  </footer>
+      newsListEl.innerHTML = "";
+      items.slice(0, 8).forEach(n => {
+        const el = document.createElement("div");
+        el.className = "mb-2 p-2 glass rounded text-sm";
+        el.innerHTML = `<a href="#" class="hover:underline">${n.title}</a>`;
+        newsListEl.appendChild(el);
+      });
+    } catch (e) {
+      console.error("fetchNews ERROR:", e);
+    }
+  }
 
-  <script src="./js/app.js"></script>
-</body>
-</html>
+  // SENTIMENT
+  async function fetchSentiment() {
+    try {
+      const titles = Array.from(newsListEl.querySelectorAll("a")).map(a => a.textContent.toLowerCase());
+
+      const positive = ["gain", "up", "bull", "moon", "pump", "surge"];
+      const negative = ["drop", "down", "bear", "dump", "crash", "fall"];
+
+      let score = 0, pos = 0, neg = 0;
+
+      titles.forEach(t => {
+        positive.forEach(p => t.includes(p) && (score++, pos++));
+        negative.forEach(n => t.includes(n) && (score--, neg++));
+      });
+
+      const total = pos + neg;
+      const sentimentIndex = total === 0 ? 50 : Math.max(0, Math.min(100, Math.round(50 + (score / total) * 50)));
+      sentimentScoreEl.textContent = sentimentIndex;
+
+      if (sentimentChart) {
+        sentimentChart.data.datasets[0].data = [sentimentIndex, 100 - sentimentIndex];
+        sentimentChart.update();
+      }
+
+    } catch (e) {
+      console.warn("fetchSentiment error", e);
+    }
+  }
+
+  // WHALES
+  async function fetchWhales() {
+    try {
+      whaleListEl.innerHTML = "";
+      API.whalesDemo.forEach(w => {
+        const el = document.createElement("div");
+        el.className = "mb-2";
+        el.innerHTML = `<div class="flex justify-between"><div>${w.pair} · ${w.side}</div><div>${fmtUSD(w.size_usd)}</div></div>`;
+        whaleListEl.appendChild(el);
+      });
+    } catch (e) {
+      console.warn("fetchWhales error", e);
+    }
+  }
+
+  // OI
+  async function fetchOI() {
+    try {
+      const series = API.oiDemo;
+      if (series.length === 0) return;
+
+      const labels = series.map(s => new Date(s.ts * 1000).toLocaleTimeString());
+      const longs = series.map(s => s.longs);
+      const shorts = series.map(s => s.shorts);
+
+      oiLatestEl.textContent = fmtUSD(series[series.length - 1].oi);
+
+      if (oiChart) {
+        oiChart.data.labels = labels;
+        oiChart.data.datasets[0].data = longs;
+        oiChart.data.datasets[1].data = shorts;
+        oiChart.update();
+      }
+    } catch (e) {
+      console.warn("fetchOI error", e);
+    }
+  }
+
+  // GOVERNANCE
+  function fetchGovernanceDemo() {
+    const hips = API.governanceDemo;
+    govSnapshotEl.innerHTML = "";
+
+    hips.forEach(h => {
+      const s = document.createElement("div");
+      s.className = "mb-2";
+      s.innerHTML = `<strong>${h.id}</strong> · ${h.title}`;
+      govSnapshotEl.appendChild(s);
+    });
+  }
+
+  // MOBILE MENU
+  function initMobileMenu() {
+    const btn = document.getElementById("mobileMenuBtn");
+    const menu = document.getElementById("mobileMenu");
+    const close = document.getElementById("mobileClose");
+
+    if (!btn || !menu || !close) return;
+
+    btn.addEventListener("click", () => menu.classList.remove("hidden"));
+    close.addEventListener("click", () => menu.classList.add("hidden"));
+    menu.querySelectorAll("a").forEach(a => a.addEventListener("click", () => menu.classList.add("hidden")));
+  }
+
+  // TABS
+  function initTabs() {
+    const btns = document.querySelectorAll(".tabBtn");
+    const panels = document.querySelectorAll(".tabPanel");
+    if (!btns.length) return;
+
+    btns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        panels.forEach(p => p.classList.add("hidden"));
+        btns.forEach(b => b.classList.remove("bg-white/10"));
+        document.getElementById(btn.dataset.tab).classList.remove("hidden");
+        btn.classList.add("bg-white/10");
+      });
+    });
+
+    btns[0].click();
+  }
+
+  // THEME
+  function initTheme() {
+    const btn = document.getElementById("themeToggle");
+    if (!btn) return;
+
+    const html = document.documentElement;
+    const saved = localStorage.getItem("hyperhub-theme");
+
+    if (saved === "light") html.classList.add("light");
+    btn.textContent = saved === "light" ? "Light" : "Dark";
+
+    btn.addEventListener("click", () => {
+      html.classList.toggle("light");
+      localStorage.setItem("hyperhub-theme", html.classList.contains("light") ? "light" : "dark");
+      btn.textContent = html.classList.contains("light") ? "Light" : "Dark";
+    });
+  }
+
+  // FETCH ALL
+  async function fetchAll() {
+    fetchPrice();
+    await fetchNews();
+    await fetchSentiment();
+    fetchWhales();
+    fetchOI();
+    fetchGovernanceDemo();
+    loadGiypMock();
+    loadCclbMock();
+  }
+
+  // INIT (correct version – NO looping)
+  function init() {
+    console.log("HyperHub INIT");
+    initCharts();
+    initTabs();
+    initMobileMenu();
+    initTheme();
+    fetchAll();
+
+    // refresh data only, no DOM clearing
+    setInterval(fetchAll, 60 * 1000);
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+})();
+
