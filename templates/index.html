@@ -9,21 +9,20 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    /* Základní dark mode barvy pro jistotu */
     body { background-color: #0F1117; color: #ffffff; }
     .glass {
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.05);
       backdrop-filter: blur(10px);
     }
-    /* Vlastní scrollbar pro Webkit */
     ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
   </style>
 </head>
+
 <body class="font-sans antialiased min-h-screen flex flex-col">
 
+  <!-- Mobile menu -->
   <div id="mobileMenu" class="fixed inset-0 z-50 bg-black/90 hidden flex flex-col p-8">
     <button id="mobileClose" class="self-end text-2xl mb-8">&times;</button>
     <nav class="flex flex-col gap-6 text-xl text-center">
@@ -47,13 +46,17 @@
       </nav>
 
       <button id="mobileMenuBtn" class="md:hidden p-2 text-gray-300">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
       </button>
     </div>
   </header>
 
   <main class="flex-1 max-w-7xl mx-auto w-full p-4 space-y-6">
 
+    <!-- MARKET OVERVIEW -->
     <section>
         <h1 class="text-2xl font-bold mb-1">Market Overview</h1>
         <p class="text-xs text-gray-500 mb-4">Realtime Hyperliquid metrics</p>
@@ -69,74 +72,94 @@
             </div>
             <div class="glass p-3 rounded-lg flex flex-col">
                 <span class="text-xs text-gray-500">24h Volume</span>
-                <span class="text-lg font-mono font-bold text-gray-300">$142.5M</span>
+                <span id="cardVolume" class="text-lg font-mono font-bold text-gray-300">--</span>
             </div>
             <div class="glass p-3 rounded-lg flex flex-col">
-                <span class="text-xs text-gray-500">Open Interest</span>
-                <span class="text-lg font-mono font-bold text-gray-300">$89.2M</span>
+                <span class="text-xs text-gray-500">Market Cap</span>
+                <span id="cardMarketCap" class="text-lg font-mono font-bold text-gray-300">--</span>
             </div>
         </div>
     </section>
 
+    <!-- DASHBOARD -->
     <section id="dashboard" class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
+        <!-- NEWS -->
         <div class="glass rounded-xl p-4 flex flex-col h-[420px]">
             <div class="flex justify-between items-center mb-3 pb-2 border-b border-white/5">
                 <h2 class="font-semibold text-gray-200">Latest News</h2>
                 <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-500">RSS & Social</span>
             </div>
+
             <div id="newsList" class="flex-1 overflow-y-auto space-y-2 pr-1">
-                <div class="animate-pulse text-xs text-gray-500">Loading feeds...</div>
+              <div class="animate-pulse text-xs text-gray-500">Loading feeds...</div>
             </div>
         </div>
 
+        <!-- SENTIMENT + WHALES -->
         <div class="flex flex-col gap-4 h-[420px]">
 
-            <div class="glass rounded-xl p-4 flex-1 flex flex-col relative overflow-hidden">
-                <div class="flex justify-between items-center mb-2 z-10">
-                    <h2 class="font-semibold text-gray-200">Sentiment Score</h2>
-                    <span id="sentimentScore" class="text-xl font-bold text-green-400">--</span>
-                </div>
-                <div class="flex-1 relative min-h-0">
-                    <canvas id="sentimentChart"></canvas>
-                </div>
-            </div>
+          <!-- Sentiment Score -->
+          <div class="glass rounded-xl p-4 flex-1 flex flex-col overflow-hidden">
+              <div class="flex justify-between items-center mb-2">
+                  <h2 class="font-semibold text-gray-200">Sentiment Score</h2>
+                  <span id="sentimentScore" class="text-xl font-bold text-green-400">--</span>
+              </div>
+              <div class="flex-1 relative min-h-0">
+                  <canvas id="sentimentChart"></canvas>
+              </div>
+          </div>
 
-            <div class="glass rounded-xl p-4 flex-1 flex flex-col overflow-hidden">
-                <div class="flex justify-between items-center mb-2 pb-2 border-b border-white/5">
-                    <h2 class="font-semibold text-gray-200">Whale Activity</h2>
-                    <span class="text-xs text-gray-500">> $100k</span>
-                </div>
-                <div id="whaleList" class="flex-1 overflow-y-auto space-y-2 pr-1">
-                    <div class="text-xs text-gray-500">Watching chain...</div>
-                </div>
-            </div>
+          <!-- Whales -->
+          <div class="glass rounded-xl p-4 flex-1 flex flex-col overflow-hidden">
+              <div class="flex justify-between items-center mb-2 pb-2 border-b border-white/5">
+                  <h2 class="font-semibold text-gray-200">Whale Activity</h2>
+                  <span class="text-xs text-gray-500">> $100k</span>
+              </div>
+              <div id="whaleList" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
+          </div>
         </div>
 
+        <!-- OI + HSI PANEL -->
         <div class="flex flex-col gap-4 h-[420px]">
 
-            <div class="glass rounded-xl p-4 flex-1 flex flex-col">
-                <div class="flex justify-between items-center mb-2">
-                    <h2 class="font-semibold text-gray-200">Open Interest</h2>
-                    <span id="oiLatest" class="text-xs text-gray-400">--</span>
-                </div>
-                <div class="flex-1 relative min-h-0">
-                    <canvas id="oiChart"></canvas>
-                </div>
-            </div>
+          <!-- Open Interest -->
+          <div class="glass rounded-xl p-4 flex-1 flex flex-col overflow-hidden">
+              <div class="flex justify-between items-center mb-2">
+                  <h2 class="font-semibold text-gray-200">Open Interest</h2>
+                  <span id="oiLatest" class="text-xs text-gray-400">--</span>
+              </div>
+              <div class="flex-1 relative min-h-0">
+                  <canvas id="oiChart"></canvas>
+              </div>
+          </div>
 
-            <div class="glass rounded-xl p-4 flex-1 flex flex-col overflow-hidden">
-                <div class="flex justify-between items-center mb-2 pb-2 border-b border-white/5">
-                    <h2 class="font-semibold text-gray-200">Governance</h2>
-                    <span class="text-xs text-green-400">1 Active</span>
-                </div>
-                <div id="govSnapshot" class="flex-1 overflow-y-auto space-y-2 pr-1">
-                    <div class="text-xs text-gray-500">Loading proposals...</div>
-                </div>
-            </div>
+          <!-- HSI Index -->
+          <div class="glass rounded-xl p-4 flex-1 flex flex-col overflow-hidden">
+              <div class="flex justify-between items-center mb-2 pb-2 border-b border-white/5">
+                  <h2 class="font-semibold text-gray-200">HSI Index</h2>
+                  <span id="HSISent" class="text-xs text-green-400">--</span>
+              </div>
+
+              <div class="grid grid-cols-3 gap-2 mb-2">
+                <div class="text-center text-xs">Sent</div>
+                <div class="text-center text-xs">Whales</div>
+                <div class="text-center text-xs">OI</div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-2 text-center mb-4">
+                <div id="HSISent" class="font-bold text-green-400">--</div>
+                <div id="HSIWhales" class="font-bold text-green-400">--</div>
+                <div id="HSIOI" class="font-bold text-green-400">--</div>
+              </div>
+
+              <div class="flex-1 relative min-h-0">
+                <canvas id="HSIGauge"></canvas>
+              </div>
+          </div>
         </div>
     </section>
-
+    <!-- FOOTER CTA -->
     <section class="glass rounded-xl p-6 text-center mt-4">
         <h2 class="text-xl font-bold mb-2 text-white">Need Faster Execution?</h2>
         <p class="text-gray-400 text-sm mb-4">Stop losing money on public RPC latency. Get direct access to Hyperliquid nodes.</p>
@@ -151,6 +174,8 @@
     <p>HyperHub &copy; 2025 · Made by Ruby Nodes</p>
   </footer>
 
+  <!-- JS -->
   <script src="./js/app.js"></script>
+
 </body>
 </html>
