@@ -239,6 +239,7 @@ if (typeof Chart !== "undefined") {
     const items = [];
     for (const feed of API.newsFeeds) {
       try {
+      console.log("fetchNews called, cleared list, children now:", newsListEl.children.length);
         const res = await fetch(feed);
         const text = await res.text();
         // Naive RSS title extraction
@@ -247,6 +248,7 @@ if (typeof Chart !== "undefined") {
         titles.slice(0, 3).forEach((t, i) => {
           items.push({ title: t, link: links[i] || feed, source: feed });
         });
+        console.log("fetchNews done, appended", items.length, "items, total children:", newsListEl.children.length);
       } catch (e) {
         console.warn("RSS fetch failed:", feed, e);
       }
@@ -265,7 +267,10 @@ if (typeof Chart !== "undefined") {
 
   async function fetchSentiment() {
     try {
-      if (!newsListEl.children.length) await fetchNews();
+if (!newsListEl.children.length) {
+  console.warn("News list empty, skipping sentiment");
+  return;
+}
       const titles = Array.from(newsListEl.querySelectorAll("a")).map(a => a.textContent.toLowerCase());
 
       const positive = ["gain", "bull", "bullish", "surge", "rally", "up", "moon", "pump", "positive", "beat", "record", "growth", "increase", "win"];
@@ -421,16 +426,16 @@ if (typeof Chart !== "undefined") {
     });
   }
 
-  function fetchAll() {
-    fetchPrice();
-    fetchNews();
-    fetchSentiment();
-    fetchWhales();
-    fetchOI();
-    fetchGovernanceDemo();
-    loadGiypMock();
-    loadCclbMock();
-  }
+async function fetchAll() {  
+  fetchPrice();  
+  await fetchNews();  
+  await fetchSentiment();  
+  fetchWhales();
+  fetchOI();
+  fetchGovernanceDemo();
+  loadGiypMock();
+  loadCclbMock();
+}
 
   function fetchGovernanceDemo() {
     const hips = API.governanceDemo;
