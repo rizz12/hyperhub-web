@@ -1,5 +1,5 @@
 (() => {
-  const ENABLE_CHARTS = false;          // <-- přidat
+  const ENABLE_CHARTS = true;
   const HAS_CHART = typeof Chart !== "undefined";
 
  // ... zbytek API atd.
@@ -102,7 +102,7 @@
 
   // INIT CHARTS
   function initCharts() {
-    if (!ENABLE_CHARTS || !HAS_CHART) return;  // <-- přidat
+    if (!ENABLE_CHARTS || !HAS_CHART) return;
 
     const sCanvas = document.getElementById("sentimentChart");
     if (sCanvas) {

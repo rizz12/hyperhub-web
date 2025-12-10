@@ -18,6 +18,19 @@
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
   </style>
+
+  <style>
+    /* Bezpečný wrapper pro všechny grafy */
+    .chart-wrapper {
+      height: 260px;          /* pevná výška pro graf */
+    }
+    .chart-wrapper canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+  </style>
+
 </head>
 
 <body class="font-sans antialiased min-h-screen flex flex-col">
@@ -101,13 +114,32 @@
 
           <!-- Sentiment Score -->
           <div class="glass rounded-xl p-4 flex-1 flex flex-col overflow-hidden">
-              <div class="flex justify-between items-center mb-2">
-                  <h2 class="font-semibold text-gray-200">Sentiment Score</h2>
-                  <span id="sentimentScore" class="text-xl font-bold text-green-400">--</span>
-              </div>
-              <div class="flex-1 relative min-h-0">
-                  <canvas id="sentimentChart"></canvas>
-              </div>
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="font-semibold text-gray-200">Sentiment Score</h2>
+                <span id="sentimentScore" class="text-xl font-bold text-green-400">--</span>
+            </div>
+            <div class="flex-1 relative min-h-0 chart-wrapper">
+                <canvas id="sentimentChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Open Interest -->
+          <div class="glass rounded-xl p-4 flex-1 flex flex-col overflow-hidden">
+            <div class="flex justify-between items-center mb-2">
+                <h2 class="font-semibold text-gray-200">Open Interest</h2>
+                <span id="oiLatest" class="text-xs text-gray-400">--</span>
+            </div>
+            <div class="flex-1 relative min-h-0 chart-wrapper">
+                <canvas id="oiChart"></canvas>
+            </div>
+          </div>
+
+          <!-- HSI Gauge -->
+          <div class="glass rounded-xl p-4 flex-1 flex flex-col overflow-hidden">
+            ...
+            <div class="flex-1 relative min-h-0 chart-wrapper">
+              <canvas id="HSIGauge"></canvas>
+            </div>
           </div>
 
           <!-- Whales -->
