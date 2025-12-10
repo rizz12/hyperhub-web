@@ -192,3 +192,24 @@ canvas {
 
 * { outline: 1px dashed red; }
 
+/* Fixní výšky pro karty */
+.card.h-48 {
+  height: 12rem; /* 48 Tailwind jednotek = 192px */
+}
+
+/* Obsah uvnitř má scroll */
+#newsList,
+#whaleList,
+#govSnapshot {
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+/* Grafy mají pevnou výšku */
+#sentimentChart,
+#oiChart,
+#hsiChart {
+  height: 128px !important; /* odpovídá h-32 */
+}
+
+
