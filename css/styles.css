@@ -163,3 +163,30 @@ html.light #sentimentScore::-webkit-scrollbar-thumb,
 html.light #whaleList::-webkit-scrollbar-thumb {
   background: #cbd5e0;
 }
+
+/* Karty se nesmí natahovat */
+.card {
+  align-self: flex-start;
+  flex: 0 0 auto;
+}
+
+/* Canvas má pevnou výšku */
+canvas {
+  height: 160px !important;
+  max-height: 160px;
+  width: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+/* Gauge může být větší */
+#HSIGauge {
+  height: 200px !important;
+}
+
+/* Seznamy mají scroll místo růstu */
+#newsList, #whaleList, #govSnapshot {
+  max-height: 160px;
+  overflow-y: auto;
+}
+
