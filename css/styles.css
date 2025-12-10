@@ -190,3 +190,5 @@ canvas {
   overflow-y: auto;
 }
 
+* { outline: 1px dashed red; }
+
