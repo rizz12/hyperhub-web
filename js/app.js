@@ -5,7 +5,7 @@
 
   // 2) Direct API endpoints for static site (no backend yet)
   const API = {
-    // real data
+    // real data (CoinGecko)
     price:
       "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=hyperliquid&order=market_cap_desc&per_page=1&page=1&sparkline=false",
 
@@ -59,7 +59,7 @@
         pair: "BTC/USDC",
         side: "long",
         size_usd: 500000,
-        time: Date.now() - 2 * 60 * 60 * 1000,
+                time: Date.now() - 2 * 60 * 60 * 1000,
       },
       {
         pair: "ETH/USDC",
@@ -189,13 +189,11 @@
       "HL:950ms  Aster:1150ms  Lighter:1200ms → Hyperliquid faster";
   }
 
-  // PRICE FETCH (vložit sem)
+  // PRICE FETCH (CoinGecko)
   async function fetchPrice() {
     try {
       const res = await fetch(API.price, {
-        headers: {
-          Accept: "application/json",
-        },
+        headers: { Accept: "application/json" },
       });
 
       if (!res.ok) {
@@ -246,18 +244,6 @@
       hypeChangeEl.textContent = "--";
     }
   }
- function init() {
-    console.log("HyperHub INIT");
-    initCharts();
-    initTabs();
-    initMobileMenu();
-    initTheme();
-    fetchAll();
-    setInterval(fetchAll, 60 * 1000);
-  }
-
-  document.addEventListener("DOMContentLoaded", init);
-})();
 
   // INIT CHARTS wired to mock data
   function initCharts() {
@@ -271,7 +257,7 @@
           labels: ["Bullish", "Bearish"],
           datasets: [
             {
-              data: [50, 50], // will be updated by fetchSentiment()
+              data: [50, 50], // will be updated later
               backgroundColor: ["#00FF7F", "#FF0033"],
             },
           ],
@@ -339,7 +325,125 @@
     }
   }
 
-  // ... dál můžeš nechat svoje fetchPrice/fetchNews atd.,
-  // jen v nich postupně přepojíme News/Whales/OI na API.newsDemo / whalesDemo / oiDemo.
+  // Simple NEWS from mock
+  function fetchNewsDemo() {
+    if (!newsListEl) return;
+    newsListEl.innerHTML = "";
+    API.newsDemo.forEach((n) => {
+      const el = document.createElement("div");
+      el.className = "mb-2 p-2 glass rounded text-sm";
+      el.innerHTML = `<div class="flex justify-between"><span>${n.title}</span><span class="text-xs text-gray-500">${fmtAgo(
+        n.ts
+      )}</span></div>`;
+      newsListEl.appendChild(el);
+    });
+  }
+
+  // WHALES from mock
+  function fetchWhalesDemo() {
+    if (!whaleListEl) return;
+    whaleListEl.innerHTML = "";
+    API.whalesDemo.forEach((w) => {
+      const el = document.createElement("div");
+      el.className = "mb-2";
+      el.innerHTML = `<div class="flex justify-between text-sm"><div>${w.pair} · ${w.side}</div><div>${fmtUSD(
+        w.size_usd
+      )}</div></div><div class="text-xs text-gray-500">${fmtAgo(
+        w.time
+      )}</div>`;
+      whaleListEl.appendChild(el);
+    });
+  }
+
+  // OI from mock (text + update chart)
+  function fetchOIDemo() {
+    const series = API.oiDemo;
+    if (!series.length) return;
+    const latest = series[series.length - 1];
+    if (oiLatestEl) oiLatestEl.textContent = fmtUSD(latest.oi);
+
+    if (oiChart) {
+      oiChart.data.datasets[0].data = series.map((s) => s.longs);
+      oiChart.data.datasets[1].data = series.map((s) => s.shorts);
+      oiChart.update();
+    }
+  }
+
+  // GOVERNANCE from mock
+  function fetchGovernanceDemo() {
+    if (!govSnapshotEl) return;
+    govSnapshotEl.innerHTML = "";
+    API.governanceDemo.forEach((h) => {
+      const s = document.createElement("div");
+      s.className = "mb-2 text-sm";
+      s.innerHTML = `<strong>${h.id}</strong> · ${h.title} <span class="text-xs text-gray-500">(${h.status})</span>`;
+      govSnapshotEl.appendChild(s);
+    });
+  }
+
+  // Very naive sentiment from news titles
+  function fetchSentimentDemo() {
+    try {
+      const titles = API.newsDemo.map((n) => n.title.toLowerCase());
+      const positive = ["gain", "up", "bull", "moon", "pump", "surge", "high"];
+      const negative = ["drop", "down", "bear", "dump", "crash", "fall", "low"];
+
+      let score = 0,
+        pos = 0,
+        neg = 0;
+
+      titles.forEach((t) => {
+        positive.forEach((p) => t.includes(p) && (score++, pos++));
+        negative.forEach((n) => t.includes(n) && (score--, neg++));
+      });
+
+      const total = pos + neg;
+      const sentimentIndex =
+        total === 0
+          ? 50
+          : Math.max(
+              0,
+              Math.min(100, Math.round(50 + (score / total) * 50))
+            );
+
+      if (sentimentScoreEl) sentimentScoreEl.textContent = sentimentIndex;
+
+      if (sentimentChart) {
+        sentimentChart.data.datasets[0].data = [
+          sentimentIndex,
+          100 - sentimentIndex,
+        ];
+        sentimentChart.update();
+      }
+    } catch (e) {
+      console.warn("fetchSentimentDemo error", e);
+    }
+  }
+
+  // FETCH ALL (current static version)
+  async function fetchAll() {
+    fetchPrice();
+    fetchNewsDemo();
+    fetchWhalesDemo();
+    fetchOIDemo();
+    fetchGovernanceDemo();
+    fetchSentimentDemo();
+    loadGiypMock();
+    loadCclbMock();
+  }
+
+  // INIT
+  function init() {
+    console.log("HyperHub INIT");
+    initCharts();
+    // pokud máš taby / mobile menu / theme, můžeš je sem doplnit
+    // initTabs();
+    // initMobileMenu();
+    // initTheme();
+    fetchAll();
+    setInterval(fetchAll, 60 * 1000);
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
 })();
 
