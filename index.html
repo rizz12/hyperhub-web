@@ -149,7 +149,7 @@
           </div>
         </div>
         <a href="#governance" class="hover:text-gray-100">Governance</a>
-        <a href="#education" class="hover:text-gray-100">Education</a>
+        <!-- <a href="#education" class="hover:text-gray-100">Education</a> -->
       </nav>
     </div>
   </header>
@@ -611,7 +611,10 @@
         },
         options: {
           responsive: true,
-          scales: { y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.1)' } }, stacked: true },
+          scales: {
+            x: { stacked: true },
+            y: { stacked: true, beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.1)' } }
+          },
           plugins: { legend: { display: true, position: 'top' }, tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw}%` } } },
           animation: { duration: 1000, easing: 'easeInOutQuart' }
         }
