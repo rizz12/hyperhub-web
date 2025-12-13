@@ -33,6 +33,13 @@
       position: relative;
       width: 100%;
       height: 100%;
+      display: flex;
+      justify-content: center; /* Centrování grafů */
+      align-items: center;
+    }
+    canvas {
+      max-width: 100%;
+      max-height: 100%;
     }
     .info-badge {
       display: inline-flex;
@@ -154,22 +161,22 @@
             <div id="HSIOIVal" class="font-bold text-green-400">65</div> <!-- Mock: From OI API -->
           </div>
         </div>
-        <div class="flex-1 relative min-h-0 chart-wrapper h-32">
-          <canvas id="HSIGauge"></canvas> <!-- Gauge chart with mock historical line (Dec 2024: 45 -> 85) -->
+        <div class="flex-1 relative min-h-0 chart-wrapper h-24"> <!-- Zmenšeno na h-24 -->
+          <canvas id="HSIGauge"></canvas> <!-- Gauge chart with mock historical line (30 dní: Nov 13 - Dec 13, 2025, stoupající od 50 do 85) -->
         </div>
       </div>
 
       <!-- Exclusive metric cards (grid, now 3 cols for remaining) -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between">
-          <!-- GIYP -->
+          <!-- GIYP - Změněno na bar chart s hlasy (Aye/Nay pro HIPy) -->
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">GIYP: Governance Impact Yield Predictor</span>
             <span class="info-badge text-gray-400" title="Predicts how governance votes affect liquid staking yields like beHYPE; helps optimize staking rewards.">?</span>
           </div>
           <div class="text-lg font-semibold" id="giypValue">+0.5%</div> <!-- Mock: Historical HIP-1 impact (Dec 2024) -->
           <div class="h-32 chart-wrapper">
-            <canvas id="giypChart"></canvas> <!-- Line chart: Pre-vote 5%, post-vote 5.5% -->
+            <canvas id="giypChart"></canvas> <!-- Bar chart Aye/Nay pro HIP-1,2,3 (historical votes Dec 2024) -->
           </div>
         </div>
 
@@ -259,170 +266,46 @@
       </div>
     </section>
 
-    <!-- Governance Section (in index as tab/section) -->
-    <section id="governance" class="space-y-2 hidden"> <!-- Hidden by default, show via nav -->
+    <!-- Governance Section (expanded with info and list) -->
+    <section id="governance" class="space-y-2 hidden">
       <div>
         <h1 class="text-xl font-semibold text-gray-100">Governance Tracker</h1>
         <p class="text-xs text-gray-500">Active HIPs and vote impacts</p>
       </div>
-      <!-- Dummy table with text/seznamy -->
-      <table class="w-full text-sm text-gray-400">
-        <thead>
-          <tr>
-            <th>HIP</th>
-            <th>Status</th>
-            <th>Aye Votes</th>
-            <th>Nay Votes</th>
-            <th>Yield Impact Prediction</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>HIP-3</td>
-            <td>Active</td>
-            <td>List of Aye: Validator1 (1M stake), Validator2</td>
-            <td>List of Nay: Validator3</td>
-            <td>+0.5% on beHYPE (predicted)</td>
-          </tr>
-          <!-- Add more rows via JS fetch -->
-        </tbody>
-      </table>
-      <p class="text-xs text-gray-500 mt-4">Yield impact based on vote outcomes; aye favors higher LST rewards.</p>
-    </section>
 
-    <!-- Education Section (accordion, static) -->
-    <section id="education" class="space-y-2 hidden">
-      <div>
-        <h1 class="text-xl font-semibold text-gray-100">Education</h1>
-        <p class="text-xs text-gray-500">Guides for Hyperliquid</p>
+      <!-- Obecný info o governance -->
+      <div class="glass rounded-xl p-4 mb-4">
+        <h2 class="font-semibold mb-2">Jak funguje governance v Hyperliquid</h2>
+        <p class="text-sm text-gray-300 mb-3">Hyperliquid governance probíhá přes HIP (Hyperliquid Improvement Proposals). Držitelé HYPE hlasují o změnách jako fee struktura nebo staking rewards. Pro hlasování musíš mít stakovaný HYPE k validatorovi – delegace hlasu je automatická. Pokud chceš změnit názor, prestakuj k jinému validatorovi (např. z val1 na val2), což přenáší tvůj hlas. Aktuální quorum: 51% stakovaného HYPE. Více na <a href="#" class="text-emerald-400">docs.hyperliquid.xyz</a>.</p>
+        <p class="text-sm text-gray-400">Tip: Prestakuj přes wallet (MetaMask + Hyperliquid app) – poplatek ~0.01 HYPE, okamžité.</p>
       </div>
-      <!-- Accordion here as in your original -->
-    </section>
-  </main>
 
-  <script>
-    // Mock fetchHypeData (with real API comment)
-    function fetchHypeData() {
-      // Mock data (historical Dec 2024)
-      document.getElementById('hypePrice').textContent = '$1.23';
-      document.getElementById('hypeChange').textContent = '+2.5%';
-      document.getElementById('hypeVolume').textContent = 'Volume: $10.2M';
-      document.getElementById('hypeMarketCap').textContent = 'Market Cap: $123M';
-      // Real API: async function fetchHypeData() { const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=hyperliquid&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true'); ... }
-    }
-    fetchHypeData(); // Initial call
-    setInterval(fetchHypeData, 60000); // Every minute
-
-    // Mock charts with historical data (Dec 2024 outage recovery)
-    document.addEventListener('DOMContentLoaded', () => {
-      // HSI Gauge (line chart for historical sentiment, Dec 2024: 45 -> 85)
-      const hsiCtx = document.getElementById('HSIGauge').getContext('2d');
-      new Chart(hsiCtx, {
-        type: 'line',
-        data: {
-          labels: ['Dec 1', 'Dec 5', 'Dec 10', 'Dec 13'],
-          datasets: [{ label: 'HSI', data: [45, 60, 75, 85], borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', tension: 0.4 }]
-        },
-        options: { responsive: true, scales: { y: { beginAtZero: true, max: 100 } } }
-      });
-
-      // GIYP Line (pre/post vote yields, historical HIP-1 Dec 2024)
-      const giypCtx = document.getElementById('giypChart').getContext('2d');
-      new Chart(giypCtx, {
-        type: 'line',
-        data: {
-          labels: ['Pre-Vote', 'Post-Vote 1', 'Post-Vote 2', 'Expected'],
-          datasets: [{ label: 'Yield', data: [5, 5.2, 5.5, 5.8], borderColor: '#10b981', tension: 0.4 }]
-        },
-        options: { responsive: true, scales: { y: { beginAtZero: true } } }
-      });
-
-      // ADL Bar (risk levels, historical Dec 2024 high leverage)
-      const adlCtx = document.getElementById('adlHeatmap').getContext('2d');
-      new Chart(adlCtx, {
-        type: 'bar',
-        data: {
-          labels: ['HYPE/USDC', 'BTC/USDC', 'ETH/USDC'],
-          datasets: [{ label: 'Risk Score', data: [80, 60, 90], backgroundColor: ['#ef4444', '#f59e0b', '#ef4444'] }]
-        },
-        options: { responsive: true, scales: { y: { beginAtZero: true, max: 100 } } }
-      });
-
-      // WFSI Line (rising, Dec 2024 whale accumulation)
-      const wfsiCtx = document.getElementById('wfsiChart').getContext('2d');
-      new Chart(wfsiCtx, {
-        type: 'line',
-        data: {
-          labels: ['Dec 1', 'Dec 5', 'Dec 10', 'Dec 13'],
-          datasets: [{ label: 'WFSI', data: [50, 65, 75, 85], borderColor: '#10b981', tension: 0.4 }]
-        },
-        options: { responsive: true, scales: { y: { beginAtZero: true, max: 100 } } }
-      });
-
-      // AOS Bar (arb scores, historical Dec 2024)
-      const aosCtx = document.getElementById('aosChart').getContext('2d');
-      new Chart(aosCtx, {
-        type: 'bar',
-        data: {
-          labels: ['HL-Aster', 'HL-Lighter', 'Cross-Chain'],
-          datasets: [{ label: 'Score', data: [8, 6, 9], backgroundColor: '#10b981' }]
-        },
-        options: { responsive: true, scales: { y: { beginAtZero: true, max: 10 } } }
-      });
-
-      // SMS Line (spike, Dec 2024 buzz)
-      const smsCtx = document.getElementById('smsChart').getContext('2d');
-      new Chart(smsCtx, {
-        type: 'line',
-        data: {
-          labels: ['Dec 1', 'Dec 5', 'Dec 10', 'Dec 13'],
-          datasets: [{ label: 'SMS', data: [40, 55, 80, 90], borderColor: '#10b981', tension: 0.4 }]
-        },
-        options: { responsive: true, scales: { y: { beginAtZero: true, max: 100 } } }
-      });
-
-      // LST Bar (yields, historical Dec 2024)
-      const lstCtx = document.getElementById('lstChart').getContext('2d');
-      new Chart(lstCtx, {
-        type: 'bar',
-        data: {
-          labels: ['beHYPE', 'kHYPE'],
-          datasets: [{ label: 'APY', data: [15.2, 12.5], backgroundColor: '#10b981' }]
-        },
-        options: { responsive: true, scales: { y: { beginAtZero: true } } }
-      });
-
-      // CCLB Bar (latency, historical pings Dec 2024)
-      const cclbCtx = document.getElementById('cclbChart').getContext('2d');
-      new Chart(cclbCtx, {
-        type: 'bar',
-        data: {
-          labels: ['HL', 'Aster', 'Lighter'],
-          datasets: [{ label: 'Latency (ms)', data: [950, 1150, 1200], backgroundColor: '#10b981' }]
-        },
-        options: { responsive: true, scales: { y: { beginAtZero: true } } }
-      });
-
-      // MMIA Pie (imbalance, historical Dec 2024)
-      const mmiaCtx = document.getElementById('mmiaChart').getContext('2d');
-      new Chart(mmiaCtx, {
-        type: 'pie',
-        data: {
-          labels: ['Makers', 'Takers'],
-          datasets: [{ data: [60, 40], backgroundColor: ['#10b981', '#ef4444'] }]
-        },
-        options: { responsive: true }
-      });
-    });
-
-    // Nav show/hide (single-page)
-    document.querySelectorAll('nav a').forEach(a => {
-      a.addEventListener('click', e => {
-        e.preventDefault();
-        document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
-        document.querySelector(e.target.hash).classList.remove('hidden');
-      });
-    });
-  </script>
-</body>
-</html>
+      <!-- Stručný seznam proposalů (tabulka) -->
+      <div class="glass rounded-xl overflow-hidden">
+        <table class="w-full text-sm text-gray-400">
+          <thead class="bg-white/5">
+            <tr>
+              <th class="p-3 text-left">HIP</th>
+              <th class="p-3 text-left">Title</th>
+              <th class="p-3 text-left">Status</th>
+              <th class="p-3 text-left">Aye/Nay</th>
+              <th class="p-3 text-left">Impact</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="border-t border-white/5">
+              <td class="p-3">HIP-1</td>
+              <td class="p-3">Increase beHYPE staking rewards</td>
+              <td class="p-3">Active</td>
+              <td class="p-3">Aye: 65% / Nay: 35%</td>
+              <td class="p-3 text-emerald-400">+1% APY</td>
+            </tr>
+            <tr class="border-t border-white/5">
+              <td class="p-3">HIP-2</td>
+              <td class="p-3">Adjust fee structure</td>
+              <td class="p-3">Closed</td>
+              <td class="p-3">Aye: 72% / Nay: 28%</td>
+              <td class="p-3 text-emerald-400">Fee reduction</td>
+            </tr>
+            <tr class="border-t border-white/5">
+              <td class="p-
