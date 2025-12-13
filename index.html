@@ -1,310 +1,267 @@
-<!doctype html>
-<html lang="en" class="dark">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>HyperHub — Unlock Hyperliquid Insights</title>
+  <meta charset="UTF-8" />
+  <title>HyperHub – Hyperliquid Metrics</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+  <!-- Tailwind CDN (simplified setup) -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    body { background-color: #0F1117; color: #ffffff; }
-    .glass {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(10px);
+    body {
+      background-color: #020617;
     }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-  </style>
-
-  <style>
+    .glass {
+      background: radial-gradient(circle at top left, rgba(148, 163, 184, 0.12), transparent 60%),
+                  rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      backdrop-filter: blur(14px);
+    }
+    .card-hover {
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 22px 40px rgba(0, 0, 0, 0.55);
+      border-color: rgba(148, 163, 184, 0.4);
+    }
+    .chart-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
     .info-badge {
-      @apply inline-flex items-center justify-center rounded-full border border-white/10 text-[10px] w-4 h-4 cursor-help;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      font-size: 10px;
+      width: 16px;
+      height: 16px;
+      cursor: help;
     }
     .info-badge:hover {
-      @apply border-white/40;
+      border-color: rgba(255, 255, 255, 0.45);
     }
   </style>
-
-  <style>
-    /* Bezpečný wrapper pro všechny grafy */
-    .chart-wrapper {
-      height: 260px;          /* pevná výška pro graf */
-    }
-    .chart-wrapper canvas {
-      width: 100% !important;
-      height: 100% !important;
-      display: block;
-    }
-  </style>
-
 </head>
 
-<body class="font-sans antialiased min-h-screen flex flex-col">
-
-  <!-- Mobile menu -->
-  <div id="mobileMenu" class="fixed inset-0 z-50 bg-black/90 hidden flex flex-col p-8">
-    <button id="mobileClose" class="self-end text-2xl mb-8">&times;</button>
-    <nav class="flex flex-col gap-6 text-xl text-center">
-        <a href="#dashboard" class="hover:text-green-400">Dashboard</a>
-        <a href="#analytics" class="hover:text-green-400">Analytics</a>
-        <a href="#governance" class="hover:text-green-400">Governance</a>
-    </nav>
-  </div>
-
-  <header class="glass sticky top-0 z-40 border-b border-white/5">
-    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+<body class="min-h-screen text-gray-100">
+  <!-- Top nav -->
+  <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur">
+    <div class="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
       <div class="flex items-center gap-2">
-        <div class="w-3 h-3 bg-red-500 rotate-45"></div>
-        <span class="text-xl font-bold tracking-tight text-green-400">HyperHub</span>
+        <div class="w-3 h-3 rounded-sm bg-emerald-500"></div>
+        <span class="font-semibold text-sm tracking-wide">HyperHub</span>
       </div>
-
-      <nav class="hidden md:flex items-center gap-6 text-sm text-gray-400">
-        <a href="#dashboard" class="hover:text-white transition">Dashboard</a>
-        <a href="#analytics" class="hover:text-white transition">Analytics</a>
-        <a href="#governance" class="hover:text-white transition">Governance</a>
+      <nav class="flex items-center gap-6 text-xs text-gray-400">
+        <a href="#dashboard" class="hover:text-gray-100">Dashboard</a>
+        <a href="#analytics" class="hover:text-gray-100">Analytics</a>
+        <a href="#governance" class="hover:text-gray-100">Governance</a>
+        <a href="#education" class="hover:text-gray-100">Education</a> <!-- Added for completeness -->
       </nav>
-
-      <button id="mobileMenuBtn" class="md:hidden p-2 text-gray-300">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M4 6h16M4 12h16M4 18h16"></path>
-        </svg>
-      </button>
     </div>
   </header>
 
-  <main class="flex-1 max-w-7xl mx-auto w-full p-4 space-y-6">
+  <main class="max-w-7xl mx-auto px-4 pb-16 pt-6 space-y-6" id="dashboard">
+    <!-- MARKET OVERVIEW HEADER -->
+    <section class="space-y-2">
+      <div>
+        <h1 class="text-xl font-semibold text-gray-100">Market Overview</h1>
+        <p class="text-xs text-gray-500">Realtime Hyperliquid metrics</p>
+      </div>
 
-    <!-- MARKET OVERVIEW -->
-    <section>
-        <h1 class="text-2xl font-bold mb-1">Market Overview</h1>
-        <p class="text-xs text-gray-500 mb-4">Realtime Hyperliquid metrics</p>
+      <!-- Top metric cards (standard ones) -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between">
+          <!-- // HYPE Price Card: Fetches real-time price, 24h change, volume, market cap from CoinGecko API. Basic market snapshot. -->
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] text-gray-400 uppercase tracking-wide">HYPE Price</span>
+            <span class="info-badge text-gray-400" title="Current HYPE token price with 24h change, sourced from CoinGecko API for accuracy.">?</span>
+            <span class="text-[10px] text-emerald-400/80">CoinGecko</span>
+          </div>
+          <div class="text-lg font-semibold" id="hypePrice">Loading...</div>
+          <div class="flex justify-between items-center mt-2 text-[11px] text-gray-500">
+            <span>24h Change</span>
+            <span id="hypeChange">--</span>
+          </div>
+          <div class="text-[11px] text-gray-500 mt-2" id="hypeVolume">Volume: --</div>
+          <div class="text-[11px] text-gray-500" id="hypeMarketCap">Market Cap: --</div>
+        </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div class="glass p-3 rounded-lg flex flex-col">
-                <span class="text-xs text-gray-500">HYPE Price</span>
-                <span id="hypePrice" class="text-lg font-mono font-bold text-green-400">Loading...</span>
-            </div>
-            <div class="glass p-3 rounded-lg flex flex-col">
-                <span class="text-xs text-gray-500">24h Change</span>
-                <span id="hypeChange" class="text-lg font-mono font-bold text-gray-300">--</span>
-            </div>
-            <div class="glass p-3 rounded-lg flex flex-col">
-                <span class="text-xs text-gray-500">24h Volume</span>
-                <span id="cardVolume" class="text-lg font-mono font-bold text-gray-300">--</span>
-            </div>
-            <div class="glass p-3 rounded-lg flex flex-col">
-                <span class="text-xs text-gray-500">Market Cap</span>
-                <span id="cardMarketCap" class="text-lg font-mono font-bold text-gray-300">--</span>
-            </div>
-        </div>
-    </section>
-
-    <section id="analytics" class="...">
-      <div class="glass rounded-xl p-4">
-        <div class="flex justify-between items-center mb-2">
-          <h2 class="font-semibold text-gray-200">Governance Impact Yield Predictor</h2>
-          <span class="text-xs bg-white/5 px-2 py-1 rounded text-gray-400">Demo</span>
-        </div>
-        <p class="text-xs text-gray-500 mb-3">
-          Shows pre / post-vote yields for recent HIP proposals and a simple expected yield range.
-        </p>
-        <div class="h-64 chart-wrapper">
-          <canvas id="giypChart"></canvas>
-        </div>
-        <div id="giypIndicator" class="mt-2 text-xs text-gray-400"></div>
+        <!-- Add other standard cards if needed, but focus on new ones -->
       </div>
     </section>
 
+    <!-- Exclusive Insights Section -->
+    <section class="space-y-2">
+      <div>
+        <h1 class="text-xl font-semibold text-gray-100">Exclusive Insights</h1>
+        <p class="text-xs text-gray-500">Unique metrics for advanced Hyperliquid analysis</p>
+      </div>
 
-    <!-- DASHBOARD -->
-    <section id="dashboard" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-
-      <!-- ANALYTICS SECTION -->
-      <section id="analytics" class="max-w-7xl mx-auto w-full p-4 space-y-4 mt-6">
-        <!-- GIYP PANEL -->
-
-        <div class="flex justify-between items-center mb-2">
-          <div class="flex items-center gap-2">
-            <h2 class="font-semibold text-gray-200">Governance Impact Yield Predictor</h2>
-            <span class="text-xs bg-white/5 px-2 py-1 rounded text-gray-400">Demo</span>
-            <span
-              class="info-badge text-gray-400"
-              title="Estimates how HIP governance proposals change staking yields before and after the vote."
-            >
-              ?
-            </span>
+      <!-- Exclusive metric cards (grid) -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between">
+          <!-- // GIYP: Predicts impact of HIP votes on liquid staking yields (e.g., beHYPE). Uses governance data from GitBook and yields from DeFiLlama. Requires scrape for real-time votes/yields. -->
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] text-gray-400 uppercase tracking-wide">GIYP: Governance Impact Yield Predictor</span>
+            <span class="info-badge text-gray-400" title="Predicts how governance votes affect liquid staking yields like beHYPE; helps optimize staking rewards.">?</span>
           </div>
-          <span class="text-xs text-gray-500">
-            HIP impact on yields
-          </span>
+          <div class="text-lg font-semibold" id="giypValue">Loading...</div>
+          <!-- Chart or data placeholder -->
+          <canvas id="giypChart" class="chart-wrapper"></canvas>
         </div>
 
-          <p class="text-xs text-gray-500 mb-3">
-            Shows how recent HIP proposals changed staking yields before vs. after the vote and a simple
-            expected post‑vote yield range for beHYPE and similar assets.
-          </p>
-
-          <div class="h-64 chart-wrapper">
-            <canvas id="giypChart"></canvas>
+        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between">
+          <!-- // ADL Risk Heatmap: Heatmap of autodeleveraging risk based on OI/leverage ratios. Red for high risk (>80%). Sourced from HypurrScan. Requires scrape for OI data. -->
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] text-gray-400 uppercase tracking-wide">ADL Risk Heatmap</span>
+            <span class="info-badge text-gray-400" title="Visualizes ADL risk for top pairs; red zones indicate high leverage exposure to avoid wipeouts.">?</span>
           </div>
-
-          <div
-            id="giypIndicator"
-            class="mt-3 text-xs text-gray-400"
-            title="Text summary of the latest HIP impact based on demo data."
-          >
-            Loading governance impact...
-          </div>
-        </div>
-      </section>
-
-
-        <!-- NEWS -->
-        <div class="glass rounded-xl p-4 flex flex-col transition-transform transition-shadow duration-150 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/40">
-            <div class="flex justify-between items-center mb-3 pb-2 border-b border-white/5">
-                <h2 class="font-semibold text-gray-200">Latest News</h2>
-                <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-500">RSS & Social</span>
-            </div>
-
-            <div id="newsList" class="flex-1 overflow-y-auto space-y-2 pr-1">
-              <div class="animate-pulse text-xs text-gray-500">Loading feeds...</div>
-            </div>
+          <div class="text-lg font-semibold" id="adlValue">Loading...</div>
+          <!-- Heatmap placeholder (use Chart.js or SVG) -->
+          <canvas id="adlHeatmap" class="chart-wrapper"></canvas>
         </div>
 
-        <!-- SENTIMENT + WHALES -->
-        <div class="flex flex-col gap-4 h-[420px]">
-
-          <!-- Sentiment Score -->
-          <div class="glass rounded-xl p-4 flex flex-col transition-transform transition-shadow duration-150 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/40">
-            <div class="flex justify-between items-center mb-2">
-                <h2 class="font-semibold text-gray-200">Sentiment Score</h2>
-                <span id="sentimentScore" class="text-xl font-bold text-green-400">--</span>
-            </div>
-            <div class="flex-1 relative min-h-0 chart-wrapper">
-                <canvas id="sentimentChart"></canvas>
-            </div>
+        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between">
+          <!-- // WFSI: Indexes large wallet flows with sentiment from social data. Scores 0-100. Combines HypurrScan flows and X/Reddit sentiment. Requires scrape for flows/sentiment. -->
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] text-gray-400 uppercase tracking-wide">WFSI: Whale Flow Sentiment Index</span>
+            <span class="info-badge text-gray-400" title="Combines whale transactions with market sentiment; high score signals bullish whale activity.">?</span>
           </div>
-
-          <!-- Open Interest -->
-          <div class="glass rounded-xl p-4 flex flex-col transition-transform transition-shadow duration-150 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/40">
-            <div class="flex justify-between items-center mb-2">
-                <h2 class="font-semibold text-gray-200">Open Interest</h2>
-                <span id="oiLatest" class="text-xs text-gray-400">--</span>
-            </div>
-            <div class="flex-1 relative min-h-0 chart-wrapper">
-                <canvas id="oiChart"></canvas>
-            </div>
-          </div>
-
-          <!-- HSI Gauge -->
-          <div class="glass rounded-xl p-4 flex flex-col transition-transform transition-shadow duration-150 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/40">
-            ...
-            <div class="flex-1 relative min-h-0 chart-wrapper">
-              <canvas id="HSIGauge"></canvas>
-            </div>
-          </div>
-
-          <!-- Whales -->
-          <div class="glass rounded-xl p-4 flex flex-col transition-transform transition-shadow duration-150 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/40">
-
+          <div class="text-lg font-semibold" id="wfsiValue">Loading...</div>
+          <canvas id="wfsiChart" class="chart-wrapper"></canvas>
         </div>
 
-        <!-- OI + HSI PANEL -->
-        <div class="flex flex-col gap-4 h-[420px]">
-
-          <!-- GIYP PANEL -->
-          <section id="analytics" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-            <div class="glass rounded-xl p-4 flex flex-col transition-transform transition-shadow duration-150 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/40">
-
-              <div class="flex justify-between items-center mb-2">
-                <div class="flex items-center gap-2">
-                  <h2 class="font-semibold text-gray-200">Governance Impact Yield Predictor</h2>
-                  <span class="text-xs bg-white/5 px-2 py-1 rounded text-gray-400">Demo</span>
-                </div>
-                <span class="text-xs text-gray-500" title="Estimates yield change around HIP governance votes.">
-                  HIP impact on yields
-                </span>
-              </div>
-
-              <p class="text-xs text-gray-500 mb-3">
-                Shows how recent HIP proposals changed staking yields before vs. after the vote
-                and a simple expected post‑vote yield range.
-              </p>
-
-              <div class="h-64 chart-wrapper">
-                <canvas id="giypChart"></canvas>
-              </div>
-
-              <div id="giypIndicator" class="mt-3 text-xs text-gray-400">
-                Loading governance impact...
-              </div>
-            </div>
-
-            <!-- druhý sloupec analytics můžeš nechat prázdný nebo použít pro ADL -->
-            <div></div>
-          </section>
-
-
-          <!-- Open Interest -->
-          <div class="glass rounded-xl p-4 flex flex-col transition-transform transition-shadow duration-150 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/40">
-
-              <div class="flex justify-between items-center mb-2">
-                  <h2 class="font-semibold text-gray-200">Open Interest</h2>
-                  <span id="oiLatest" class="text-xs text-gray-400">--</span>
-              </div>
-              <div class="flex-1 relative min-h-0">
-                  <canvas id="oiChart"></canvas>
-              </div>
+        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between">
+          <!-- // AOS: Scans arbitrage opportunities across chains/exchanges based on OI/prices. Scores 1-10. Uses CoinGlass for comps. Requires scrape for multi-source data. -->
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] text-gray-400 uppercase tracking-wide">AOS: Arbitrage Opportunity Scanner</span>
+            <span class="info-badge text-gray-400" title="Detects price discrepancies for arb trades; scores high for profitable spreads like HL vs. Aster.">?</span>
           </div>
-
-          <!-- HSI Index -->
-          <div class="glass rounded-xl p-4 flex flex-col transition-transform transition-shadow duration-150 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/40">
-
-              <div class="flex justify-between items-center mb-2 pb-2 border-b border-white/5">
-                  <h2 class="font-semibold text-gray-200">HSI Index</h2>
-                  <span id="HSISent" class="text-xs text-green-400">--</span>
-              </div>
-
-              <div class="grid grid-cols-3 gap-2 mb-2">
-                <div class="text-center text-xs">Sent</div>
-                <div class="text-center text-xs">Whales</div>
-                <div class="text-center text-xs">OI</div>
-              </div>
-
-              <div class="grid grid-cols-3 gap-2 text-center mb-4">
-                <div id="HSISent" class="font-bold text-green-400">--</div>
-                <div id="HSIWhales" class="font-bold text-green-400">--</div>
-                <div id="HSIOI" class="font-bold text-green-400">--</div>
-              </div>
-
-              <div class="flex-1 relative min-h-0">
-                <canvas id="HSIGauge"></canvas>
-              </div>
-          </div>
+          <div class="text-lg font-semibold" id="aosValue">Loading...</div>
+          <canvas id="aosChart" class="chart-wrapper"></canvas>
         </div>
-    </section>
-    <!-- FOOTER CTA -->
-    <section class="glass rounded-xl p-6 text-center mt-4">
-        <h2 class="text-xl font-bold mb-2 text-white">Need Faster Execution?</h2>
-        <p class="text-gray-400 text-sm mb-4">Stop losing money on public RPC latency. Get direct access to Hyperliquid nodes.</p>
-        <a href="#" class="inline-block bg-green-500 hover:bg-green-600 text-black font-bold py-2 px-6 rounded-lg transition">
-            Get 14-Day Free RPC Trial
-        </a>
+
+        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between">
+          <!-- // SMS: Correlates social buzz with volume changes. Score 0-100. From X/Reddit mentions vs. volume. Requires scrape for social data. -->
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] text-gray-400 uppercase tracking-wide">SMS: Social Momentum Score</span>
+            <span class="info-badge text-gray-400" title="Measures social hype correlated to trading volume; predicts pumps from buzz spikes.">?</span>
+          </div>
+          <div class="text-lg font-semibold" id="smsValue">Loading...</div>
+          <canvas id="smsChart" class="chart-wrapper"></canvas>
+        </div>
+
+        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between">
+          <!-- // LST Yield Optimizer: Ranks LST options (beHYPE/kHYPE) by yield/risk. From DeFiLlama. Requires scrape for yields. -->
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] text-gray-400 uppercase tracking-wide">LST Yield Optimizer</span>
+            <span class="info-badge text-gray-400" title="Optimizes liquid staking yields with risk adjustment; recommends best LST for max APY.">?</span>
+          </div>
+          <div class="text-lg font-semibold" id="lstValue">Loading...</div>
+          <canvas id="lstChart" class="chart-wrapper"></canvas>
+        </div>
+
+        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between">
+          <!-- // CCLB: Benchmarks latency across chains (HL vs. Aster/Lighter). Custom pings/API. Requires backend for pings. -->
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] text-gray-400 uppercase tracking-wide">CCLB: Cross Chain Latency Benchmark</span>
+            <span class="info-badge text-gray-400" title="Compares block times/latency for HFT edges; highlights HL advantages.">?</span>
+          </div>
+          <div class="text-lg font-semibold" id="cclbValue">Loading...</div>
+          <canvas id="cclbChart" class="chart-wrapper"></canvas>
+        </div>
+
+        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between">
+          <!-- // MMIA: Alerts on maker-taker imbalances. Pie chart from HypurrScan. Requires scrape for fee data. -->
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[11px] text-gray-400 uppercase tracking-wide">MMIA: Market Maker Imbalance Alert</span>
+            <span class="info-badge text-gray-400" title="Detects fee structure imbalances; alerts on liquidity risks for makers.">?</span>
+          </div>
+          <div class="text-lg font-semibold" id="mmiaValue">Loading...</div>
+          <canvas id="mmiaChart" class="chart-wrapper"></canvas>
+        </div>
+      </div>
     </section>
 
+    <!-- Governance Section (in index as tab/section) -->
+    <section id="governance" class="space-y-2 hidden"> <!-- Hidden by default, show via nav -->
+      <div>
+        <h1 class="text-xl font-semibold text-gray-100">Governance Tracker</h1>
+        <p class="text-xs text-gray-500">Active HIPs and vote impacts</p>
+      </div>
+      <!-- Dummy table with text/seznamy -->
+      <table class="w-full text-sm text-gray-400">
+        <thead>
+          <tr>
+            <th>HIP</th>
+            <th>Status</th>
+            <th>Aye Votes</th>
+            <th>Nay Votes</th>
+            <th>Yield Impact Prediction</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>HIP-3</td>
+            <td>Active</td>
+            <td>List of Aye: Validator1 (1M stake), Validator2</td>
+            <td>List of Nay: Validator3</td>
+            <td>+0.5% on beHYPE (predicted)</td>
+          </tr>
+          <!-- Add more rows via JS fetch -->
+        </tbody>
+      </table>
+      <p class="text-xs text-gray-500 mt-4">Yield impact based on vote outcomes; aye favors higher LST rewards.</p>
+    </section>
+
+    <!-- Education Section (accordion, static) -->
+    <section id="education" class="space-y-2 hidden">
+      <div>
+        <h1 class="text-xl font-semibold text-gray-100">Education</h1>
+        <p class="text-xs text-gray-500">Guides for Hyperliquid</p>
+      </div>
+      <!-- Accordion here as in your original -->
+    </section>
   </main>
 
-  <footer class="mt-8 py-6 text-center text-xs text-gray-600 border-t border-white/5">
-    <p>HyperHub &copy; 2025 · Made by Ruby Nodes</p>
-  </footer>
+  <script>
+    // Fetch CoinGecko (fixed: added params for vol/market cap)
+    async function fetchHypeData() {
+      try {
+        const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=hyperliquid&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true');
+        const data = await response.json();
+        const hype = data.hyperliquid;
+        document.getElementById('hypePrice').textContent = `\[ {hype.usd.toFixed(2)}`;
+        document.getElementById('hypeChange').textContent = `${hype.usd_24h_change.toFixed(2)}%`;
+        document.getElementById('hypeVolume').textContent = `Volume: \]{Math.round(hype.usd_24h_vol)}`;
+        document.getElementById('hypeMarketCap').textContent = `Market Cap: $${Math.round(hype.usd_market_cap)}`;
+      } catch (error) {
+        console.error('CoinGecko error:', error);
+      }
+    }
+    fetchHypeData(); // Initial call
+    setInterval(fetchHypeData, 60000); // Every minute
 
-  <!-- JS -->
-  <script src="./js/app.js"></script>
+    // Nav show/hide (single-page)
+    document.querySelectorAll('nav a').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+        document.querySelector(e.target.hash).classList.remove('hidden');
+      });
+    });
 
+    // Placeholder for other fetches/charts (e.g., new metrics)
+    // For GIYP: fetch('/api/giyp') or scrape JSON
+    // Similar for others
+  </script>
 </body>
 </html>
