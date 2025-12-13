@@ -1,8 +1,3 @@
-vezmi tento index html a udelej tyto upravy
- 
-dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change a MC, ty maji prece svuj vlastni chlivek. a ty čtyři chlívky (cena, MC atd) muzes dat trochu kratší na výšku. HSI je super, jen teda mi rekni zda je lepsi tam ty cisla mit primo u toho pentagramu, nebo jestli takto jak to je tak tam napis vsech 5 tech promenych (resp neni funding a OI to stejne?), prostě to vylaď. je to hlavní ukazatel, tak se snaž. u MMIA neni videt jestli to je bullish nebo ne. a přidej tam jednu sekci RSS - News Aggregator (dej tam nejaky mock) a udělej, ať když kliknu na jakýkoliv graf, tak se mi otevře ve velkém formátu a ten popisek co je u toho otazniku tak se mi ukaze primo u toho grafu, proste at to je graficky vyladěný! ten hyperliquid governance je super, jen ho udelej anglicky. a at tam jsou prokliky na dané proposaly https://hyperliquid.gitbook.io/hyperliquid-docs/hyperliquid-improvement-proposals-hips a kdyz kliknu na jednotlivy řádek s konkrétním HIPem, tak se pod nim rozbali par dalsich radek (treba 5), kde bude 1 věta na vysvětlení co to je, druhá věta co to přináší pro users/stakers a pak (zase jen mock zatim) tri nejvetsi validatory kteri volili aye vlevo zeleně a tři nejvetsi co volili nay vpravo at si muze user vybrat validatora podle toho jestli je mu ten proposal sympaticky nebo ne. sekci education dej zatim // skrytou, analytics at se hodi link na home, stejne tak at ten hyperhub jde prokliknout zase na homepage. a u analytics at jde udelat takovyto rozbalovaci menu jako ve screenu 2 a na co bych kliknul tak to by me hodilo na info o tom danem konkretnim ukazateli, kde by o nem bylo napsano treba 5 vet proc a jak je dulezity a byl tam ten graf videt.
- 
- toto je index
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -44,6 +39,7 @@ dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change
       max-width: 100%;
       max-height: 100%;
       border-radius: 8px; /* Zaoblené rohy pro hezčí vzhled */
+      cursor: pointer; /* Indicate clickable */
     }
     .info-badge {
       display: inline-flex;
@@ -67,6 +63,63 @@ dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background-color: #020617;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 800px;
+      border-radius: 8px;
+      position: relative;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .close:hover,
+    .close:focus {
+      color: white;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    /* Dropdown styles */
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      background-color: #020617;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      z-index: 1;
+    }
+    .dropdown-menu a {
+      color: gray;
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+    }
+    .dropdown-menu a:hover {
+      background-color: #111;
+    }
+    /* Expandable rows */
+    .expandable {
+      display: none;
+    }
   </style>
 </head>
 <body class="min-h-screen text-gray-100">
@@ -74,12 +127,27 @@ dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change
   <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur">
     <div class="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
       <div class="flex items-center gap-2">
-        <div class="w-3 h-3 rounded-sm bg-emerald-500"></div>
-        <span class="font-semibold text-sm tracking-wide">HyperHub</span>
+        <a href="#dashboard" class="flex items-center gap-2">
+          <div class="w-3 h-3 rounded-sm bg-emerald-500"></div>
+          <span class="font-semibold text-sm tracking-wide">HyperHub</span>
+        </a>
       </div>
       <nav class="flex items-center gap-6 text-xs text-gray-400">
         <a href="#dashboard" class="hover:text-gray-100">Dashboard</a>
-        <a href="#analytics" class="hover:text-gray-100">Analytics</a>
+        <div class="relative">
+          <a href="#" id="analytics-link" class="hover:text-gray-100">Analytics</a>
+          <div id="analytics-dropdown" class="dropdown-menu">
+            <a href="#hsi-detail">HSI Index</a>
+            <a href="#giyp-detail">GIYP</a>
+            <a href="#adl-detail">ADL Risk Heatmap</a>
+            <a href="#wfsi-detail">WFSI</a>
+            <a href="#aos-detail">AOS</a>
+            <a href="#sms-detail">SMS</a>
+            <a href="#lst-detail">LST Yield Optimizer</a>
+            <a href="#cclb-detail">CCLB</a>
+            <a href="#mmia-detail">MMIA</a>
+          </div>
+        </div>
         <a href="#governance" class="hover:text-gray-100">Governance</a>
         <a href="#education" class="hover:text-gray-100">Education</a>
       </nav>
@@ -94,7 +162,7 @@ dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change
       </div>
       <!-- Top metric cards (standard ones) -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between">
+        <div class="glass card-hover rounded-xl p-3 flex flex-col justify-between h-24"> <!-- Shorter height -->
           <!-- HYPE Price Card -->
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">HYPE Price</span>
@@ -102,14 +170,8 @@ dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change
             <span class="text-[10px] text-emerald-400/80">CoinGecko</span>
           </div>
           <div class="text-lg font-semibold" id="hypePrice">$30.00</div> <!-- Mock: Updated to $30 -->
-          <div class="flex justify-between items-center mt-2 text-[11px] text-gray-500">
-            <span>24h Change</span>
-            <span id="hypeChange">+5.0%</span> <!-- Mock: Updated change -->
-          </div>
-          <div class="text-[11px] text-gray-500 mt-2" id="hypeVolume">Volume: $500M</div> <!-- Mock: Updated volume -->
-          <div class="text-[11px] text-gray-500" id="hypeMarketCap">Market Cap: $3B</div> <!-- Mock: Updated MC -->
         </div>
-        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between">
+        <div class="glass card-hover rounded-xl p-3 flex flex-col justify-between h-24"> <!-- Shorter height -->
           <!-- 24h Change Card -->
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">24h Change</span>
@@ -118,7 +180,7 @@ dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change
           <div class="text-lg font-semibold text-emerald-400" id="changeValue">+5.0%</div> <!-- Mock: Updated -->
           <div class="text-[11px] text-gray-500 mt-2">From $28.57 to $30.00</div>
         </div>
-        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between">
+        <div class="glass card-hover rounded-xl p-3 flex flex-col justify-between h-24"> <!-- Shorter height -->
           <!-- 24h Volume Card -->
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">24h Volume</span>
@@ -127,7 +189,7 @@ dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change
           <div class="text-lg font-semibold" id="volumeValue">$500M</div> <!-- Mock: Updated -->
           <div class="text-[11px] text-gray-500 mt-2">+20% from yesterday</div>
         </div>
-        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between">
+        <div class="glass card-hover rounded-xl p-3 flex flex-col justify-between h-24"> <!-- Shorter height -->
           <!-- Market Cap Card -->
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">Market Cap</span>
@@ -151,7 +213,7 @@ dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change
           <span id="HSISent" class="text-xs text-green-400">75</span>
         </div>
         <p class="text-xs text-gray-500 mb-4">Composite sentiment index integrating OI/funding rates (40%), whale activity (30%), social momentum (20%), and funding flows (10%). High score (>70) signals bullish momentum; historical data from Dec 2024 outage recovery (score rose from 45 to 85 in 7 days).</p>
-        <div class="grid grid-cols-3 gap-2 mb-4 text-center">
+        <div class="grid grid-cols-5 gap-2 mb-4 text-center">
           <div>
             <div class="text-xs text-gray-400">Sentiment</div>
             <div id="HSISentVal" class="font-bold text-green-400">80</div> <!-- Mock: Weighted avg from social scrape -->
@@ -163,6 +225,14 @@ dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change
           <div>
             <div class="text-xs text-gray-400">OI</div>
             <div id="HSIOIVal" class="font-bold text-green-400">65</div> <!-- Mock: From OI API -->
+          </div>
+          <div>
+            <div class="text-xs text-gray-400">Funding</div>
+            <div id="HSIFundingVal" class="font-bold text-green-400">75</div> <!-- Mock -->
+          </div>
+          <div>
+            <div class="text-xs text-gray-400">Social</div>
+            <div id="HSISocialVal" class="font-bold text-green-400">85</div> <!-- Mock -->
           </div>
         </div>
         <div class="flex-1 relative min-h-0 chart-wrapper h-48"> <!-- Zvětšeno na h-48 pro lepší viditelnost -->
@@ -254,11 +324,34 @@ dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">MMIA: Market Maker Imbalance Alert</span>
             <span class="info-badge text-gray-400" title="Detects fee structure imbalances; alerts on liquidity risks for makers.">?</span>
           </div>
-          <div class="text-lg font-semibold text-yellow-400" id="mmiaValue">Imbalance: 60/40</div> <!-- Mock: Dec 2024 maker-taker ratio -->
+          <div class="text-lg font-semibold text-yellow-400" id="mmiaValue">Imbalance: 60/40 (Bearish)</div> <!-- Mock: Dec 2024 maker-taker ratio, added bullish/bearish -->
           <div class="h-48 chart-wrapper"> <!-- Zvětšeno -->
             <canvas id="mmiaChart"></canvas> <!-- Donut pie s custom labels (Makers 60% green, Takers 40% red) -->
           </div>
         </div>
+      </div>
+    </section>
+    <!-- RSS - News Aggregator Section -->
+    <section class="space-y-2">
+      <div>
+        <h1 class="text-xl font-semibold text-gray-100">RSS - News Aggregator</h1>
+        <p class="text-xs text-gray-500">Latest news from Hyperliquid ecosystem</p>
+      </div>
+      <div class="glass rounded-xl p-4">
+        <ul class="space-y-4">
+          <li class="border-b border-white/5 pb-2">
+            <a href="#" class="text-emerald-400 hover:underline">Hyperliquid Announces New HIP Proposals</a>
+            <p class="text-xs text-gray-500">December 13, 2025 - Mock news item about governance updates.</p>
+          </li>
+          <li class="border-b border-white/5 pb-2">
+            <a href="#" class="text-emerald-400 hover:underline">HYPE Price Surges Amid Bullish Sentiment</a>
+            <p class="text-xs text-gray-500">December 12, 2025 - Mock article on market trends.</p>
+          </li>
+          <li>
+            <a href="#" class="text-emerald-400 hover:underline">Staking Rewards Increased for beHYPE</a>
+            <p class="text-xs text-gray-500">December 11, 2025 - Mock update on yields.</p>
+          </li>
+        </ul>
       </div>
     </section>
     <!-- Governance Section (expanded with info and list) -->
@@ -267,13 +360,13 @@ dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change
         <h1 class="text-xl font-semibold text-gray-100">Governance Tracker</h1>
         <p class="text-xs text-gray-500">Active HIPs and vote impacts</p>
       </div>
-      <!-- Obecný info o governance -->
+      <!-- General info about governance -->
       <div class="glass rounded-xl p-4 mb-4">
-        <h2 class="font-semibold mb-2">Jak funguje governance v Hyperliquid</h2>
-        <p class="text-sm text-gray-300 mb-3">Hyperliquid governance probíhá přes HIP (Hyperliquid Improvement Proposals). Držitelé HYPE hlasují o změnách jako fee struktura nebo staking rewards. Pro hlasování musíš mít stakovaný HYPE k validatorovi – delegace hlasu je automatická. Pokud chceš změnit názor, prestakuj k jinému validatorovi (např. z val1 na val2), což přenáší tvůj hlas. Aktuální quorum: 51% stakovaného HYPE. Více na <a href="#" class="text-emerald-400">docs.hyperliquid.xyz</a>.</p>
-        <p class="text-sm text-gray-400">Tip: Prestakuj přes wallet (MetaMask + Hyperliquid app) – poplatek ~0.01 HYPE, okamžité.</p>
+        <h2 class="font-semibold mb-2">How Governance Works in Hyperliquid</h2>
+        <p class="text-sm text-gray-300 mb-3">Hyperliquid governance occurs through HIP (Hyperliquid Improvement Proposals). HYPE holders vote on changes like fee structure or staking rewards. To vote, you must have staked HYPE to a validator – vote delegation is automatic. If you want to change your vote, restake to another validator (e.g., from val1 to val2), which transfers your vote. Current quorum: 51% of staked HYPE. More at <a href="https://hyperliquid.gitbook.io/hyperliquid-docs/hyperliquid-improvement-proposals-hips" class="text-emerald-400">docs.hyperliquid.xyz</a>.</p>
+        <p class="text-sm text-gray-400">Tip: Restake via wallet (MetaMask + Hyperliquid app) – fee ~0.01 HYPE, instant.</p>
       </div>
-      <!-- Stručný seznam proposalů (tabulka) -->
+      <!-- Brief list of proposals (table) -->
       <div class="glass rounded-xl overflow-hidden">
         <table class="w-full text-sm text-gray-400">
           <thead class="bg-white/5">
@@ -286,31 +379,103 @@ dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change
             </tr>
           </thead>
           <tbody>
-            <tr class="border-t border-white/5">
+            <tr class="border-t border-white/5 cursor-pointer" onclick="toggleExpand('hip1')">
               <td class="p-3">HIP-1</td>
-              <td class="p-3">Increase beHYPE staking rewards</td>
+              <td class="p-3"><a href="https://hyperliquid.gitbook.io/hyperliquid-docs/hyperliquid-improvement-proposals-hips/hip-1" class="text-emerald-400">Increase beHYPE staking rewards</a></td>
               <td class="p-3">Active</td>
               <td class="p-3">Aye: 65% / Nay: 35%</td>
               <td class="p-3 text-emerald-400">+1% APY</td>
             </tr>
-            <tr class="border-t border-white/5">
+            <tr id="hip1" class="expandable border-t border-white/5">
+              <td colspan="5" class="p-3">
+                <p>This proposal aims to increase staking rewards for beHYPE holders.</p>
+                <p>It brings higher yields for users and stakers, potentially increasing participation.</p>
+                <div class="flex justify-between">
+                  <div class="text-green-400">
+                    <p>Top Aye Validators:</p>
+                    <ul>
+                      <li>Val1 (10M staked)</li>
+                      <li>Val2 (8M staked)</li>
+                      <li>Val3 (7M staked)</li>
+                    </ul>
+                  </div>
+                  <div class="text-red-400">
+                    <p>Top Nay Validators:</p>
+                    <ul>
+                      <li>Val4 (9M staked)</li>
+                      <li>Val5 (6M staked)</li>
+                      <li>Val6 (5M staked)</li>
+                    </ul>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr class="border-t border-white/5 cursor-pointer" onclick="toggleExpand('hip2')">
               <td class="p-3">HIP-2</td>
-              <td class="p-3">Adjust fee structure</td>
+              <td class="p-3"><a href="https://hyperliquid.gitbook.io/hyperliquid-docs/hyperliquid-improvement-proposals-hips/hip-2" class="text-emerald-400">Adjust fee structure</a></td>
               <td class="p-3">Closed</td>
               <td class="p-3">Aye: 72% / Nay: 28%</td>
               <td class="p-3 text-emerald-400">Fee reduction</td>
             </tr>
-            <tr class="border-t border-white/5">
+            <tr id="hip2" class="expandable border-t border-white/5">
+              <td colspan="5" class="p-3">
+                <p>This proposal adjusts the fee structure to make trading more affordable.</p>
+                <p>It reduces costs for users and stakers, improving overall platform accessibility.</p>
+                <div class="flex justify-between">
+                  <div class="text-green-400">
+                    <p>Top Aye Validators:</p>
+                    <ul>
+                      <li>Val7 (12M staked)</li>
+                      <li>Val8 (9M staked)</li>
+                      <li>Val9 (8M staked)</li>
+                    </ul>
+                  </div>
+                  <div class="text-red-400">
+                    <p>Top Nay Validators:</p>
+                    <ul>
+                      <li>Val10 (7M staked)</li>
+                      <li>Val11 (5M staked)</li>
+                      <li>Val12 (4M staked)</li>
+                    </ul>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr class="border-t border-white/5 cursor-pointer" onclick="toggleExpand('hip3')">
               <td class="p-3">HIP-3</td>
-              <td class="p-3">New governance vote on fee reduction</td>
+              <td class="p-3"><a href="https://hyperliquid.gitbook.io/hyperliquid-docs/hyperliquid-improvement-proposals-hips/hip-3" class="text-emerald-400">New governance vote on fee reduction</a></td>
               <td class="p-3">Active</td>
               <td class="p-3">Aye: 58% / Nay: 42%</td>
               <td class="p-3 text-yellow-400">Pending</td>
             </tr>
+            <tr id="hip3" class="expandable border-t border-white/5">
+              <td colspan="5" class="p-3">
+                <p>This proposal introduces a new vote on further fee reductions.</p>
+                <p>It could lower barriers for new users and increase staking incentives.</p>
+                <div class="flex justify-between">
+                  <div class="text-green-400">
+                    <p>Top Aye Validators:</p>
+                    <ul>
+                      <li>Val13 (11M staked)</li>
+                      <li>Val14 (10M staked)</li>
+                      <li>Val15 (9M staked)</li>
+                    </ul>
+                  </div>
+                  <div class="text-red-400">
+                    <p>Top Nay Validators:</p>
+                    <ul>
+                      <li>Val16 (8M staked)</li>
+                      <li>Val17 (6M staked)</li>
+                      <li>Val18 (5M staked)</li>
+                    </ul>
+                  </div>
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
-      <p class="text-xs text-gray-500 mt-4">Data z GitBook; prestakuj validator pro změnu hlasu. Aktuální: 2 active HIPs.</p>
+      <p class="text-xs text-gray-500 mt-4">Data from GitBook; restake validator to change vote. Current: 2 active HIPs.</p>
     </section>
     <!-- Education Section (accordion, static) -->
     <section id="education" class="space-y-2 hidden">
@@ -320,24 +485,98 @@ dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change
       </div>
       <!-- Accordion here as in your original -->
     </section>
+    <!-- Analytics Details Sections (hidden) -->
+    <section id="hsi-detail" class="space-y-2 hidden">
+      <h1 class="text-xl font-semibold text-gray-100">HSI Index Details</h1>
+      <p class="text-sm text-gray-300">The HSI is a composite index that measures overall sentiment in Hyperliquid. It integrates multiple factors for a holistic view. This is crucial for predicting market momentum. High scores often precede price increases. Use it to gauge entry points.</p>
+      <div class="chart-wrapper h-64">
+        <canvas id="hsiDetailChart"></canvas>
+      </div>
+    </section>
+    <section id="giyp-detail" class="space-y-2 hidden">
+      <h1 class="text-xl font-semibold text-gray-100">GIYP Details</h1>
+      <p class="text-sm text-gray-300">GIYP predicts yield impacts from governance. It helps stakers optimize returns. Understanding vote outcomes is key for long-term holding. This metric can guide restaking decisions. It's important for risk-adjusted yields.</p>
+      <div class="chart-wrapper h-64">
+        <canvas id="giypDetailChart"></canvas>
+      </div>
+    </section>
+    <section id="adl-detail" class="space-y-2 hidden">
+      <h1 class="text-xl font-semibold text-gray-100">ADL Risk Heatmap Details</h1>
+      <p class="text-sm text-gray-300">ADL visualizes leverage risks. Red areas signal potential liquidations. This prevents wipeouts in volatile markets. Monitor it during high-volume periods. Essential for leveraged traders.</p>
+      <div class="chart-wrapper h-64">
+        <canvas id="adlDetailChart"></canvas>
+      </div>
+    </section>
+    <section id="wfsi-detail" class="space-y-2 hidden">
+      <h1 class="text-xl font-semibold text-gray-100">WFSI Details</h1>
+      <p class="text-sm text-gray-300">WFSI tracks whale movements and sentiment. High scores indicate accumulation. Whales often lead market trends. Use this to follow smart money. Critical for momentum trading.</p>
+      <div class="chart-wrapper h-64">
+        <canvas id="wfsiDetailChart"></canvas>
+      </div>
+    </section>
+    <section id="aos-detail" class="space-y-2 hidden">
+      <h1 class="text-xl font-semibold text-gray-100">AOS Details</h1>
+      <p class="text-sm text-gray-300">AOS scans for arbitrage opportunities. High scores mean profitable spreads. This exploits inefficiencies across chains. Important for HFT strategies. Monitor for quick profits.</p>
+      <div class="chart-wrapper h-64">
+        <canvas id="aosDetailChart"></canvas>
+      </div>
+    </section>
+    <section id="sms-detail" class="space-y-2 hidden">
+      <h1 class="text-xl font-semibold text-gray-100">SMS Details</h1>
+      <p class="text-sm text-gray-300">SMS measures social hype. Spikes predict pumps. Social momentum drives volume. Track it for sentiment shifts. Vital for retail-driven markets.</p>
+      <div class="chart-wrapper h-64">
+        <canvas id="smsDetailChart"></canvas>
+      </div>
+    </section>
+    <section id="lst-detail" class="space-y-2 hidden">
+      <h1 class="text-xl font-semibold text-gray-100">LST Yield Optimizer Details</h1>
+      <p class="text-sm text-gray-300">LST optimizes staking yields. Recommends best options. Adjusts for risk. Maximizes passive income. Key for long-term holders.</p>
+      <div class="chart-wrapper h-64">
+        <canvas id="lstDetailChart"></canvas>
+      </div>
+    </section>
+    <section id="cclb-detail" class="space-y-2 hidden">
+      <h1 class="text-xl font-semibold text-gray-100">CCLB Details</h1>
+      <p class="text-sm text-gray-300">CCLB benchmarks latency. Highlights Hyperliquid advantages. Lower latency means better HFT. Compare with competitors. Essential for speed-sensitive trades.</p>
+      <div class="chart-wrapper h-64">
+        <canvas id="cclbDetailChart"></canvas>
+      </div>
+    </section>
+    <section id="mmia-detail" class="space-y-2 hidden">
+      <h1 class="text-xl font-semibold text-gray-100">MMIA Details</h1>
+      <p class="text-sm text-gray-300">MMIA alerts on imbalances. Bearish if takers dominate. Affects liquidity. Monitor for market health. Important for makers.</p>
+      <div class="chart-wrapper h-64">
+        <canvas id="mmiaDetailChart"></canvas>
+      </div>
+    </section>
   </main>
+  <!-- Modal for large chart -->
+  <div id="chartModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2 id="modalTitle" class="text-lg font-semibold mb-4"></h2>
+      <p id="modalDesc" class="text-sm text-gray-300 mb-4"></p>
+      <div class="chart-wrapper h-96">
+        <canvas id="modalChart"></canvas>
+      </div>
+    </div>
+  </div>
   <script>
     // Mock fetchHypeData (with real API comment)
     function fetchHypeData() {
       // Mock data (historical Dec 2024, updated to $30)
       document.getElementById('hypePrice').textContent = '$30.00';
       document.getElementById('hypeChange').textContent = '+5.0%';
-      document.getElementById('hypeVolume').textContent = 'Volume: $500M';
-      document.getElementById('hypeMarketCap').textContent = 'Market Cap: $3B';
       // Real API: async function fetchHypeData() { const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=hyperliquid&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true'); ... }
     }
     fetchHypeData(); // Initial call
     setInterval(fetchHypeData, 60000); // Every minute
     // Mock charts with historical data (Dec 2024 outage recovery, 7 dní pro většinu, 30 pro HSI)
+    let charts = {};
     document.addEventListener('DOMContentLoaded', () => {
       // HSI Radar (30 dní: Nov 13 - Dec 13, 2025, stoupající od 50 do 85, dip na dnu)
       const hsiCtx = document.getElementById('HSIGauge').getContext('2d');
-      new Chart(hsiCtx, {
+      charts.HSIGauge = new Chart(hsiCtx, {
         type: 'radar',
         data: {
           labels: ['Sentiment', 'Whales', 'OI', 'Funding', 'Social'], // Komponenty HSI
@@ -361,7 +600,7 @@ dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change
       });
       // GIYP Stacked Bar (Aye/Nay pro HIP-1,2,3, 7 dní votes Dec 2025)
       const giypCtx = document.getElementById('giypChart').getContext('2d');
-      new Chart(giypCtx, {
+      charts.giypChart = new Chart(giypCtx, {
         type: 'bar',
         data: {
           labels: ['HIP-1 (Dec 6-12)', 'HIP-2 (Dec 6-12)', 'HIP-3 (Dec 6-12)'],
@@ -372,14 +611,14 @@ dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change
         },
         options: {
           responsive: true,
-          scales: { y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.1)' } } },
+          scales: { y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.1)' } }, stacked: true },
           plugins: { legend: { display: true, position: 'top' }, tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw}%` } } },
           animation: { duration: 1000, easing: 'easeInOutQuart' }
         }
       });
       // ADL Bar (risk levels, 7 dní Dec 2025 high leverage)
       const adlCtx = document.getElementById('adlHeatmap').getContext('2d');
-      new Chart(adlCtx, {
+      charts.adlHeatmap = new Chart(adlCtx, {
         type: 'bar',
         data: {
           labels: ['HYPE/USDC (Dec 7)', 'BTC/USDC (Dec 7)', 'ETH/USDC (Dec 7)'],
@@ -389,7 +628,7 @@ dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change
       });
       // WFSI Line (rising, 7 dní Dec 2025 whale accumulation)
       const wfsiCtx = document.getElementById('wfsiChart').getContext('2d');
-      new Chart(wfsiCtx, {
+      charts.wfsiChart = new Chart(wfsiCtx, {
         type: 'line',
         data: {
           labels: ['Dec 7', 'Dec 8', 'Dec 9', 'Dec 10', 'Dec 11', 'Dec 12', 'Dec 13'],
@@ -404,7 +643,7 @@ dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change
       });
       // AOS Bar (arb scores, 7 dní Dec 2025)
       const aosCtx = document.getElementById('aosChart').getContext('2d');
-      new Chart(aosCtx, {
+      charts.aosChart = new Chart(aosCtx, {
         type: 'bar',
         data: {
           labels: ['HL-Aster (Dec 7 avg)', 'HL-Lighter (Dec 7 avg)', 'Cross-Chain (Dec 7 avg)'],
@@ -414,7 +653,7 @@ dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change
       });
       // SMS Line (spike, 7 dní Dec 2025 buzz)
       const smsCtx = document.getElementById('smsChart').getContext('2d');
-      new Chart(smsCtx, {
+      charts.smsChart = new Chart(smsCtx, {
         type: 'line',
         data: {
           labels: ['Dec 7', 'Dec 8', 'Dec 9', 'Dec 10', 'Dec 11', 'Dec 12', 'Dec 13'],
@@ -429,7 +668,7 @@ dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change
       });
       // LST Bar (yields, 7 dní Dec 2025)
       const lstCtx = document.getElementById('lstChart').getContext('2d');
-      new Chart(lstCtx, {
+      charts.lstChart = new Chart(lstCtx, {
         type: 'bar',
         data: {
           labels: ['beHYPE (Dec 7 avg)', 'kHYPE (Dec 7 avg)'],
@@ -439,7 +678,7 @@ dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change
       });
       // CCLB Bar (latency, 7 dní Dec 2025 pings)
       const cclbCtx = document.getElementById('cclbChart').getContext('2d');
-      new Chart(cclbCtx, {
+      charts.cclbChart = new Chart(cclbCtx, {
         type: 'bar',
         data: {
           labels: ['HL (Dec 7 avg)', 'Aster (Dec 7 avg)', 'Lighter (Dec 7 avg)'],
@@ -449,7 +688,7 @@ dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change
       });
       // MMIA Donut Pie (60/40, s labels a procenty)
       const mmiaCtx = document.getElementById('mmiaChart').getContext('2d');
-      new Chart(mmiaCtx, {
+      charts.mmiaChart = new Chart(mmiaCtx, {
         type: 'doughnut',
         data: {
           labels: ['Makers 60%', 'Takers 40%'],
@@ -464,13 +703,77 @@ dej mi ho sem cely at ho jen copy pastnu pod cenou nemusi byt volume, 24h change
           animation: { duration: 1000, easing: 'easeInOutQuart' }
         }
       });
+      // Duplicate charts for details
+      new Chart(document.getElementById('hsiDetailChart').getContext('2d'), charts.HSIGauge.config);
+      new Chart(document.getElementById('giypDetailChart').getContext('2d'), charts.giypChart.config);
+      new Chart(document.getElementById('adlDetailChart').getContext('2d'), charts.adlHeatmap.config);
+      new Chart(document.getElementById('wfsiDetailChart').getContext('2d'), charts.wfsiChart.config);
+      new Chart(document.getElementById('aosDetailChart').getContext('2d'), charts.aosChart.config);
+      new Chart(document.getElementById('smsDetailChart').getContext('2d'), charts.smsChart.config);
+      new Chart(document.getElementById('lstDetailChart').getContext('2d'), charts.lstChart.config);
+      new Chart(document.getElementById('cclbDetailChart').getContext('2d'), charts.cclbChart.config);
+      new Chart(document.getElementById('mmiaDetailChart').getContext('2d'), charts.mmiaChart.config);
     });
     // Nav show/hide (single-page)
-    document.querySelectorAll('nav a').forEach(a => {
+    document.querySelectorAll('nav a[href^="#"]').forEach(a => {
       a.addEventListener('click', e => {
         e.preventDefault();
         document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
         document.querySelector(e.target.hash).classList.remove('hidden');
+      });
+    });
+    // Analytics dropdown
+    const analyticsLink = document.getElementById('analytics-link');
+    const dropdown = document.getElementById('analytics-dropdown');
+    analyticsLink.addEventListener('click', e => {
+      e.preventDefault();
+      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
+    // Close dropdown when clicking outside
+    window.onclick = function(event) {
+      if (!event.target.matches('#analytics-link')) {
+        if (dropdown.style.display === 'block') {
+          dropdown.style.display = 'none';
+        }
+      }
+    };
+    // Toggle expandable rows
+    function toggleExpand(id) {
+      const row = document.getElementById(id);
+      row.style.display = row.style.display === 'table-row' ? 'none' : 'table-row';
+    }
+    // Modal functionality
+    const modal = document.getElementById('chartModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalDesc = document.getElementById('modalDesc');
+    const modalChartCtx = document.getElementById('modalChart').getContext('2d');
+    const closeBtn = document.querySelector('.close');
+    closeBtn.onclick = () => { modal.style.display = 'none'; };
+    window.onclick = (event) => {
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
+    };
+    // Make all canvases clickable
+    document.querySelectorAll('canvas').forEach(canvas => {
+      canvas.addEventListener('click', () => {
+        const chartId = canvas.id;
+        const card = canvas.closest('.chart-container');
+        const title = card.querySelector('.text-[11px]').textContent;
+        const desc = card.querySelector('.info-badge').title;
+        modalTitle.textContent = title;
+        modalDesc.textContent = desc;
+        // Destroy previous chart if exists
+        if (window.modalChart) window.modalChart.destroy();
+        // Clone the chart config and make larger
+        const originalChart = charts[chartId];
+        if (originalChart) {
+          const config = JSON.parse(JSON.stringify(originalChart.config));
+          config.options.responsive = true;
+          config.options.maintainAspectRatio = false;
+          window.modalChart = new Chart(modalChartCtx, config);
+        }
+        modal.style.display = 'flex';
       });
     });
   </script>
