@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,6 +13,7 @@
     body {
       background-color: #020617; /* Slate 950 */
       font-family: 'Inter', sans-serif;
+      color: #e2e8f0;
     }
     .glass {
       background: radial-gradient(circle at top left, rgba(30, 41, 59, 0.4), transparent 100%),
@@ -88,10 +88,15 @@
     .news-item:hover {
         background-color: rgba(255,255,255,0.03);
     }
+
+    /* Banner Gradient */
+    .rpc-banner {
+        background: linear-gradient(90deg, rgba(6, 78, 59, 0.4) 0%, rgba(15, 23, 42, 0) 100%);
+    }
   </style>
 </head>
 
-<body class="min-h-screen text-gray-100 flex flex-col">
+<body class="min-h-screen flex flex-col">
 
   <header class="border-b border-white/5 bg-slate-950/80 backdrop-blur sticky top-0 z-40">
     <div class="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
@@ -119,7 +124,6 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 auto-rows-fr">
-
                 <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between h-full min-h-[140px]">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">HYPE Price</span>
@@ -169,9 +173,19 @@
                         <div class="text-xs text-gray-500 mt-1">FDV: <span class="text-gray-400">$6B</span></div>
                     </div>
                 </div>
-
             </div>
         </section>
+
+        <div class="glass rpc-banner rounded-xl p-6 border-l-4 border-l-emerald-500 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="z-10 relative">
+                <h3 class="text-xl font-bold text-white">Need Faster Execution?</h3>
+                <p class="text-sm text-gray-300 mt-1 max-w-xl">Stop losing money on public RPC latency. Get direct access to Hyperliquid nodes for ultra-low latency trading.</p>
+            </div>
+            <a href="https://rubynodes.io" target="_blank" class="z-10 relative bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg shadow-emerald-500/20 whitespace-nowrap text-sm">
+                Get 14-Day Free RPC Trial
+            </a>
+            <div class="absolute right-0 bottom-0 top-0 w-1/3 bg-gradient-to-l from-emerald-900/20 to-transparent pointer-events-none"></div>
+        </div>
 
         <section class="space-y-3">
             <div>
@@ -192,11 +206,11 @@
                         <p class="text-xs text-gray-400 leading-relaxed">
                             <strong>Hyperliquid Sentiment Index (HSI):</strong> A composite score derived from social momentum, whale wallet movements, and open interest ratios.
                             <br><br>
-                            Click the chart to expand and see the detailed breakdown of the 5 contributing factors.
+                            Click the chart to expand and see the detailed breakdown.
                         </p>
                     </div>
                     <div class="col-span-2 relative h-64 flex items-center justify-center">
-                        <div class="chart-wrapper" style="height: 100%;">
+                        <div class="chart-wrapper" style="height: 100%; width: 100%;">
                             <canvas id="HSIGauge"></canvas>
                         </div>
                     </div>
@@ -211,7 +225,7 @@
                             <div class="text-[11px] font-bold text-gray-500 uppercase">GIYP Predictor</div>
                             <div class="text-lg font-bold text-emerald-400">+0.5% Yield</div>
                         </div>
-                        <span class="info-badge" title="Governance Impact Yield Predictor">?</span>
+                        <span class="info-badge" title="Governance Impact Yield Predictor - Projected APY Impact based on voting">?</span>
                     </div>
                     <div class="chart-wrapper">
                         <canvas id="giypChart"></canvas>
@@ -224,7 +238,7 @@
                             <div class="text-[11px] font-bold text-gray-500 uppercase">ADL Risk Heatmap</div>
                             <div class="text-lg font-bold text-red-400">High Leverage</div>
                         </div>
-                        <span class="info-badge" title="Auto-Deleveraging Risk Zones">?</span>
+                        <span class="info-badge" title="Auto-Deleveraging Risk Zones by Asset">?</span>
                     </div>
                     <div class="chart-wrapper">
                         <canvas id="adlHeatmap"></canvas>
@@ -237,7 +251,7 @@
                             <div class="text-[11px] font-bold text-gray-500 uppercase">Whale Flow (WFSI)</div>
                             <div class="text-lg font-bold text-emerald-400">Score: 85</div>
                         </div>
-                        <span class="info-badge" title="Whale Flow Sentiment Index">?</span>
+                        <span class="info-badge" title="Whale Flow Sentiment Index - Net Inflow over time">?</span>
                     </div>
                     <div class="chart-wrapper">
                         <canvas id="wfsiChart"></canvas>
@@ -248,9 +262,9 @@
                     <div class="flex justify-between items-start mb-2">
                         <div>
                             <div class="text-[11px] font-bold text-gray-500 uppercase">Arbitrage Scanner</div>
-                            <div class="text-lg font-bold text-white">8/10 Opps</div>
+                            <div class="text-lg font-bold text-white">Top Spreads</div>
                         </div>
-                        <span class="info-badge" title="Arbitrage Opportunity Scanner">?</span>
+                        <span class="info-badge" title="Arbitrage Opportunity Scanner - Price spread vs other CEXs">?</span>
                     </div>
                     <div class="chart-wrapper">
                         <canvas id="aosChart"></canvas>
@@ -263,7 +277,7 @@
                             <div class="text-[11px] font-bold text-gray-500 uppercase">Social Momentum</div>
                             <div class="text-lg font-bold text-emerald-400">90 (Spike)</div>
                         </div>
-                        <span class="info-badge" title="Social Momentum Score">?</span>
+                        <span class="info-badge" title="Social Momentum Score - Volume of mentions">?</span>
                     </div>
                     <div class="chart-wrapper">
                         <canvas id="smsChart"></canvas>
@@ -276,7 +290,7 @@
                             <div class="text-[11px] font-bold text-gray-500 uppercase">LST Optimizer</div>
                             <div class="text-lg font-bold text-white">beHYPE: 15.2%</div>
                         </div>
-                        <span class="info-badge" title="Liquid Staking Yield Comparison">?</span>
+                        <span class="info-badge" title="Liquid Staking Yield Comparison (APY %)">?</span>
                     </div>
                     <div class="chart-wrapper">
                         <canvas id="lstChart"></canvas>
@@ -467,7 +481,7 @@
             <p id="modalDesc" class="text-sm text-gray-400 mt-2 leading-relaxed">Historical data analysis</p>
           </div>
 
-          <div class="flex-1 relative min-h-[400px] w-full bg-slate-900/50 rounded-lg p-2">
+          <div class="flex-1 relative min-h-[400px] w-full bg-slate-900/50 rounded-lg p-2 flex items-center justify-center">
               <canvas id="modalCanvas"></canvas>
           </div>
       </div>
@@ -486,8 +500,6 @@
             viewGov.classList.add('hidden');
             navDash.classList.add('text-emerald-400');
             navGov.classList.remove('text-emerald-400');
-            // Re-render dashboard charts in case they broke while hidden
-            initCharts();
         } else {
             viewDash.classList.add('hidden');
             viewGov.classList.remove('hidden');
@@ -509,49 +521,62 @@
 
     // --- CHART DESCRIPTIONS ---
     const chartDescriptions = {
-        'HSIGauge': "The Hyperliquid Sentiment Index (HSI) is a comprehensive metric combining on-chain data and social signals. It helps traders gauge market emotion by weighting Open Interest changes, Whale wallet inflows, and social media momentum. A score above 70 indicates strong bullish sentiment, while below 30 suggests fear or capitulation.",
-        'giypChart': "The Governance Impact Yield Predictor (GIYP) forecasts how active proposals will affect staking returns. By analyzing the breakdown of 'Aye' vs 'Nay' votes on fee-related proposals, this chart helps stakers anticipate APY fluctuations before they happen.",
-        'adlHeatmap': "The ADL Risk Heatmap visualizes the probability of Auto-Deleveraging events across top pairs. Taller red bars indicate highly leveraged long positions that are at risk of forced liquidation. Traders use this to avoid pairs with overheating leverage.",
-        'wfsiChart': "The Whale Flow Sentiment Index (WFSI) tracks large capital movements into the Hyperliquid ecosystem. An upward trend signifies 'Smart Money' accumulation, often preceding a price increase. This metric filters out retail noise to focus on high-net-worth wallet behavior.",
-        'aosChart': "The Arbitrage Opportunity Scanner compares prices between Hyperliquid and other exchanges (like Binance or dYdX). A higher score indicates significant price discrepancies that arbitrage bots or traders can exploit for profit. This chart highlights the top 3 most profitable spread opportunities currently available.",
-        'smsChart': "The Social Momentum Score (SMS) correlates discussion volume on platforms like X (Twitter) and Reddit with trading volume. Spikes in this chart often indicate a viral trend or news event driving retail interest, which can lead to short-term volatility.",
-        'lstChart': "The Liquid Staking Token (LST) Optimizer compares the real-time APY of various HYPE liquid staking derivatives (like beHYPE vs kHYPE). It accounts for fees and slashing risks to recommend the most profitable staking option for your idle HYPE tokens."
+        'HSIGauge': "The Hyperliquid Sentiment Index (HSI) is a comprehensive metric combining on-chain data and social signals. It helps traders gauge market emotion by weighting Open Interest changes, Whale wallet inflows, and social media momentum.",
+        'giypChart': "The Governance Impact Yield Predictor (GIYP) visualizes the current voting distribution for active proposals. A strong 'Aye' consensus typically signals upcoming protocol improvements that may boost yield.",
+        'adlHeatmap': "The ADL Risk Heatmap displays the estimated liquidation risk for top asset pairs. Higher bars indicate a concentration of highly leveraged long positions, suggesting increased risk of Auto-Deleveraging events.",
+        'wfsiChart': "The Whale Flow Sentiment Index (WFSI) tracks the net inflow of stablecoins into Hyperliquid from known large wallets. Positive spikes indicate smart money accumulation.",
+        'aosChart': "The Arbitrage Opportunity Scanner (AOS) highlights the current price spread percentage between Hyperliquid and other major CEXs. Larger bars indicate greater profit potential for arbitrageurs.",
+        'smsChart': "The Social Momentum Score (SMS) tracks the frequency of Hyperliquid mentions across social platforms. Sharp spikes often correlate with high volatility events.",
+        'lstChart': "The LST Optimizer compares the current Annual Percentage Yield (APY) of the leading HYPE Liquid Staking Tokens."
     };
 
-    // --- CHART LOGIC ---
-    let charts = {}; // Store instances to destroy if needed
+    // --- CHART CONFIGURATION & LOGIC ---
+    let mainCharts = {};
     let modalChartInstance = null;
 
+    // Common styling
     const commonOptions = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
             legend: { display: false },
             tooltip: {
-                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
                 titleColor: '#34d399',
                 bodyColor: '#fff',
-                borderColor: 'rgba(148, 163, 184, 0.2)',
+                borderColor: 'rgba(52, 211, 153, 0.2)',
                 borderWidth: 1,
                 padding: 10,
                 displayColors: false,
+                callbacks: {
+                    label: function(context) {
+                        let label = context.dataset.label || '';
+                        if (label) {
+                            label += ': ';
+                        }
+                        if (context.parsed.y !== null) {
+                            label += context.parsed.y;
+                        } else if (context.parsed.r !== null) {
+                            label += context.parsed.r; // for radar
+                        } else {
+                            label += context.raw; // fallback
+                        }
+                        return label;
+                    }
+                }
             }
         },
         scales: {
             x: { display: false },
             y: { display: false }
-        },
-        onClick: (e, activeEls, chart) => {
-            // Trigger Modal on Click (for HSI main chart)
-            openChartModal(chart);
         }
     };
 
     function initCharts() {
-        // HSI RADAR
+        // 1. HSI Gauge (Radar)
         const ctxHSI = document.getElementById('HSIGauge');
-        if(ctxHSI && !charts['hsi']) {
-            charts['hsi'] = new Chart(ctxHSI, {
+        if(ctxHSI) {
+            mainCharts['HSIGauge'] = new Chart(ctxHSI, {
                 type: 'radar',
                 data: {
                     labels: ['Sentiment', 'Whales', 'OI', 'Funding', 'Social'],
@@ -571,71 +596,73 @@
                             angleLines: { color: 'rgba(255,255,255,0.1)' },
                             grid: { color: 'rgba(255,255,255,0.1)' },
                             pointLabels: { color: '#94a3b8', font: { size: 10 } },
-                            ticks: { display: false }
+                            ticks: { display: false, backdropColor: 'transparent' }
                         }
-                    }
+                    },
+                    onClick: (e) => openChartModal(mainCharts['HSIGauge'])
                 }
             });
         }
 
-        // GIYP (Changed to Doughnut for clearer Vote Split)
+        // 2. GIYP (Doughnut - Vote Distribution)
         const ctxGIYP = document.getElementById('giypChart');
-        if(ctxGIYP && !charts['giyp']) {
-            charts['giyp'] = new Chart(ctxGIYP, {
+        if(ctxGIYP) {
+            mainCharts['giypChart'] = new Chart(ctxGIYP, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Aye (Yield Up)', 'Nay (No Change)'],
+                    labels: ['Aye Votes', 'Nay Votes', 'Abstain'],
                     datasets: [{
-                        data: [65, 35],
-                        backgroundColor: ['#34d399', '#f87171'],
+                        data: [65, 25, 10],
+                        backgroundColor: ['#34d399', '#f87171', '#94a3b8'],
                         borderWidth: 0,
                         hoverOffset: 4
                     }]
                 },
                 options: {
                     ...commonOptions,
-                    cutout: '70%',
+                    cutout: '75%',
                     plugins: { legend: { display: false } }
                 }
             });
         }
 
-        // ADL (Bar with Axis Labels)
+        // 3. ADL Risk (Bar - Vertical)
         const ctxADL = document.getElementById('adlHeatmap');
-        if(ctxADL && !charts['adl']) {
-            charts['adl'] = new Chart(ctxADL, {
+        if(ctxADL) {
+            mainCharts['adlHeatmap'] = new Chart(ctxADL, {
                 type: 'bar',
                 data: {
                     labels: ['HYPE', 'BTC', 'ETH', 'SOL', 'ARB'],
                     datasets: [{
-                        data: [80, 60, 90, 40, 20],
-                        backgroundColor: ['#f87171', '#fbbf24', '#f87171', '#34d399', '#34d399'],
+                        label: 'Risk Level',
+                        data: [85, 60, 90, 40, 20],
+                        backgroundColor: (ctx) => {
+                            const val = ctx.raw;
+                            return val > 75 ? '#f87171' : (val > 50 ? '#fbbf24' : '#34d399');
+                        },
                         borderRadius: 4
                     }]
                 },
                 options: {
                     ...commonOptions,
                     scales: {
-                        x: {
-                            display: true,
-                            ticks: { color: '#94a3b8', font: {size: 9} },
-                            grid: { display: false }
-                        },
-                        y: { display: false }
+                        x: { display: true, ticks: {color: '#94a3b8', font:{size:9}}, grid: {display:false} },
+                        y: { display: true, title: {display: true, text: 'Risk Score (0-100)', color: '#64748b', font:{size:8}}, ticks:{display:false}, grid:{display:false} }
                     }
                 }
             });
         }
 
-        // WFSI (Line)
+        // 4. WFSI (Line)
         const ctxWFSI = document.getElementById('wfsiChart');
-        if(ctxWFSI && !charts['wfsi']) {
-            charts['wfsi'] = new Chart(ctxWFSI, {
+        if(ctxWFSI) {
+            mainCharts['wfsiChart'] = new Chart(ctxWFSI, {
                 type: 'line',
                 data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', 'Now'],
                     datasets: [{
-                        data: [50, 55, 62, 70, 78, 82, 85],
+                        label: 'Net Inflow ($M)',
+                        data: [1.2, 1.5, 1.1, 2.3, 2.8, 3.5, 4.2],
                         borderColor: '#34d399',
                         backgroundColor: 'rgba(52, 211, 153, 0.1)',
                         fill: true,
@@ -643,42 +670,50 @@
                         pointRadius: 0
                     }]
                 },
-                options: commonOptions
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        x: { display: true, ticks: {display: false}, title: {display: true, text: 'Last 24 Hours', color: '#64748b', font:{size:9}} },
+                        y: { display: true, ticks: {display: false}, title: {display: true, text: 'Net Flow ($)', color: '#64748b', font:{size:9}} }
+                    }
+                }
             });
         }
 
-        // AOS (Horizontal Bar for comparison)
+        // 5. AOS (Horizontal Bar - Spreads)
         const ctxAOS = document.getElementById('aosChart');
-        if(ctxAOS && !charts['aos']) {
-            charts['aos'] = new Chart(ctxAOS, {
+        if(ctxAOS) {
+            mainCharts['aosChart'] = new Chart(ctxAOS, {
                 type: 'bar',
                 indexAxis: 'y', // Horizontal
                 data: {
-                    labels: ['HL-Binance', 'HL-dYdX', 'HL-Bybit'],
+                    labels: ['Binance', 'Bybit', 'dYdX', 'OKX'],
                     datasets: [{
-                        data: [8, 6, 9],
-                        backgroundColor: '#34d399',
+                        label: 'Spread %',
+                        data: [0.45, 0.32, 0.15, -0.10],
+                        backgroundColor: (ctx) => ctx.raw >= 0 ? '#34d399' : '#f87171',
                         borderRadius: 4
                     }]
                 },
                 options: {
                     ...commonOptions,
                     scales: {
-                        x: { display: false },
+                        x: { display: true, title: {display: true, text: 'Spread %', color:'#64748b', font:{size:9}}, ticks: {color:'#94a3b8', font:{size:8}}, grid: {display: false} },
                         y: { display: true, ticks: {color: '#94a3b8', font: {size: 9}}, grid: {display: false} }
                     }
                 }
             });
         }
 
-        // SMS (Line Spike)
+        // 6. SMS (Line Spike)
         const ctxSMS = document.getElementById('smsChart');
-        if(ctxSMS && !charts['sms']) {
-            charts['sms'] = new Chart(ctxSMS, {
+        if(ctxSMS) {
+            mainCharts['smsChart'] = new Chart(ctxSMS, {
                 type: 'line',
                 data: {
                     labels: ['12h', '10h', '8h', '6h', '4h', '2h', 'Now'],
                     datasets: [{
+                        label: 'Mentions',
                         data: [40, 42, 45, 55, 70, 88, 90],
                         borderColor: '#34d399',
                         borderWidth: 2,
@@ -690,16 +725,17 @@
             });
         }
 
-        // LST (Bar)
+        // 7. LST (Bar Chart APY)
         const ctxLST = document.getElementById('lstChart');
-        if(ctxLST && !charts['lst']) {
-            charts['lst'] = new Chart(ctxLST, {
+        if(ctxLST) {
+            mainCharts['lstChart'] = new Chart(ctxLST, {
                 type: 'bar',
                 data: {
-                    labels: ['beHYPE', 'kHYPE'],
+                    labels: ['beHYPE', 'kHYPE', 'stHYPE'],
                     datasets: [{
-                        data: [15.2, 12.5],
-                        backgroundColor: ['#34d399', '#94a3b8'],
+                        label: 'APY %',
+                        data: [15.2, 12.5, 11.8],
+                        backgroundColor: ['#34d399', '#64748b', '#475569'],
                         borderRadius: 4
                     }]
                 },
@@ -707,7 +743,7 @@
                     ...commonOptions,
                     scales: {
                         x: { display: true, ticks: {color: '#94a3b8', font: {size: 9}}, grid: {display: false} },
-                        y: { display: false }
+                        y: { display: true, title: {display:true, text:'APY %', color:'#64748b', font:{size:8}}, ticks: {display:false} }
                     }
                 }
             });
@@ -719,58 +755,80 @@
     const modalTitle = document.getElementById('modalTitle');
     const modalDesc = document.getElementById('modalDesc');
 
-    // Helper to find chart by Canvas ID and open modal
     function openChartModalFromId(canvasId) {
-        const chartInstance = Chart.getChart(canvasId);
-        if(chartInstance) {
-            openChartModal(chartInstance);
+        if(mainCharts[canvasId]) {
+            openChartModal(mainCharts[canvasId]);
         }
     }
 
     function openChartModal(sourceChart) {
         modal.classList.remove('hidden');
 
-        // Set Title & Description
+        // 1. Set Title & Description
         const canvasId = sourceChart.canvas.id;
-        modalTitle.textContent = canvasId === 'HSIGauge' ? "HSI Breakdown" : sourceChart.canvas.parentElement.parentElement.querySelector('.uppercase').textContent;
-        modalDesc.textContent = chartDescriptions[canvasId] || "Detailed historical data analysis for this metric.";
+        // Try to get title from the card HTML text if possible, else fallback
+        const cardTitle = sourceChart.canvas.closest('.glass')?.querySelector('.uppercase')?.textContent || "Metric Detail";
+        modalTitle.textContent = cardTitle;
+        modalDesc.textContent = chartDescriptions[canvasId] || "Detailed historical analysis.";
 
-        // Destroy previous modal chart
+        // 2. Destroy previous modal chart instance
         if (modalChartInstance) {
             modalChartInstance.destroy();
+            modalChartInstance = null;
         }
 
-        // Clone config for larger view
+        // 3. Prepare Config for Modal (Cloning)
         const ctxModal = document.getElementById('modalCanvas');
-        const newConfig = JSON.parse(JSON.stringify(sourceChart.config)); // Deep copy config
+        const originalConfig = sourceChart.config;
 
-        // Adjust options for big view
-        newConfig.options.scales = {
-            x: { display: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
-            y: { display: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
+        // Deep clone data to avoid reference issues
+        const newConfigData = JSON.parse(JSON.stringify(originalConfig.data));
+
+        // Setup new options (enable axes, legend, etc for detailed view)
+        const newOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: true, labels: { color: '#fff' } },
+                tooltip: originalConfig.options.plugins.tooltip
+            },
+            scales: {
+                x: {
+                    display: true,
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#94a3b8' }
+                },
+                y: {
+                    display: true,
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#94a3b8' }
+                }
+            }
         };
-        // For Radar/Pie, scales are different
-        if(newConfig.type === 'radar') {
-            newConfig.options.scales = {
+
+        // Specific adjustments per chart type
+        if(originalConfig.type === 'radar') {
+            newOptions.scales = {
                 r: {
                     grid: { color: 'rgba(255,255,255,0.1)' },
                     angleLines: { color: 'rgba(255,255,255,0.1)' },
-                    pointLabels: { color: '#fff', font: { size: 12 } }
+                    pointLabels: { color: '#fff', font: { size: 14 } }
                 }
             };
+        } else if (originalConfig.type === 'doughnut') {
+            newOptions.scales = {}; // No axes for doughnut
         }
 
-        newConfig.options.plugins.legend = { display: true, labels: { color: '#fff' } };
-        newConfig.options.responsive = true;
-        newConfig.options.maintainAspectRatio = false;
-
-        // Re-enable clicks being null in modal
-        newConfig.options.onClick = null;
-
-        modalChartInstance = new Chart(ctxModal, newConfig);
+        // 4. Create New Chart Instance
+        modalChartInstance = new Chart(ctxModal, {
+            type: originalConfig.type,
+            data: newConfigData,
+            options: newOptions
+        });
     }
 
     function closeModal(e) {
+        // Close if clicking overlay or close button
         if (!e || e.target.id === 'chartModal' || e.target.tagName === 'BUTTON') {
             modal.classList.add('hidden');
         }
