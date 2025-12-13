@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -135,7 +136,7 @@
       <nav class="flex items-center gap-6 text-xs text-gray-400">
         <a href="#dashboard" class="hover:text-gray-100">Dashboard</a>
         <div class="relative">
-          <a href="#" id="analytics-link" class="hover:text-gray-100">Analytics</a>
+          <a href="#dashboard" id="analytics-link" class="hover:text-gray-100">Analytics</a>
           <div id="analytics-dropdown" class="dropdown-menu">
             <a href="#hsi-detail">HSI Index</a>
             <a href="#giyp-detail">GIYP</a>
@@ -162,7 +163,7 @@
       </div>
       <!-- Top metric cards (standard ones) -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="glass card-hover rounded-xl p-3 flex flex-col justify-between h-24"> <!-- Shorter height -->
+        <div class="glass card-hover rounded-xl p-3 flex flex-col h-24"> <!-- Removed justify-between for alignment -->
           <!-- HYPE Price Card -->
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">HYPE Price</span>
@@ -171,32 +172,32 @@
           </div>
           <div class="text-lg font-semibold" id="hypePrice">$30.00</div> <!-- Mock: Updated to $30 -->
         </div>
-        <div class="glass card-hover rounded-xl p-3 flex flex-col justify-between h-24"> <!-- Shorter height -->
+        <div class="glass card-hover rounded-xl p-3 flex flex-col h-24"> <!-- Removed justify-between -->
           <!-- 24h Change Card -->
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">24h Change</span>
             <span class="info-badge text-gray-400" title="24h price change for HYPE, positive = green, negative = red.">?</span>
           </div>
           <div class="text-lg font-semibold text-emerald-400" id="changeValue">+5.0%</div> <!-- Mock: Updated -->
-          <div class="text-[11px] text-gray-500 mt-2">From $28.57 to $30.00</div>
+          <div class="text-[11px] text-gray-500 mt-1">From $28.57 to $30.00</div>
         </div>
-        <div class="glass card-hover rounded-xl p-3 flex flex-col justify-between h-24"> <!-- Shorter height -->
+        <div class="glass card-hover rounded-xl p-3 flex flex-col h-24"> <!-- Removed justify-between -->
           <!-- 24h Volume Card -->
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">24h Volume</span>
             <span class="info-badge text-gray-400" title="24h trading volume for HYPE pairs.">?</span>
           </div>
           <div class="text-lg font-semibold" id="volumeValue">$500M</div> <!-- Mock: Updated -->
-          <div class="text-[11px] text-gray-500 mt-2">+20% from yesterday</div>
+          <div class="text-[11px] text-gray-500 mt-1">+20% from yesterday</div>
         </div>
-        <div class="glass card-hover rounded-xl p-3 flex flex-col justify-between h-24"> <!-- Shorter height -->
+        <div class="glass card-hover rounded-xl p-3 flex flex-col h-24"> <!-- Removed justify-between -->
           <!-- Market Cap Card -->
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">Market Cap</span>
             <span class="info-badge text-gray-400" title="Fully diluted market cap for HYPE.">?</span>
           </div>
           <div class="text-lg font-semibold" id="mcValue">$3B</div> <!-- Mock: Updated -->
-          <div class="text-[11px] text-gray-500 mt-2">FDV: $6B</div>
+          <div class="text-[11px] text-gray-500 mt-1">FDV: $6B</div>
         </div>
       </div>
     </section>
@@ -212,7 +213,7 @@
           <h2 class="font-semibold text-gray-200">HSI Index (Hyperliquid Sentiment Index)</h2>
           <span id="HSISent" class="text-xs text-green-400">75</span>
         </div>
-        <p class="text-xs text-gray-500 mb-4">Composite sentiment index integrating OI/funding rates (40%), whale activity (30%), social momentum (20%), and funding flows (10%). High score (>70) signals bullish momentum; historical data from Dec 2024 outage recovery (score rose from 45 to 85 in 7 days).</p>
+        <p class="text-xs text-gray-500 mb-4">Composite sentiment index integrating OI/funding rates (40%), whale activity (30%), social momentum (20%), and funding flows (10%). Note: OI (Open Interest) measures total open positions, while funding rates are periodic payments between longs/shorts; they are related but distinct, with funding flows tracking net transfers. High score (>70) signals bullish momentum; historical data from Dec 2024 outage recovery (score rose from 45 to 85 in 7 days).</p>
         <div class="grid grid-cols-5 gap-2 mb-4 text-center">
           <div>
             <div class="text-xs text-gray-400">Sentiment</div>
@@ -241,7 +242,7 @@
       </div>
       <!-- Exclusive metric cards (grid, now 3 cols for remaining) -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between chart-container">
+        <div class="glass card-hover rounded-xl p-4 flex flex-col chart-container">
           <!-- GIYP - Stacked bar pro Aye/Nay hlasy -->
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">GIYP: Governance Impact Yield Predictor</span>
@@ -252,7 +253,7 @@
             <canvas id="giypChart"></canvas> <!-- Stacked bar Aye/Nay pro HIP-1,2,3 -->
           </div>
         </div>
-        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between chart-container">
+        <div class="glass card-hover rounded-xl p-4 flex flex-col chart-container">
           <!-- ADL Risk Heatmap -->
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">ADL Risk Heatmap</span>
@@ -263,7 +264,7 @@
             <canvas id="adlHeatmap"></canvas> <!-- Heatmap sim (bar chart red/orange/green) -->
           </div>
         </div>
-        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between chart-container">
+        <div class="glass card-hover rounded-xl p-4 flex flex-col chart-container">
           <!-- WFSI -->
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">WFSI: Whale Flow Sentiment Index</span>
@@ -274,7 +275,7 @@
             <canvas id="wfsiChart"></canvas> <!-- Line chart rising to 85 -->
           </div>
         </div>
-        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between chart-container">
+        <div class="glass card-hover rounded-xl p-4 flex flex-col chart-container">
           <!-- AOS -->
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">AOS: Arbitrage Opportunity Scanner</span>
@@ -285,7 +286,7 @@
             <canvas id="aosChart"></canvas> <!-- Bar chart with spreads -->
           </div>
         </div>
-        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between chart-container">
+        <div class="glass card-hover rounded-xl p-4 flex flex-col chart-container">
           <!-- SMS -->
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">SMS: Social Momentum Score</span>
@@ -296,7 +297,7 @@
             <canvas id="smsChart"></canvas> <!-- Line chart spiking to 90 -->
           </div>
         </div>
-        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between chart-container">
+        <div class="glass card-hover rounded-xl p-4 flex flex-col chart-container">
           <!-- LST Yield Optimizer -->
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">LST Yield Optimizer</span>
@@ -307,7 +308,7 @@
             <canvas id="lstChart"></canvas> <!-- Bar chart beHYPE vs kHYPE -->
           </div>
         </div>
-        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between chart-container">
+        <div class="glass card-hover rounded-xl p-4 flex flex-col chart-container">
           <!-- CCLB -->
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">CCLB: Cross Chain Latency Benchmark</span>
@@ -318,7 +319,7 @@
             <canvas id="cclbChart"></canvas> <!-- Bar chart HL vs Aster/Lighter -->
           </div>
         </div>
-        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between chart-container">
+        <div class="glass card-hover rounded-xl p-4 flex flex-col chart-container">
           <!-- MMIA - Donut pie s labels a procenty -->
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">MMIA: Market Maker Imbalance Alert</span>
@@ -478,13 +479,13 @@
       <p class="text-xs text-gray-500 mt-4">Data from GitBook; restake validator to change vote. Current: 2 active HIPs.</p>
     </section>
     <!-- Education Section (accordion, static) -->
-    <section id="education" class="space-y-2 hidden">
+    <!-- <section id="education" class="space-y-2 hidden">
       <div>
         <h1 class="text-xl font-semibold text-gray-100">Education</h1>
         <p class="text-xs text-gray-500">Guides for Hyperliquid</p>
       </div>
       <!-- Accordion here as in your original -->
-    </section>
+    </section> -->
     <!-- Analytics Details Sections (hidden) -->
     <section id="hsi-detail" class="space-y-2 hidden">
       <h1 class="text-xl font-semibold text-gray-100">HSI Index Details</h1>
@@ -718,8 +719,11 @@
     document.querySelectorAll('nav a[href^="#"]').forEach(a => {
       a.addEventListener('click', e => {
         e.preventDefault();
-        document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
-        document.querySelector(e.target.hash).classList.remove('hidden');
+        document.querySelectorAll('main > section:not([id^="hsi-detail"], [id^="giyp-detail"], [id^="adl-detail"], [id^="wfsi-detail"], [id^="aos-detail"], [id^="sms-detail"], [id^="lst-detail"], [id^="cclb-detail"], [id^="mmia-detail"])').forEach(s => s.classList.add('hidden'));
+        const targetSection = document.querySelector(e.target.hash);
+        if (targetSection) {
+          targetSection.classList.remove('hidden');
+        }
       });
     });
     // Analytics dropdown
@@ -730,13 +734,13 @@
       dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
     });
     // Close dropdown when clicking outside
-    window.onclick = function(event) {
+    window.addEventListener('click', event => {
       if (!event.target.matches('#analytics-link')) {
         if (dropdown.style.display === 'block') {
           dropdown.style.display = 'none';
         }
       }
-    };
+    });
     // Toggle expandable rows
     function toggleExpand(id) {
       const row = document.getElementById(id);
@@ -779,3 +783,4 @@
   </script>
 </body>
 </html>
+```
