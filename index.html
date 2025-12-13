@@ -34,7 +34,7 @@
     .chart-wrapper {
       position: relative;
       width: 100%;
-      height: 200px; /* Pevná výška pro zajištění zobrazení */
+      height: 200px;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -83,6 +83,11 @@
     .gov-detail-row {
         background-color: rgba(0,0,0,0.2);
     }
+
+    /* News Item Hover */
+    .news-item:hover {
+        background-color: rgba(255,255,255,0.03);
+    }
   </style>
 </head>
 
@@ -97,7 +102,7 @@
       <nav class="flex items-center gap-6 text-xs font-medium text-gray-400">
         <a href="#dashboard" id="nav-dashboard" class="hover:text-emerald-400 transition-colors text-emerald-400">Dashboard</a>
         <a href="#governance" id="nav-governance" class="hover:text-emerald-400 transition-colors">Governance</a>
-        </nav>
+      </nav>
     </div>
   </header>
 
@@ -111,7 +116,6 @@
                     <h1 class="text-xl font-bold text-gray-100">Market Overview</h1>
                     <p class="text-xs text-gray-500">Realtime Hyperliquid metrics</p>
                 </div>
-                <div class="text-[10px] text-gray-600 bg-white/5 px-2 py-1 rounded">Last update: <span id="lastUpdate">Just now</span></div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 auto-rows-fr">
@@ -186,9 +190,9 @@
                             <div class="text-4xl font-black text-white" id="HSISent">75<span class="text-lg text-gray-500 font-normal">/100</span></div>
                         </div>
                         <p class="text-xs text-gray-400 leading-relaxed">
-                            <strong>Note on metrics:</strong> The chart below correlates <em>Open Interest</em> (total active positions) with <em>Funding Rates</em> (periodic payments). While related, divergence often signals an upcoming squeeze.
+                            <strong>Hyperliquid Sentiment Index (HSI):</strong> A composite score derived from social momentum, whale wallet movements, and open interest ratios.
                             <br><br>
-                            High score (>70) currently indicates strong bullish accumulation by whales.
+                            Click the chart to expand and see the detailed breakdown of the 5 contributing factors.
                         </p>
                     </div>
                     <div class="col-span-2 relative h-64 flex items-center justify-center">
@@ -201,7 +205,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-                <div class="glass rounded-xl p-4 card-hover">
+                <div class="glass rounded-xl p-4 card-hover" onclick="openChartModalFromId('giypChart')">
                     <div class="flex justify-between items-start mb-2">
                         <div>
                             <div class="text-[11px] font-bold text-gray-500 uppercase">GIYP Predictor</div>
@@ -214,7 +218,7 @@
                     </div>
                 </div>
 
-                <div class="glass rounded-xl p-4 card-hover">
+                <div class="glass rounded-xl p-4 card-hover" onclick="openChartModalFromId('adlHeatmap')">
                     <div class="flex justify-between items-start mb-2">
                         <div>
                             <div class="text-[11px] font-bold text-gray-500 uppercase">ADL Risk Heatmap</div>
@@ -227,7 +231,7 @@
                     </div>
                 </div>
 
-                <div class="glass rounded-xl p-4 card-hover">
+                <div class="glass rounded-xl p-4 card-hover" onclick="openChartModalFromId('wfsiChart')">
                     <div class="flex justify-between items-start mb-2">
                         <div>
                             <div class="text-[11px] font-bold text-gray-500 uppercase">Whale Flow (WFSI)</div>
@@ -240,7 +244,7 @@
                     </div>
                 </div>
 
-                <div class="glass rounded-xl p-4 card-hover">
+                <div class="glass rounded-xl p-4 card-hover" onclick="openChartModalFromId('aosChart')">
                     <div class="flex justify-between items-start mb-2">
                         <div>
                             <div class="text-[11px] font-bold text-gray-500 uppercase">Arbitrage Scanner</div>
@@ -253,7 +257,7 @@
                     </div>
                 </div>
 
-                <div class="glass rounded-xl p-4 card-hover">
+                <div class="glass rounded-xl p-4 card-hover" onclick="openChartModalFromId('smsChart')">
                     <div class="flex justify-between items-start mb-2">
                         <div>
                             <div class="text-[11px] font-bold text-gray-500 uppercase">Social Momentum</div>
@@ -266,7 +270,7 @@
                     </div>
                 </div>
 
-                <div class="glass rounded-xl p-4 card-hover">
+                <div class="glass rounded-xl p-4 card-hover" onclick="openChartModalFromId('lstChart')">
                     <div class="flex justify-between items-start mb-2">
                         <div>
                             <div class="text-[11px] font-bold text-gray-500 uppercase">LST Optimizer</div>
@@ -281,6 +285,79 @@
 
             </div>
         </section>
+
+        <section class="space-y-3 pt-4">
+            <div>
+                <h1 class="text-xl font-bold text-gray-100">Community Updates</h1>
+                <p class="text-xs text-gray-500">Latest news from Reddit & Official Channels</p>
+            </div>
+
+            <div class="glass rounded-xl p-4">
+                <ul class="space-y-1">
+                    <li class="news-item flex items-center justify-between p-3 rounded cursor-pointer border-b border-white/5 last:border-0">
+                        <div class="flex items-center gap-3">
+                            <span class="text-orange-500">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.736 6.979C9.208 6.193 9.696 6 10 6c.304 0 .792.193 1.264.979a1 1 0 001.715-1.029C12.279 4.784 11.232 4 10 4s-2.279.784-2.979 1.95c-.285.475-.507 1.002-.67 1.55H6a1 1 0 000 2h.013a9.358 9.358 0 000 1H6a1 1 0 100 2h.351c.163.548.385 1.075.67 1.55C7.721 15.216 8.768 16 10 16s2.279-.784 2.979-1.95a1 1 0 10-1.715-1.029c-.472.786-.96.979-1.264.979-.304 0-.792-.193-1.264-.979a4.265 4.265 0 01-.264-.521H10a1 1 0 100-2H8.017a7.36 7.36 0 010-1H10a1 1 0 100-2H8.472c.08-.185.167-.36.264-.521z" clip-rule="evenodd"/></svg>
+                            </span>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-200">HIP-4: Fee Adjustment Proposal Passed</h4>
+                                <p class="text-[10px] text-gray-500">r/hyperliquid • 2 hours ago</p>
+                            </div>
+                        </div>
+                        <a href="#" class="text-xs text-emerald-400 hover:underline">Read &rarr;</a>
+                    </li>
+                    <li class="news-item flex items-center justify-between p-3 rounded cursor-pointer border-b border-white/5 last:border-0">
+                        <div class="flex items-center gap-3">
+                            <span class="text-blue-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            </span>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-200">New ATH in Daily Volume ($1.2B)</h4>
+                                <p class="text-[10px] text-gray-500">DeFiLlama • 5 hours ago</p>
+                            </div>
+                        </div>
+                        <a href="#" class="text-xs text-emerald-400 hover:underline">Read &rarr;</a>
+                    </li>
+                    <li class="news-item flex items-center justify-between p-3 rounded cursor-pointer border-b border-white/5 last:border-0">
+                        <div class="flex items-center gap-3">
+                            <span class="text-purple-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                            </span>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-200">New Validator Staking Guide Released</h4>
+                                <p class="text-[10px] text-gray-500">Official Blog • 8 hours ago</p>
+                            </div>
+                        </div>
+                        <a href="#" class="text-xs text-emerald-400 hover:underline">Read &rarr;</a>
+                    </li>
+                     <li class="news-item flex items-center justify-between p-3 rounded cursor-pointer border-b border-white/5 last:border-0">
+                        <div class="flex items-center gap-3">
+                            <span class="text-gray-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.013 8.013 0 01-5.6-2.3L2 22l.7-5.3A8.008 8.008 0 012 12c0-4.418 3.582-8 8-8s8 3.582 8 8z"></path></svg>
+                            </span>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-200">Discussion: HYPE vs DYDX tokenomics</h4>
+                                <p class="text-[10px] text-gray-500">r/cryptocurrency • 12 hours ago</p>
+                            </div>
+                        </div>
+                        <a href="#" class="text-xs text-emerald-400 hover:underline">Read &rarr;</a>
+                    </li>
+                     <li class="news-item flex items-center justify-between p-3 rounded cursor-pointer last:border-0">
+                        <div class="flex items-center gap-3">
+                            <span class="text-emerald-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                            </span>
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-200">Whale Alert: 5M HYPE moved to cold storage</h4>
+                                <p class="text-[10px] text-gray-500">WhaleAlert • 1 day ago</p>
+                            </div>
+                        </div>
+                        <a href="#" class="text-xs text-emerald-400 hover:underline">Read &rarr;</a>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
     </div>
     <div id="view-governance" class="hidden space-y-6 animate-fade-in">
         <div class="flex items-center justify-between">
@@ -374,15 +451,20 @@
             </table>
         </div>
     </div>
-    </main>
+    <footer class="border-t border-white/5 mt-10 py-6 text-center text-xs text-gray-500">
+        <p>HyperHub by <a href="https://rubynodes.io" target="_blank" class="text-emerald-400 hover:text-emerald-300 font-medium">Ruby Nodes 2025</a></p>
+        <p class="mt-1 opacity-60">Providing professional RPC infrastructure for the Hyperliquid ecosystem.</p>
+    </footer>
 
-  <div id="chartModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden p-4">
-      <div class="glass w-full max-w-4xl rounded-2xl p-6 relative flex flex-col max-h-[90vh]">
-          <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl font-bold">&times;</button>
+  </main>
 
-          <div class="mb-4">
+  <div id="chartModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm hidden p-4" onclick="closeModal(event)">
+      <div class="glass w-full max-w-4xl rounded-2xl p-6 relative flex flex-col max-h-[90vh]" onclick="event.stopPropagation()">
+          <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl font-bold z-10">&times;</button>
+
+          <div class="mb-4 pr-10">
             <h2 id="modalTitle" class="text-2xl font-bold text-white">Metric Detail</h2>
-            <p id="modalDesc" class="text-sm text-gray-400">Historical data analysis</p>
+            <p id="modalDesc" class="text-sm text-gray-400 mt-2 leading-relaxed">Historical data analysis</p>
           </div>
 
           <div class="flex-1 relative min-h-[400px] w-full bg-slate-900/50 rounded-lg p-2">
@@ -417,7 +499,6 @@
     navDash.addEventListener('click', (e) => { e.preventDefault(); switchView('dashboard'); });
     navGov.addEventListener('click', (e) => { e.preventDefault(); switchView('governance'); });
 
-
     // --- GOVERNANCE LOGIC ---
     function toggleGovRow(id) {
         const el = document.getElementById(id);
@@ -426,15 +507,16 @@
         }
     }
 
-
-    // --- MOCK DATA & UI UPDATES ---
-    function updateMetrics() {
-        // Just mocking the text updates for "Realtime" feel
-        const now = new Date();
-        document.getElementById('lastUpdate').textContent = now.toLocaleTimeString();
-    }
-    setInterval(updateMetrics, 60000);
-
+    // --- CHART DESCRIPTIONS ---
+    const chartDescriptions = {
+        'HSIGauge': "The Hyperliquid Sentiment Index (HSI) is a comprehensive metric combining on-chain data and social signals. It helps traders gauge market emotion by weighting Open Interest changes, Whale wallet inflows, and social media momentum. A score above 70 indicates strong bullish sentiment, while below 30 suggests fear or capitulation.",
+        'giypChart': "The Governance Impact Yield Predictor (GIYP) forecasts how active proposals will affect staking returns. By analyzing the breakdown of 'Aye' vs 'Nay' votes on fee-related proposals, this chart helps stakers anticipate APY fluctuations before they happen.",
+        'adlHeatmap': "The ADL Risk Heatmap visualizes the probability of Auto-Deleveraging events across top pairs. Taller red bars indicate highly leveraged long positions that are at risk of forced liquidation. Traders use this to avoid pairs with overheating leverage.",
+        'wfsiChart': "The Whale Flow Sentiment Index (WFSI) tracks large capital movements into the Hyperliquid ecosystem. An upward trend signifies 'Smart Money' accumulation, often preceding a price increase. This metric filters out retail noise to focus on high-net-worth wallet behavior.",
+        'aosChart': "The Arbitrage Opportunity Scanner compares prices between Hyperliquid and other exchanges (like Binance or dYdX). A higher score indicates significant price discrepancies that arbitrage bots or traders can exploit for profit. This chart highlights the top 3 most profitable spread opportunities currently available.",
+        'smsChart': "The Social Momentum Score (SMS) correlates discussion volume on platforms like X (Twitter) and Reddit with trading volume. Spikes in this chart often indicate a viral trend or news event driving retail interest, which can lead to short-term volatility.",
+        'lstChart': "The Liquid Staking Token (LST) Optimizer compares the real-time APY of various HYPE liquid staking derivatives (like beHYPE vs kHYPE). It accounts for fees and slashing risks to recommend the most profitable staking option for your idle HYPE tokens."
+    };
 
     // --- CHART LOGIC ---
     let charts = {}; // Store instances to destroy if needed
@@ -460,7 +542,7 @@
             y: { display: false }
         },
         onClick: (e, activeEls, chart) => {
-            // Trigger Modal on Click
+            // Trigger Modal on Click (for HSI main chart)
             openChartModal(chart);
         }
     };
@@ -496,23 +578,29 @@
             });
         }
 
-        // GIYP (Bar Stacked)
+        // GIYP (Changed to Doughnut for clearer Vote Split)
         const ctxGIYP = document.getElementById('giypChart');
         if(ctxGIYP && !charts['giyp']) {
             charts['giyp'] = new Chart(ctxGIYP, {
-                type: 'bar',
+                type: 'doughnut',
                 data: {
-                    labels: ['HIP-1', 'HIP-2', 'HIP-3'],
-                    datasets: [
-                        { label: 'Aye', data: [65, 72, 58], backgroundColor: '#34d399', borderRadius: 2 },
-                        { label: 'Nay', data: [35, 28, 42], backgroundColor: '#f87171', borderRadius: 2 }
-                    ]
+                    labels: ['Aye (Yield Up)', 'Nay (No Change)'],
+                    datasets: [{
+                        data: [65, 35],
+                        backgroundColor: ['#34d399', '#f87171'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
                 },
-                options: { ...commonOptions, scales: { x: { stacked: true, display: false }, y: { stacked: true, display: false } } }
+                options: {
+                    ...commonOptions,
+                    cutout: '70%',
+                    plugins: { legend: { display: false } }
+                }
             });
         }
 
-        // ADL (Heatmap simulation via Bar)
+        // ADL (Bar with Axis Labels)
         const ctxADL = document.getElementById('adlHeatmap');
         if(ctxADL && !charts['adl']) {
             charts['adl'] = new Chart(ctxADL, {
@@ -525,7 +613,17 @@
                         borderRadius: 4
                     }]
                 },
-                options: commonOptions
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        x: {
+                            display: true,
+                            ticks: { color: '#94a3b8', font: {size: 9} },
+                            grid: { display: false }
+                        },
+                        y: { display: false }
+                    }
+                }
             });
         }
 
@@ -549,20 +647,27 @@
             });
         }
 
-        // AOS (Bar)
+        // AOS (Horizontal Bar for comparison)
         const ctxAOS = document.getElementById('aosChart');
         if(ctxAOS && !charts['aos']) {
             charts['aos'] = new Chart(ctxAOS, {
                 type: 'bar',
+                indexAxis: 'y', // Horizontal
                 data: {
-                    labels: ['Pair A', 'Pair B', 'Pair C'],
+                    labels: ['HL-Binance', 'HL-dYdX', 'HL-Bybit'],
                     datasets: [{
                         data: [8, 6, 9],
                         backgroundColor: '#34d399',
                         borderRadius: 4
                     }]
                 },
-                options: commonOptions
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        x: { display: false },
+                        y: { display: true, ticks: {color: '#94a3b8', font: {size: 9}}, grid: {display: false} }
+                    }
+                }
             });
         }
 
@@ -598,7 +703,13 @@
                         borderRadius: 4
                     }]
                 },
-                options: commonOptions
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        x: { display: true, ticks: {color: '#94a3b8', font: {size: 9}}, grid: {display: false} },
+                        y: { display: false }
+                    }
+                }
             });
         }
     }
@@ -608,14 +719,21 @@
     const modalTitle = document.getElementById('modalTitle');
     const modalDesc = document.getElementById('modalDesc');
 
+    // Helper to find chart by Canvas ID and open modal
+    function openChartModalFromId(canvasId) {
+        const chartInstance = Chart.getChart(canvasId);
+        if(chartInstance) {
+            openChartModal(chartInstance);
+        }
+    }
+
     function openChartModal(sourceChart) {
         modal.classList.remove('hidden');
 
-        // Populate text (Simple mapping for demo)
-        const type = sourceChart.config.type;
-        // In real app, look up title based on canvas ID
-        modalTitle.textContent = "Detailed Metrics";
-        modalDesc.textContent = "Expanded view of selected dataset.";
+        // Set Title & Description
+        const canvasId = sourceChart.canvas.id;
+        modalTitle.textContent = canvasId === 'HSIGauge' ? "HSI Breakdown" : sourceChart.canvas.parentElement.parentElement.querySelector('.uppercase').textContent;
+        modalDesc.textContent = chartDescriptions[canvasId] || "Detailed historical data analysis for this metric.";
 
         // Destroy previous modal chart
         if (modalChartInstance) {
@@ -631,15 +749,31 @@
             x: { display: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
             y: { display: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
         };
+        // For Radar/Pie, scales are different
+        if(newConfig.type === 'radar') {
+            newConfig.options.scales = {
+                r: {
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    angleLines: { color: 'rgba(255,255,255,0.1)' },
+                    pointLabels: { color: '#fff', font: { size: 12 } }
+                }
+            };
+        }
+
         newConfig.options.plugins.legend = { display: true, labels: { color: '#fff' } };
         newConfig.options.responsive = true;
         newConfig.options.maintainAspectRatio = false;
 
+        // Re-enable clicks being null in modal
+        newConfig.options.onClick = null;
+
         modalChartInstance = new Chart(ctxModal, newConfig);
     }
 
-    function closeModal() {
-        modal.classList.add('hidden');
+    function closeModal(e) {
+        if (!e || e.target.id === 'chartModal' || e.target.tagName === 'BUTTON') {
+            modal.classList.add('hidden');
+        }
     }
 
     // --- INITIALIZATION ---
@@ -650,4 +784,3 @@
   </script>
 </body>
 </html>
-```
