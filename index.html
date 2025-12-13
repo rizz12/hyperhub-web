@@ -1,157 +1,653 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>HyperHub – Hyperliquid Metrics</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Tailwind CDN (simplified setup) -->
+
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js CDN -->
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
     body {
-      background-color: #020617;
+      background-color: #020617; /* Slate 950 */
+      font-family: 'Inter', sans-serif;
     }
     .glass {
-      background: radial-gradient(circle at top left, rgba(148, 163, 184, 0.12), transparent 60%),
-                  rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(148, 163, 184, 0.18);
-      backdrop-filter: blur(14px);
+      background: radial-gradient(circle at top left, rgba(30, 41, 59, 0.4), transparent 100%),
+                  rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
     .card-hover {
-      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      transition: all 0.2s ease-in-out;
+      cursor: pointer;
     }
     .card-hover:hover {
       transform: translateY(-2px);
-      box-shadow: 0 22px 40px rgba(0, 0, 0, 0.55);
-      border-color: rgba(148, 163, 184, 0.4);
+      border-color: rgba(52, 211, 153, 0.3); /* Emerald tint */
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
     }
     .chart-wrapper {
       position: relative;
       width: 100%;
-      height: 100%;
+      height: 200px; /* Pevná výška pro zajištění zobrazení */
       display: flex;
       justify-content: center;
       align-items: center;
-      margin: 0 auto; /* Lepší centrování */
     }
-    canvas {
-      max-width: 100%;
-      max-height: 100%;
-      border-radius: 8px; /* Zaoblené rohy pro hezčí vzhled */
-      cursor: pointer; /* Indicate clickable */
+    .chart-wrapper canvas {
+        cursor: zoom-in;
     }
     .info-badge {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       border-radius: 9999px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      color: #94a3b8;
       font-size: 10px;
       width: 16px;
       height: 16px;
       cursor: help;
     }
     .info-badge:hover {
-      border-color: rgba(255, 255, 255, 0.45);
+      border-color: #34d399;
+      color: #34d399;
     }
-    /* Animace pro grafy */
-    .chart-container {
-      animation: fadeIn 0.5s ease-in-out;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+
     /* Modal styles */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgba(0,0,0,0.8);
-      justify-content: center;
-      align-items: center;
+    #chartModal {
+        transition: opacity 0.3s ease;
     }
-    .modal-content {
-      background-color: #020617;
-      padding: 20px;
-      border: 1px solid #888;
-      width: 80%;
-      max-width: 800px;
-      border-radius: 8px;
-      position: relative;
+    #chartModal.hidden {
+        opacity: 0;
+        pointer-events: none;
     }
-    .close {
-      color: #aaa;
-      float: right;
-      font-size: 28px;
-      font-weight: bold;
+    #chartModal:not(.hidden) {
+        opacity: 1;
+        pointer-events: auto;
     }
-    .close:hover,
-    .close:focus {
-      color: white;
-      text-decoration: none;
-      cursor: pointer;
+
+    /* Governance Table Styles */
+    .gov-row {
+        transition: background-color 0.15s;
+        cursor: pointer;
     }
-    /* Dropdown styles */
-    .dropdown-menu {
-      display: none;
-      position: absolute;
-      background-color: #020617;
-      min-width: 160px;
-      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-      z-index: 1;
+    .gov-row:hover {
+        background-color: rgba(255,255,255,0.03);
     }
-    .dropdown-menu a {
-      color: gray;
-      padding: 12px 16px;
-      text-decoration: none;
-      display: block;
-    }
-    .dropdown-menu a:hover {
-      background-color: #111;
-    }
-    /* Expandable rows */
-    .expandable {
-      display: none;
+    .gov-detail-row {
+        background-color: rgba(0,0,0,0.2);
     }
   </style>
 </head>
-<body class="min-h-screen text-gray-100">
-  <!-- Top nav -->
-  <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur">
+
+<body class="min-h-screen text-gray-100 flex flex-col">
+
+  <header class="border-b border-white/5 bg-slate-950/80 backdrop-blur sticky top-0 z-40">
     <div class="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
       <div class="flex items-center gap-2">
-        <a href="#dashboard" class="flex items-center gap-2">
-          <div class="w-3 h-3 rounded-sm bg-emerald-500"></div>
-          <span class="font-semibold text-sm tracking-wide">HyperHub</span>
-        </a>
+        <div class="w-3 h-3 rounded-sm bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+        <span class="font-bold text-sm tracking-wide text-gray-100">HyperHub</span>
       </div>
-      <nav class="flex items-center gap-6 text-xs text-gray-400">
-        <a href="#dashboard" class="hover:text-gray-100">Dashboard</a>
-        <div class="relative">
-          <a href="#dashboard" id="analytics-link" class="hover:text-gray-100">Analytics</a>
-          <div id="analytics-dropdown" class="dropdown-menu">
-            <a href="#hsi-detail">HSI Index</a>
-            <a href="#giyp-detail">GIYP</a>
-            <a href="#adl-detail">ADL Risk Heatmap</a>
-            <a href="#wfsi-detail">WFSI</a>
-            <a href="#aos-detail">AOS</a>
-            <a href="#sms-detail">SMS</a>
-            <a href="#lst-detail">LST Yield Optimizer</a>
-            <a href="#cclb-detail">CCLB</a>
-            <a href="#mmia-detail">MMIA</a>
-          </div>
-        </div>
-        <a href="#governance" class="hover:text-gray-100">Governance</a>
-        <!-- <a href="#education" class="hover:text-gray-100">Education</a> -->
-      </nav>
+      <nav class="flex items-center gap-6 text-xs font-medium text-gray-400">
+        <a href="#dashboard" id="nav-dashboard" class="hover:text-emerald-400 transition-colors text-emerald-400">Dashboard</a>
+        <a href="#governance" id="nav-governance" class="hover:text-emerald-400 transition-colors">Governance</a>
+        </nav>
     </div>
   </header>
-  <main class="max-w-7xl mx-auto px-4 pb-16 pt-6 space-y-6">
-    <section id="dashboard
+
+  <main class="flex-1 max-w-7xl mx-auto w-full px-4 pb-16 pt-6 relative">
+
+    <div id="view-dashboard" class="space-y-6 animate-fade-in">
+
+        <section class="space-y-3">
+            <div class="flex items-end justify-between">
+                <div>
+                    <h1 class="text-xl font-bold text-gray-100">Market Overview</h1>
+                    <p class="text-xs text-gray-500">Realtime Hyperliquid metrics</p>
+                </div>
+                <div class="text-[10px] text-gray-600 bg-white/5 px-2 py-1 rounded">Last update: <span id="lastUpdate">Just now</span></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 auto-rows-fr">
+
+                <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between h-full min-h-[140px]">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">HYPE Price</span>
+                        <span class="info-badge" title="Sourced from CoinGecko API">?</span>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-white tracking-tight" id="hypePrice">$30.00</div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-xs font-medium text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded" id="hypeChange">+5.0%</span>
+                            <span class="text-[10px] text-gray-500">24h</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between h-full min-h-[140px]">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Trend</span>
+                        <span class="info-badge" title="24h price movement direction">?</span>
+                    </div>
+                    <div>
+                        <div class="text-lg font-semibold text-gray-200">Bullish</div>
+                        <div class="text-xs text-gray-500 mt-1">Prev Close: <span class="text-gray-300">$28.57</span></div>
+                        <div class="w-full bg-gray-700/30 h-1.5 mt-3 rounded-full overflow-hidden">
+                            <div class="bg-emerald-500 h-full w-[75%]"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between h-full min-h-[140px]">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">24h Volume</span>
+                        <span class="info-badge" title="Total trading volume across all pairs">?</span>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-white tracking-tight" id="volumeValue">$500M</div>
+                        <div class="text-xs text-emerald-400 mt-1">High Activity</div>
+                    </div>
+                </div>
+
+                <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between h-full min-h-[140px]">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Market Cap</span>
+                        <span class="info-badge" title="Circulating Supply * Price">?</span>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-white tracking-tight" id="mcValue">$3B</div>
+                        <div class="text-xs text-gray-500 mt-1">FDV: <span class="text-gray-400">$6B</span></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="space-y-3">
+            <div>
+                <h1 class="text-xl font-bold text-gray-100">Exclusive Insights</h1>
+                <p class="text-xs text-gray-500">Advanced analytics & Sentiment</p>
+            </div>
+
+            <div class="glass rounded-xl p-5 border-l-4 border-l-emerald-500">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="col-span-1 flex flex-col justify-center space-y-4">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <h2 class="text-lg font-bold text-white">HSI Index</h2>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">BULLISH</span>
+                            </div>
+                            <div class="text-4xl font-black text-white" id="HSISent">75<span class="text-lg text-gray-500 font-normal">/100</span></div>
+                        </div>
+                        <p class="text-xs text-gray-400 leading-relaxed">
+                            <strong>Note on metrics:</strong> The chart below correlates <em>Open Interest</em> (total active positions) with <em>Funding Rates</em> (periodic payments). While related, divergence often signals an upcoming squeeze.
+                            <br><br>
+                            High score (>70) currently indicates strong bullish accumulation by whales.
+                        </p>
+                    </div>
+                    <div class="col-span-2 relative h-64 flex items-center justify-center">
+                        <div class="chart-wrapper" style="height: 100%;">
+                            <canvas id="HSIGauge"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                <div class="glass rounded-xl p-4 card-hover">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <div class="text-[11px] font-bold text-gray-500 uppercase">GIYP Predictor</div>
+                            <div class="text-lg font-bold text-emerald-400">+0.5% Yield</div>
+                        </div>
+                        <span class="info-badge" title="Governance Impact Yield Predictor">?</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="giypChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="glass rounded-xl p-4 card-hover">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <div class="text-[11px] font-bold text-gray-500 uppercase">ADL Risk Heatmap</div>
+                            <div class="text-lg font-bold text-red-400">High Leverage</div>
+                        </div>
+                        <span class="info-badge" title="Auto-Deleveraging Risk Zones">?</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="adlHeatmap"></canvas>
+                    </div>
+                </div>
+
+                <div class="glass rounded-xl p-4 card-hover">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <div class="text-[11px] font-bold text-gray-500 uppercase">Whale Flow (WFSI)</div>
+                            <div class="text-lg font-bold text-emerald-400">Score: 85</div>
+                        </div>
+                        <span class="info-badge" title="Whale Flow Sentiment Index">?</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="wfsiChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="glass rounded-xl p-4 card-hover">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <div class="text-[11px] font-bold text-gray-500 uppercase">Arbitrage Scanner</div>
+                            <div class="text-lg font-bold text-white">8/10 Opps</div>
+                        </div>
+                        <span class="info-badge" title="Arbitrage Opportunity Scanner">?</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="aosChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="glass rounded-xl p-4 card-hover">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <div class="text-[11px] font-bold text-gray-500 uppercase">Social Momentum</div>
+                            <div class="text-lg font-bold text-emerald-400">90 (Spike)</div>
+                        </div>
+                        <span class="info-badge" title="Social Momentum Score">?</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="smsChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="glass rounded-xl p-4 card-hover">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <div class="text-[11px] font-bold text-gray-500 uppercase">LST Optimizer</div>
+                            <div class="text-lg font-bold text-white">beHYPE: 15.2%</div>
+                        </div>
+                        <span class="info-badge" title="Liquid Staking Yield Comparison">?</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="lstChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </div>
+    <div id="view-governance" class="hidden space-y-6 animate-fade-in">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-xl font-bold text-gray-100">Governance</h1>
+                <p class="text-xs text-gray-500">Active HIPs and Validator voting behavior</p>
+            </div>
+            <a href="#" class="text-xs text-emerald-400 hover:underline">View Docs &rarr;</a>
+        </div>
+
+        <div class="glass rounded-xl overflow-hidden border border-white/5">
+            <table class="w-full text-sm text-left text-gray-400">
+                <thead class="text-xs text-gray-500 uppercase bg-white/5">
+                    <tr>
+                        <th class="px-6 py-3">HIP ID</th>
+                        <th class="px-6 py-3">Proposal Title</th>
+                        <th class="px-6 py-3">Status</th>
+                        <th class="px-6 py-3 text-right">Vote Ratio (Aye/Nay)</th>
+                        <th class="px-6 py-3 text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    <tr class="gov-row bg-slate-900/40" onclick="toggleGovRow('hip-1')">
+                        <td class="px-6 py-4 font-medium text-white">HIP-1</td>
+                        <td class="px-6 py-4">Increase beHYPE staking rewards</td>
+                        <td class="px-6 py-4"><span class="px-2 py-1 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Active</span></td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <span class="text-emerald-400">65%</span>
+                                <div class="w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="bg-emerald-500 h-full" style="width: 65%"></div>
+                                </div>
+                                <span class="text-red-400">35%</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-center text-xs text-gray-500">Click to expand ▼</td>
+                    </tr>
+                    <tr id="hip-1" class="hidden gov-detail-row">
+                        <td colspan="5" class="px-6 py-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+                                <div>
+                                    <h4 class="font-bold text-white mb-2">Proposal Summary</h4>
+                                    <p class="text-gray-400 mb-2">This proposal seeks to increase the base APY for beHYPE liquid staking by allocating a larger portion of protocol fees to the staking pool.</p>
+                                    <div class="text-emerald-400 font-medium">Impact: +1.0% Expected APY Increase</div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <h4 class="font-bold text-emerald-400 mb-2">Top Aye Validators</h4>
+                                        <ul class="space-y-1 text-gray-400">
+                                            <li class="flex justify-between"><span>Validator One</span> <span>3.2M VP</span></li>
+                                            <li class="flex justify-between"><span>Node Gurus</span> <span>1.5M VP</span></li>
+                                            <li class="flex justify-between"><span>HyperStakers</span> <span>900k VP</span></li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-red-400 mb-2">Top Nay Validators</h4>
+                                        <ul class="space-y-1 text-gray-400">
+                                            <li class="flex justify-between"><span>Conservative VC</span> <span>2.1M VP</span></li>
+                                            <li class="flex justify-between"><span>Old School Node</span> <span>800k VP</span></li>
+                                            <li class="flex justify-between"><span>Alpha Labs</span> <span>400k VP</span></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr class="gov-row bg-slate-900/40" onclick="toggleGovRow('hip-2')">
+                        <td class="px-6 py-4 font-medium text-white">HIP-2</td>
+                        <td class="px-6 py-4">Adjust fee structure for Makers</td>
+                        <td class="px-6 py-4"><span class="px-2 py-1 rounded text-[10px] bg-gray-500/10 text-gray-400 border border-gray-500/20">Closed</span></td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <span class="text-emerald-400">72%</span>
+                                <div class="w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                                    <div class="bg-emerald-500 h-full" style="width: 72%"></div>
+                                </div>
+                                <span class="text-red-400">28%</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-center text-xs text-gray-500">Click to expand ▼</td>
+                    </tr>
+                    <tr id="hip-2" class="hidden gov-detail-row">
+                        <td colspan="5" class="px-6 py-4">
+                            <div class="text-xs text-gray-400">
+                                Proposal passed successfully. Fee reduction implemented on block #892100.
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    </main>
+
+  <div id="chartModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden p-4">
+      <div class="glass w-full max-w-4xl rounded-2xl p-6 relative flex flex-col max-h-[90vh]">
+          <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl font-bold">&times;</button>
+
+          <div class="mb-4">
+            <h2 id="modalTitle" class="text-2xl font-bold text-white">Metric Detail</h2>
+            <p id="modalDesc" class="text-sm text-gray-400">Historical data analysis</p>
+          </div>
+
+          <div class="flex-1 relative min-h-[400px] w-full bg-slate-900/50 rounded-lg p-2">
+              <canvas id="modalCanvas"></canvas>
+          </div>
+      </div>
+  </div>
+
+  <script>
+    // --- NAVIGATION LOGIC ---
+    const navDash = document.getElementById('nav-dashboard');
+    const navGov = document.getElementById('nav-governance');
+    const viewDash = document.getElementById('view-dashboard');
+    const viewGov = document.getElementById('view-governance');
+
+    function switchView(viewName) {
+        if(viewName === 'dashboard') {
+            viewDash.classList.remove('hidden');
+            viewGov.classList.add('hidden');
+            navDash.classList.add('text-emerald-400');
+            navGov.classList.remove('text-emerald-400');
+            // Re-render dashboard charts in case they broke while hidden
+            initCharts();
+        } else {
+            viewDash.classList.add('hidden');
+            viewGov.classList.remove('hidden');
+            navDash.classList.remove('text-emerald-400');
+            navGov.classList.add('text-emerald-400');
+        }
+    }
+
+    navDash.addEventListener('click', (e) => { e.preventDefault(); switchView('dashboard'); });
+    navGov.addEventListener('click', (e) => { e.preventDefault(); switchView('governance'); });
+
+
+    // --- GOVERNANCE LOGIC ---
+    function toggleGovRow(id) {
+        const el = document.getElementById(id);
+        if(el) {
+            el.classList.toggle('hidden');
+        }
+    }
+
+
+    // --- MOCK DATA & UI UPDATES ---
+    function updateMetrics() {
+        // Just mocking the text updates for "Realtime" feel
+        const now = new Date();
+        document.getElementById('lastUpdate').textContent = now.toLocaleTimeString();
+    }
+    setInterval(updateMetrics, 60000);
+
+
+    // --- CHART LOGIC ---
+    let charts = {}; // Store instances to destroy if needed
+    let modalChartInstance = null;
+
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                titleColor: '#34d399',
+                bodyColor: '#fff',
+                borderColor: 'rgba(148, 163, 184, 0.2)',
+                borderWidth: 1,
+                padding: 10,
+                displayColors: false,
+            }
+        },
+        scales: {
+            x: { display: false },
+            y: { display: false }
+        },
+        onClick: (e, activeEls, chart) => {
+            // Trigger Modal on Click
+            openChartModal(chart);
+        }
+    };
+
+    function initCharts() {
+        // HSI RADAR
+        const ctxHSI = document.getElementById('HSIGauge');
+        if(ctxHSI && !charts['hsi']) {
+            charts['hsi'] = new Chart(ctxHSI, {
+                type: 'radar',
+                data: {
+                    labels: ['Sentiment', 'Whales', 'OI', 'Funding', 'Social'],
+                    datasets: [{
+                        label: 'HSI Score',
+                        data: [80, 70, 65, 75, 85],
+                        backgroundColor: 'rgba(52, 211, 153, 0.2)',
+                        borderColor: '#34d399',
+                        pointBackgroundColor: '#34d399',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255,255,255,0.1)' },
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            pointLabels: { color: '#94a3b8', font: { size: 10 } },
+                            ticks: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // GIYP (Bar Stacked)
+        const ctxGIYP = document.getElementById('giypChart');
+        if(ctxGIYP && !charts['giyp']) {
+            charts['giyp'] = new Chart(ctxGIYP, {
+                type: 'bar',
+                data: {
+                    labels: ['HIP-1', 'HIP-2', 'HIP-3'],
+                    datasets: [
+                        { label: 'Aye', data: [65, 72, 58], backgroundColor: '#34d399', borderRadius: 2 },
+                        { label: 'Nay', data: [35, 28, 42], backgroundColor: '#f87171', borderRadius: 2 }
+                    ]
+                },
+                options: { ...commonOptions, scales: { x: { stacked: true, display: false }, y: { stacked: true, display: false } } }
+            });
+        }
+
+        // ADL (Heatmap simulation via Bar)
+        const ctxADL = document.getElementById('adlHeatmap');
+        if(ctxADL && !charts['adl']) {
+            charts['adl'] = new Chart(ctxADL, {
+                type: 'bar',
+                data: {
+                    labels: ['HYPE', 'BTC', 'ETH', 'SOL', 'ARB'],
+                    datasets: [{
+                        data: [80, 60, 90, 40, 20],
+                        backgroundColor: ['#f87171', '#fbbf24', '#f87171', '#34d399', '#34d399'],
+                        borderRadius: 4
+                    }]
+                },
+                options: commonOptions
+            });
+        }
+
+        // WFSI (Line)
+        const ctxWFSI = document.getElementById('wfsiChart');
+        if(ctxWFSI && !charts['wfsi']) {
+            charts['wfsi'] = new Chart(ctxWFSI, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        data: [50, 55, 62, 70, 78, 82, 85],
+                        borderColor: '#34d399',
+                        backgroundColor: 'rgba(52, 211, 153, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0
+                    }]
+                },
+                options: commonOptions
+            });
+        }
+
+        // AOS (Bar)
+        const ctxAOS = document.getElementById('aosChart');
+        if(ctxAOS && !charts['aos']) {
+            charts['aos'] = new Chart(ctxAOS, {
+                type: 'bar',
+                data: {
+                    labels: ['Pair A', 'Pair B', 'Pair C'],
+                    datasets: [{
+                        data: [8, 6, 9],
+                        backgroundColor: '#34d399',
+                        borderRadius: 4
+                    }]
+                },
+                options: commonOptions
+            });
+        }
+
+        // SMS (Line Spike)
+        const ctxSMS = document.getElementById('smsChart');
+        if(ctxSMS && !charts['sms']) {
+            charts['sms'] = new Chart(ctxSMS, {
+                type: 'line',
+                data: {
+                    labels: ['12h', '10h', '8h', '6h', '4h', '2h', 'Now'],
+                    datasets: [{
+                        data: [40, 42, 45, 55, 70, 88, 90],
+                        borderColor: '#34d399',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        pointRadius: 2
+                    }]
+                },
+                options: commonOptions
+            });
+        }
+
+        // LST (Bar)
+        const ctxLST = document.getElementById('lstChart');
+        if(ctxLST && !charts['lst']) {
+            charts['lst'] = new Chart(ctxLST, {
+                type: 'bar',
+                data: {
+                    labels: ['beHYPE', 'kHYPE'],
+                    datasets: [{
+                        data: [15.2, 12.5],
+                        backgroundColor: ['#34d399', '#94a3b8'],
+                        borderRadius: 4
+                    }]
+                },
+                options: commonOptions
+            });
+        }
+    }
+
+    // --- MODAL LOGIC ---
+    const modal = document.getElementById('chartModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalDesc = document.getElementById('modalDesc');
+
+    function openChartModal(sourceChart) {
+        modal.classList.remove('hidden');
+
+        // Populate text (Simple mapping for demo)
+        const type = sourceChart.config.type;
+        // In real app, look up title based on canvas ID
+        modalTitle.textContent = "Detailed Metrics";
+        modalDesc.textContent = "Expanded view of selected dataset.";
+
+        // Destroy previous modal chart
+        if (modalChartInstance) {
+            modalChartInstance.destroy();
+        }
+
+        // Clone config for larger view
+        const ctxModal = document.getElementById('modalCanvas');
+        const newConfig = JSON.parse(JSON.stringify(sourceChart.config)); // Deep copy config
+
+        // Adjust options for big view
+        newConfig.options.scales = {
+            x: { display: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+            y: { display: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
+        };
+        newConfig.options.plugins.legend = { display: true, labels: { color: '#fff' } };
+        newConfig.options.responsive = true;
+        newConfig.options.maintainAspectRatio = false;
+
+        modalChartInstance = new Chart(ctxModal, newConfig);
+    }
+
+    function closeModal() {
+        modal.classList.add('hidden');
+    }
+
+    // --- INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', () => {
+        initCharts();
+    });
+
+  </script>
+</body>
+</html>
+```
