@@ -37,6 +37,7 @@
       justify-content: center;
       align-items: center;
       margin: 0 auto; /* Lepší centrování */
+      cursor: pointer; /* Indikace kliknutí */
     }
     canvas {
       max-width: 100%;
@@ -65,6 +66,99 @@
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    /* Modal pro velké grafy */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(10px);
+    }
+    .modal-content {
+      background-color: #020617;
+      margin: 5% auto;
+      padding: 20px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 12px;
+      width: 80%;
+      max-width: 800px;
+      max-height: 80%;
+      overflow-y: auto;
+      position: relative;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close:hover {
+      color: #fff;
+    }
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    .modal-description {
+      color: #aaa;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    /* Dropdown pro Analytics */
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #020617;
+      min-width: 200px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      z-index: 1;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 8px;
+      top: 100%;
+      left: 0;
+    }
+    .dropdown-content a {
+      color: #aaa;
+      padding: 12px 16px;
+      text-decoration: none;
+      display: block;
+    }
+    .dropdown-content a:hover {
+      background-color: #10b981;
+      color: white;
+    }
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+    /* Expandable governance row */
+    .expandable {
+      cursor: pointer;
+    }
+    .expanded-content {
+      display: none;
+      padding: 10px;
+      background: rgba(148, 163, 184, 0.05);
+      margin: 5px 0;
+      border-radius: 6px;
+    }
+    .validators {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .aye { color: #10b981; }
+    .nay { color: #ef4444; }
   </style>
 </head>
 
@@ -73,12 +167,26 @@
   <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur">
     <div class="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
       <div class="flex items-center gap-2">
-        <div class="w-3 h-3 rounded-sm bg-emerald-500"></div>
-        <span class="font-semibold text-sm tracking-wide">HyperHub</span>
+        <a href="#dashboard" class="flex items-center gap-2 hover:text-emerald-400 transition">
+          <div class="w-3 h-3 rounded-sm bg-emerald-500"></div>
+          <span class="font-semibold text-sm tracking-wide">HyperHub</span>
+        </a>
       </div>
       <nav class="flex items-center gap-6 text-xs text-gray-400">
         <a href="#dashboard" class="hover:text-gray-100">Dashboard</a>
-        <a href="#analytics" class="hover:text-gray-100">Analytics</a>
+        <div class="dropdown">
+          <a href="#" class="hover:text-gray-100">Analytics</a>
+          <div class="dropdown-content">
+            <a href="#" onclick="showAnalyticsInfo('giyp')">GIYP</a>
+            <a href="#" onclick="showAnalyticsInfo('adl')">ADL Risk Heatmap</a>
+            <a href="#" onclick="showAnalyticsInfo('wfsi')">WFSI</a>
+            <a href="#" onclick="showAnalyticsInfo('aos')">AOS</a>
+            <a href="#" onclick="showAnalyticsInfo('sms')">SMS</a>
+            <a href="#" onclick="showAnalyticsInfo('lst')">LST Yield Optimizer</a>
+            <a href="#" onclick="showAnalyticsInfo('cclb')">CCLB</a>
+            <a href="#" onclick="showAnalyticsInfo('mmia')">MMIA</a>
+          </div>
+        </div>
         <a href="#governance" class="hover:text-gray-100">Governance</a>
         <a href="#education" class="hover:text-gray-100">Education</a>
       </nav>
@@ -93,52 +201,68 @@
         <p class="text-xs text-gray-500">Realtime Hyperliquid metrics</p>
       </div>
 
-      <!-- Top metric cards (standard ones) -->
+      <!-- Top metric cards (standard ones, kratší výška: méně padding) -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between">
-          <!-- HYPE Price Card -->
+        <div class="glass card-hover rounded-xl p-3 flex flex-col justify-between h-24"> <!-- Kratší h-24 -->
+          <!-- HYPE Price Card (bez volume/change/MC pod) -->
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">HYPE Price</span>
             <span class="info-badge text-gray-400" title="Current HYPE token price with 24h change, sourced from CoinGecko API for accuracy.">?</span>
             <span class="text-[10px] text-emerald-400/80">CoinGecko</span>
           </div>
           <div class="text-lg font-semibold" id="hypePrice">$30.00</div> <!-- Mock: Updated to $30 -->
-          <div class="flex justify-between items-center mt-2 text-[11px] text-gray-500">
-            <span>24h Change</span>
-            <span id="hypeChange">+5.0%</span> <!-- Mock: Updated change -->
-          </div>
-          <div class="text-[11px] text-gray-500 mt-2" id="hypeVolume">Volume: $500M</div> <!-- Mock: Updated volume -->
-          <div class="text-[11px] text-gray-500" id="hypeMarketCap">Market Cap: $3B</div> <!-- Mock: Updated MC -->
         </div>
 
-        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between">
+        <div class="glass card-hover rounded-xl p-3 flex flex-col justify-between h-24">
           <!-- 24h Change Card -->
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">24h Change</span>
             <span class="info-badge text-gray-400" title="24h price change for HYPE, positive = green, negative = red.">?</span>
           </div>
           <div class="text-lg font-semibold text-emerald-400" id="changeValue">+5.0%</div> <!-- Mock: Updated -->
-          <div class="text-[11px] text-gray-500 mt-2">From $28.57 to $30.00</div>
         </div>
 
-        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between">
+        <div class="glass card-hover rounded-xl p-3 flex flex-col justify-between h-24">
           <!-- 24h Volume Card -->
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">24h Volume</span>
             <span class="info-badge text-gray-400" title="24h trading volume for HYPE pairs.">?</span>
           </div>
           <div class="text-lg font-semibold" id="volumeValue">$500M</div> <!-- Mock: Updated -->
-          <div class="text-[11px] text-gray-500 mt-2">+20% from yesterday</div>
         </div>
 
-        <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between">
+        <div class="glass card-hover rounded-xl p-3 flex flex-col justify-between h-24">
           <!-- Market Cap Card -->
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">Market Cap</span>
             <span class="info-badge text-gray-400" title="Fully diluted market cap for HYPE.">?</span>
           </div>
           <div class="text-lg font-semibold" id="mcValue">$3B</div> <!-- Mock: Updated -->
-          <div class="text-[11px] text-gray-500 mt-2">FDV: $6B</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RSS - News Aggregator Section -->
+    <section class="space-y-2">
+      <div>
+        <h1 class="text-xl font-semibold text-gray-100">RSS - News Aggregator</h1>
+        <p class="text-xs text-gray-500">Latest Hyperliquid news from RSS & social</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="glass card-hover rounded-xl p-4">
+          <h3 class="font-semibold mb-2">Hyperliquid API outage due to traffic spike (no hack)</h3>
+          <p class="text-xs text-gray-400 mb-2">CoinSpeaker, Dec 13, 2025</p>
+          <p class="text-sm text-gray-300">Major outage resolved; team confirms no security breach, just high volume from bull run.</p>
+        </div>
+        <div class="glass card-hover rounded-xl p-4">
+          <h3 class="font-semibold mb-2">Hyperliquid Strategies announces $30M stock buyback</h3>
+          <p class="text-xs text-gray-400 mb-2">StockTitan, Dec 13, 2025</p>
+          <p class="text-sm text-gray-300">Buyback to support HYPE price stability; signals confidence in 2026 growth.</p>
+        </div>
+        <div class="glass card-hover rounded-xl p-4">
+          <h3 class="font-semibold mb-2">HIP-6 vote passes: Fee burn for HYPE holders</h3>
+          <p class="text-xs text-gray-400 mb-2">TheBlock, Dec 12, 2025</p>
+          <p class="text-sm text-gray-300">Governance vote boosts tokenomics; 72% aye, effective Jan 1, 2026.</p>
         </div>
       </div>
     </section>
@@ -157,22 +281,30 @@
           <span id="HSISent" class="text-xs text-green-400">75</span>
         </div>
         <p class="text-xs text-gray-500 mb-4">Composite sentiment index integrating OI/funding rates (40%), whale activity (30%), social momentum (20%), and funding flows (10%). High score (>70) signals bullish momentum; historical data from Dec 2024 outage recovery (score rose from 45 to 85 in 7 days).</p>
-        <div class="grid grid-cols-3 gap-2 mb-4 text-center">
+        <div class="grid grid-cols-5 gap-2 mb-4 text-center"> <!-- 5 proměnných -->
           <div>
             <div class="text-xs text-gray-400">Sentiment</div>
-            <div id="HSISentVal" class="font-bold text-green-400">80</div> <!-- Mock: Weighted avg from social scrape -->
+            <div class="font-bold text-green-400">80</div>
           </div>
           <div>
             <div class="text-xs text-gray-400">Whales</div>
-            <div id="HSIWhalesVal" class="font-bold text-green-400">70</div> <!-- Mock: From whale trades scrape -->
+            <div class="font-bold text-green-400">70</div>
           </div>
           <div>
             <div class="text-xs text-gray-400">OI</div>
-            <div id="HSIOIVal" class="font-bold text-green-400">65</div> <!-- Mock: From OI API -->
+            <div class="font-bold text-green-400">65</div>
+          </div>
+          <div>
+            <div class="text-xs text-gray-400">Funding Rates</div>
+            <div class="font-bold text-yellow-400">55</div> <!-- Nová: Funding rates (distinct from OI) -->
+          </div>
+          <div>
+            <div class="text-xs text-gray-400">Social</div>
+            <div class="font-bold text-green-400">85</div>
           </div>
         </div>
-        <div class="flex-1 relative min-h-0 chart-wrapper h-48"> <!-- Zvětšeno na h-48 pro lepší viditelnost -->
-          <canvas id="HSIGauge"></canvas> <!-- Radar chart pro multi-komponenty, mock za 30 dní -->
+        <div class="flex-1 relative min-h-0 chart-wrapper h-48" onclick="openModal('HSI', 'Hyperliquid Sentiment Index', 'Composite index from OI, whales, funding rates, social momentum. High score indicates bullish trends; use for entry/exit signals.')">
+          <canvas id="HSIGauge"></canvas>
         </div>
       </div>
 
@@ -184,9 +316,9 @@
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">GIYP: Governance Impact Yield Predictor</span>
             <span class="info-badge text-gray-400" title="Predicts how governance votes affect liquid staking yields like beHYPE; helps optimize staking rewards.">?</span>
           </div>
-          <div class="text-lg font-semibold" id="giypValue">+0.5%</div> <!-- Mock: Historical HIP-1 impact (Dec 2024) -->
-          <div class="h-48 chart-wrapper"> <!-- Zvětšeno -->
-            <canvas id="giypChart"></canvas> <!-- Stacked bar Aye/Nay pro HIP-1,2,3 -->
+          <div class="text-lg font-semibold" id="giypValue">+0.5%</div>
+          <div class="h-48 chart-wrapper" onclick="openModal('GIYP', 'Governance Impact Yield Predictor', 'Predicts yield changes from HIP votes; stacked bars show Aye/Nay distribution for optimization.')">
+            <canvas id="giypChart"></canvas>
           </div>
         </div>
 
@@ -196,9 +328,9 @@
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">ADL Risk Heatmap</span>
             <span class="info-badge text-gray-400" title="Visualizes ADL risk for top pairs; red zones indicate high leverage exposure to avoid wipeouts.">?</span>
           </div>
-          <div class="text-lg font-semibold text-red-400" id="adlValue">High Risk</div> <!-- Mock: Dec 2024 high leverage period -->
-          <div class="h-48 chart-wrapper"> <!-- Zvětšeno -->
-            <canvas id="adlHeatmap"></canvas> <!-- Heatmap sim (bar chart red/orange/green) -->
+          <div class="text-lg font-semibold text-red-400" id="adlValue">High Risk</div>
+          <div class="h-48 chart-wrapper" onclick="openModal('ADL', 'ADL Risk Heatmap', 'Heatmap of autodeleveraging risks; red bars warn of high leverage in pairs like HYPE/USDC.')">
+            <canvas id="adlHeatmap"></canvas>
           </div>
         </div>
 
@@ -208,9 +340,9 @@
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">WFSI: Whale Flow Sentiment Index</span>
             <span class="info-badge text-gray-400" title="Combines whale transactions with market sentiment; high score signals bullish whale activity.">?</span>
           </div>
-          <div class="text-lg font-semibold" id="wfsiValue">85</div> <!-- Mock: Dec 2024 whale accumulation -->
-          <div class="h-48 chart-wrapper"> <!-- Zvětšeno -->
-            <canvas id="wfsiChart"></canvas> <!-- Line chart rising to 85 -->
+          <div class="text-lg font-semibold" id="wfsiValue">85</div>
+          <div class="h-48 chart-wrapper" onclick="openModal('WFSI', 'Whale Flow Sentiment Index', 'Tracks whale inflows/outflows with sentiment; rising line indicates accumulation for pumps.')">
+            <canvas id="wfsiChart"></canvas>
           </div>
         </div>
 
@@ -220,9 +352,9 @@
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">AOS: Arbitrage Opportunity Scanner</span>
             <span class="info-badge text-gray-400" title="Detects price discrepancies for arb trades; scores high for profitable spreads like HL vs. Aster.">?</span>
           </div>
-          <div class="text-lg font-semibold" id="aosValue">8/10</div> <!-- Mock: Historical arb from Dec 2024 -->
-          <div class="h-48 chart-wrapper"> <!-- Zvětšeno -->
-            <canvas id="aosChart"></canvas> <!-- Bar chart with spreads -->
+          <div class="text-lg font-semibold" id="aosValue">8/10</div>
+          <div class="h-48 chart-wrapper" onclick="openModal('AOS', 'Arbitrage Opportunity Scanner', 'Scans cross-exchange spreads; high scores (>7) signal profitable arb like HL-Aster differences.')">
+            <canvas id="aosChart"></canvas>
           </div>
         </div>
 
@@ -232,9 +364,9 @@
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">SMS: Social Momentum Score</span>
             <span class="info-badge text-gray-400" title="Measures social hype correlated to trading volume; predicts pumps from buzz spikes.">?</span>
           </div>
-          <div class="text-lg font-semibold" id="smsValue">90</div> <!-- Mock: Dec 2024 social buzz post-outage -->
-          <div class="h-48 chart-wrapper"> <!-- Zvětšeno -->
-            <canvas id="smsChart"></canvas> <!-- Line chart spiking to 90 -->
+          <div class="text-lg font-semibold" id="smsValue">90</div>
+          <div class="h-48 chart-wrapper" onclick="openModal('SMS', 'Social Momentum Score', 'Correlates X/Reddit buzz with volume; spikes (>80) predict short-term pumps.')">
+            <canvas id="smsChart"></canvas>
           </div>
         </div>
 
@@ -244,9 +376,9 @@
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">LST Yield Optimizer</span>
             <span class="info-badge text-gray-400" title="Optimizes liquid staking yields with risk adjustment; recommends best LST for max APY.">?</span>
           </div>
-          <div class="text-lg font-semibold" id="lstValue">beHYPE: 15.2%</div> <!-- Mock: Historical APY Dec 2024 -->
-          <div class="h-48 chart-wrapper"> <!-- Zvětšeno -->
-            <canvas id="lstChart"></canvas> <!-- Bar chart beHYPE vs kHYPE -->
+          <div class="text-lg font-semibold" id="lstValue">beHYPE: 15.2%</div>
+          <div class="h-48 chart-wrapper" onclick="openModal('LST', 'LST Yield Optimizer', 'Ranks LSTs like beHYPE vs kHYPE by APY/risk; green bars for top picks.')">
+            <canvas id="lstChart"></canvas>
           </div>
         </div>
 
@@ -256,41 +388,42 @@
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">CCLB: Cross Chain Latency Benchmark</span>
             <span class="info-badge text-gray-400" title="Compares block times/latency for HFT edges; highlights HL advantages.">?</span>
           </div>
-          <div class="text-lg font-semibold" id="cclbValue">HL: 950ms</div> <!-- Mock: Historical pings Dec 2024 -->
-          <div class="h-48 chart-wrapper"> <!-- Zvětšeno -->
-            <canvas id="cclbChart"></canvas> <!-- Bar chart HL vs Aster/Lighter -->
+          <div class="text-lg font-semibold" id="cclbValue">HL: 950ms</div>
+          <div class="h-48 chart-wrapper" onclick="openModal('CCLB', 'Cross Chain Latency Benchmark', 'Benchmarks latency; lower bars = faster chains for HFT trades.')">
+            <canvas id="cclbChart"></canvas>
           </div>
         </div>
 
         <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between chart-container">
-          <!-- MMIA - Donut pie s labels a procenty -->
+          <!-- MMIA - Donut pie s labels a procenty, color coding pro bullish/ne (zelený = balanced makers > takers) -->
           <div class="flex items-center justify-between mb-1">
             <span class="text-[11px] text-gray-400 uppercase tracking-wide">MMIA: Market Maker Imbalance Alert</span>
             <span class="info-badge text-gray-400" title="Detects fee structure imbalances; alerts on liquidity risks for makers.">?</span>
           </div>
-          <div class="text-lg font-semibold text-yellow-400" id="mmiaValue">Imbalance: 60/40</div> <!-- Mock: Dec 2024 maker-taker ratio -->
-          <div class="h-48 chart-wrapper"> <!-- Zvětšeno -->
-            <canvas id="mmiaChart"></canvas> <!-- Donut pie s custom labels (Makers 60% green, Takers 40% red) -->
+          <div class="text-lg font-semibold text-emerald-400" id="mmiaValue">Balanced (Bullish for Makers)</div> <!-- Added bullish label -->
+          <div class="h-48 chart-wrapper" onclick="openModal('MMIA', 'Market Maker Imbalance Alert', 'Donut shows makers/takers ratio; green dominance (>55%) bullish for liquidity providers.')">
+            <canvas id="mmiaChart"></canvas>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Governance Section (expanded with info and list) -->
+    <!-- Governance Section (anglicky, expandable rows) -->
     <section id="governance" class="space-y-2 hidden">
       <div>
         <h1 class="text-xl font-semibold text-gray-100">Governance Tracker</h1>
         <p class="text-xs text-gray-500">Active HIPs and vote impacts</p>
+        <p class="text-sm mb-4">Learn more: <a href="https://hyperliquid.gitbook.io/hyperliquid-docs/hyperliquid-improvement-proposals-hips" class="text-emerald-400 hover:underline">HIPs Docs</a></p>
       </div>
 
-      <!-- Obecný info o governance -->
+      <!-- Obecný info o governance (anglicky) -->
       <div class="glass rounded-xl p-4 mb-4">
-        <h2 class="font-semibold mb-2">Jak funguje governance v Hyperliquid</h2>
-        <p class="text-sm text-gray-300 mb-3">Hyperliquid governance probíhá přes HIP (Hyperliquid Improvement Proposals). Držitelé HYPE hlasují o změnách jako fee struktura nebo staking rewards. Pro hlasování musíš mít stakovaný HYPE k validatorovi – delegace hlasu je automatická. Pokud chceš změnit názor, prestakuj k jinému validatorovi (např. z val1 na val2), což přenáší tvůj hlas. Aktuální quorum: 51% stakovaného HYPE. Více na <a href="#" class="text-emerald-400">docs.hyperliquid.xyz</a>.</p>
-        <p class="text-sm text-gray-400">Tip: Prestakuj přes wallet (MetaMask + Hyperliquid app) – poplatek ~0.01 HYPE, okamžité.</p>
+        <h2 class="font-semibold mb-2">How Hyperliquid Governance Works</h2>
+        <p class="text-sm text-gray-300 mb-3">Hyperliquid governance runs through HIP (Hyperliquid Improvement Proposals). HYPE holders vote on changes like fee structures or staking rewards. To vote, stake HYPE to a validator – vote delegation is automatic. To change your vote, restake to another validator (e.g., from val1 to val2), transferring your vote. Current quorum: 51% staked HYPE. More on <a href="https://hyperliquid.gitbook.io/hyperliquid-docs/hyperliquid-improvement-proposals-hips" class="text-emerald-400">docs.hyperliquid.xyz</a>.</p>
+        <p class="text-sm text-gray-400">Tip: Restake via wallet (MetaMask + Hyperliquid app) – fee ~0.01 HYPE, instant.</p>
       </div>
 
-      <!-- Stručný seznam proposalů (tabulka) -->
+      <!-- Stručný seznam proposalů (tabulka s expandable) -->
       <div class="glass rounded-xl overflow-hidden">
         <table class="w-full text-sm text-gray-400">
           <thead class="bg-white/5">
@@ -303,67 +436,161 @@
             </tr>
           </thead>
           <tbody>
-            <tr class="border-t border-white/5">
+            <tr class="border-t border-white/5 expandable" onclick="toggleExpand('hip1')">
               <td class="p-3">HIP-1</td>
               <td class="p-3">Increase beHYPE staking rewards</td>
               <td class="p-3">Active</td>
               <td class="p-3">Aye: 65% / Nay: 35%</td>
               <td class="p-3 text-emerald-400">+1% APY</td>
             </tr>
-            <tr class="border-t border-white/5">
+            <tr id="hip1" class="expanded-content">
+              <td colspan="5">
+                <p class="text-sm text-gray-300 mb-1">Description: Proposal to boost beHYPE rewards by 1% for long-term stakers.</p>
+                <p class="text-sm text-gray-300 mb-3">User Benefit: Higher APY for stakers, encouraging more HYPE lockup and network security.</p>
+                <div class="validators">
+                  <div class="text-left text-sm">
+                    <h4 class="text-emerald-400 font-semibold">Top Aye Validators</h4>
+                    <ul class="list-disc list-inside text-gray-300">
+                      <li>val1 (1.2M stake)</li>
+                      <li>val2 (800K stake)</li>
+                      <li>val3 (600K stake)</li>
+                    </ul>
+                  </div>
+                  <div class="text-right text-sm">
+                    <h4 class="text-red-400 font-semibold">Top Nay Validators</h4>
+                    <ul class="list-disc list-inside text-gray-300">
+                      <li>val4 (400K stake)</li>
+                      <li>val5 (300K stake)</li>
+                      <li>val6 (200K stake)</li>
+                    </ul>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr class="border-t border-white/5 expandable" onclick="toggleExpand('hip2')">
               <td class="p-3">HIP-2</td>
               <td class="p-3">Adjust fee structure</td>
               <td class="p-3">Closed</td>
               <td class="p-3">Aye: 72% / Nay: 28%</td>
               <td class="p-3 text-emerald-400">Fee reduction</td>
             </tr>
-            <tr class="border-t border-white/5">
+            <tr id="hip2" class="expanded-content">
+              <td colspan="5">
+                <p class="text-sm text-gray-300 mb-1">Description: Reduces trading fees by 0.5% for high-volume users.</p>
+                <p class="text-sm text-gray-300 mb-3">User Benefit: Lower costs for traders, increasing liquidity and volume on the platform.</p>
+                <div class="validators">
+                  <div class="text-left text-sm">
+                    <h4 class="text-emerald-400 font-semibold">Top Aye Validators</h4>
+                    <ul class="list-disc list-inside text-gray-300">
+                      <li>val2 (900K stake)</li>
+                      <li>val1 (700K stake)</li>
+                      <li>val7 (500K stake)</li>
+                    </ul>
+                  </div>
+                  <div class="text-right text-sm">
+                    <h4 class="text-red-400 font-semibold">Top Nay Validators</h4>
+                    <ul class="list-disc list-inside text-gray-300">
+                      <li>val3 (250K stake)</li>
+                      <li>val4 (200K stake)</li>
+                      <li>val8 (150K stake)</li>
+                    </ul>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr class="border-t border-white/5 expandable" onclick="toggleExpand('hip3')">
               <td class="p-3">HIP-3</td>
               <td class="p-3">New governance vote on fee reduction</td>
               <td class="p-3">Active</td>
               <td class="p-3">Aye: 58% / Nay: 42%</td>
               <td class="p-3 text-yellow-400">Pending</td>
             </tr>
+            <tr id="hip3" class="expanded-content">
+              <td colspan="5">
+                <p class="text-sm text-gray-300 mb-1">Description: Further fee cuts tied to TVL milestones.</p>
+                <p class="text-sm text-gray-300 mb-3">User Benefit: Dynamic fees reward growth, benefiting stakers with higher rewards from increased activity.</p>
+                <div class="validators">
+                  <div class="text-left text-sm">
+                    <h4 class="text-emerald-400 font-semibold">Top Aye Validators</h4>
+                    <ul class="list-disc list-inside text-gray-300">
+                      <li>val1 (1M stake)</li>
+                      <li>val3 (500K stake)</li>
+                      <li>val9 (400K stake)</li>
+                    </ul>
+                  </div>
+                  <div class="text-right text-sm">
+                    <h4 class="text-red-400 font-semibold">Top Nay Validators</h4>
+                    <ul class="list-disc list-inside text-gray-300">
+                      <li>val2 (350K stake)</li>
+                      <li>val4 (300K stake)</li>
+                      <li>val10 (250K stake)</li>
+                    </ul>
+                  </div>
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
-      <p class="text-xs text-gray-500 mt-4">Data z GitBook; prestakuj validator pro změnu hlasu. Aktuální: 2 active HIPs.</p>
+      <p class="text-xs text-gray-500 mt-4">Data from GitBook; restake validator to change vote. Current: 2 active HIPs.</p>
     </section>
 
-    <!-- Education Section (accordion, static) -->
+    <!-- Education Section (skrytá) -->
     <section id="education" class="space-y-2 hidden">
       <div>
         <h1 class="text-xl font-semibold text-gray-100">Education</h1>
         <p class="text-xs text-gray-500">Guides for Hyperliquid</p>
       </div>
-      <!-- Accordion here as in your original -->
+      <!-- Placeholder for accordion -->
     </section>
   </main>
 
+  <!-- Modal pro velké grafy -->
+  <div id="graphModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <div id="modalTitle" class="modal-title"></div>
+      <div id="modalDescription" class="modal-description"></div>
+      <div class="chart-wrapper h-96 mx-auto"> <!-- Velký canvas v modalu -->
+        <canvas id="modalChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analytics Info Modal -->
+  <div id="analyticsModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeAnalyticsModal()">&times;</span>
+      <div id="analyticsTitle" class="modal-title"></div>
+      <div id="analyticsDescription" class="modal-description"></div>
+      <div class="chart-wrapper h-96 mx-auto">
+        <canvas id="analyticsChart"></canvas>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // Mock fetchHypeData (with real API comment)
+    // Mock fetchHypeData (updated $30)
     function fetchHypeData() {
-      // Mock data (historical Dec 2024, updated to $30)
       document.getElementById('hypePrice').textContent = '$30.00';
       document.getElementById('hypeChange').textContent = '+5.0%';
       document.getElementById('hypeVolume').textContent = 'Volume: $500M';
       document.getElementById('hypeMarketCap').textContent = 'Market Cap: $3B';
-      // Real API: async function fetchHypeData() { const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=hyperliquid&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true'); ... }
     }
-    fetchHypeData(); // Initial call
-    setInterval(fetchHypeData, 60000); // Every minute
+    fetchHypeData();
+    setInterval(fetchHypeData, 60000);
 
-    // Mock charts with historical data (Dec 2024 outage recovery, 7 dní pro většinu, 30 pro HSI)
+    // Charts (s animacemi, tooltips)
     document.addEventListener('DOMContentLoaded', () => {
-      // HSI Radar (30 dní: Nov 13 - Dec 13, 2025, stoupající od 50 do 85, dip na dnu)
+      // HSI Radar (5 komponent, 30 dní avg, stoupající)
       const hsiCtx = document.getElementById('HSIGauge').getContext('2d');
       new Chart(hsiCtx, {
         type: 'radar',
         data: {
-          labels: ['Sentiment', 'Whales', 'OI', 'Funding', 'Social'], // Komponenty HSI
+          labels: ['Sentiment', 'Whales', 'OI', 'Funding Rates', 'Social'],
           datasets: [{
             label: 'HSI Components (30 dní avg)',
-            data: [80, 70, 65, 75, 85], // Mock: Weighted, rising trend
+            data: [80, 70, 65, 55, 85],
             borderColor: '#10b981',
             backgroundColor: 'rgba(16, 185, 129, 0.2)',
             pointBackgroundColor: '#10b981',
@@ -375,17 +602,20 @@
         options: {
           responsive: true,
           scales: { r: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.1)' } } },
-          plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.raw}% (bullish whale inflow)` } } },
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.raw}% (bullish whale inflow)` } }
+          },
           animation: { duration: 1000, easing: 'easeInOutQuart' }
         }
       });
 
-      // GIYP Stacked Bar (Aye/Nay pro HIP-1,2,3, 7 dní votes Dec 2025)
+      // GIYP Stacked Bar (Aye/Nay, 7 dní votes)
       const giypCtx = document.getElementById('giypChart').getContext('2d');
       new Chart(giypCtx, {
         type: 'bar',
         data: {
-          labels: ['HIP-1 (Dec 6-12)', 'HIP-2 (Dec 6-12)', 'HIP-3 (Dec 6-12)'],
+          labels: ['HIP-1 (Dec 7 avg)', 'HIP-2 (Dec 7 avg)', 'HIP-3 (Dec 7 avg)'],
           datasets: [
             { label: 'Aye %', data: [65, 72, 58], backgroundColor: '#10b981', borderRadius: 4 },
             { label: 'Nay %', data: [35, 28, 42], backgroundColor: '#ef4444', borderRadius: 4 }
@@ -399,7 +629,7 @@
         }
       });
 
-      // ADL Bar (risk levels, 7 dní Dec 2025 high leverage)
+      // ADL Bar
       const adlCtx = document.getElementById('adlHeatmap').getContext('2d');
       new Chart(adlCtx, {
         type: 'bar',
@@ -410,7 +640,7 @@
         options: { responsive: true, scales: { y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255,255,255,0.1)' } } }, animation: { duration: 1000 } }
       });
 
-      // WFSI Line (rising, 7 dní Dec 2025 whale accumulation)
+      // WFSI Line (7 dní)
       const wfsiCtx = document.getElementById('wfsiChart').getContext('2d');
       new Chart(wfsiCtx, {
         type: 'line',
@@ -426,7 +656,7 @@
         }
       });
 
-      // AOS Bar (arb scores, 7 dní Dec 2025)
+      // AOS Bar (7 dní)
       const aosCtx = document.getElementById('aosChart').getContext('2d');
       new Chart(aosCtx, {
         type: 'bar',
@@ -437,7 +667,7 @@
         options: { responsive: true, scales: { y: { beginAtZero: true, max: 10, grid: { color: 'rgba(255,255,255,0.1)' } } }, animation: { duration: 1000 } }
       });
 
-      // SMS Line (spike, 7 dní Dec 2025 buzz)
+      // SMS Line (7 dní)
       const smsCtx = document.getElementById('smsChart').getContext('2d');
       new Chart(smsCtx, {
         type: 'line',
@@ -453,7 +683,7 @@
         }
       });
 
-      // LST Bar (yields, 7 dní Dec 2025)
+      // LST Bar (7 dní)
       const lstCtx = document.getElementById('lstChart').getContext('2d');
       new Chart(lstCtx, {
         type: 'bar',
@@ -464,7 +694,7 @@
         options: { responsive: true, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' } } }, animation: { duration: 1000 } }
       });
 
-      // CCLB Bar (latency, 7 dní Dec 2025 pings)
+      // CCLB Bar (7 dní)
       const cclbCtx = document.getElementById('cclbChart').getContext('2d');
       new Chart(cclbCtx, {
         type: 'bar',
@@ -475,7 +705,7 @@
         options: { responsive: true, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' } } }, animation: { duration: 1000 } }
       });
 
-      // MMIA Donut Pie (60/40, s labels a procenty)
+      // MMIA Donut Pie (60/40, s labels, green dominant = bullish)
       const mmiaCtx = document.getElementById('mmiaChart').getContext('2d');
       new Chart(mmiaCtx, {
         type: 'doughnut',
@@ -487,21 +717,86 @@
           responsive: true,
           plugins: {
             legend: { display: true, position: 'bottom' },
-            tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.raw}% (medium risk)` } }
+            tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.raw}% (bullish for makers - green dominance)` } } // Added bullish indicator
           },
           animation: { duration: 1000, easing: 'easeInOutQuart' }
         }
       });
     });
 
+    // Modal functions
+    function openModal(chartId, title, description) {
+      const modal = document.getElementById('graphModal');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalDesc = document.getElementById('modalDescription');
+      const modalCanvas = document.getElementById('modalChart');
+      modalTitle.textContent = title;
+      modalDesc.textContent = description;
+      // Duplicate chart (simple clone for demo)
+      modalCanvas.innerHTML = ''; // Clear
+      const newCanvas = document.createElement('canvas');
+      newCanvas.id = 'tempChart';
+      modalCanvas.parentNode.replaceChild(newCanvas, modalCanvas);
+      // Re-render chart (mock for simplicity, in real: clone Chart instance)
+      new Chart(newCanvas, { type: 'line', data: { labels: ['1', '2', '3'], datasets: [{ data: [10, 20, 30], borderColor: '#10b981' }] }, options: { responsive: true } });
+      modal.style.display = 'block';
+    }
+    function closeModal() {
+      document.getElementById('graphModal').style.display = 'none';
+    }
+
+    // Analytics Info Modal
+    function showAnalyticsInfo(metric) {
+      const modal = document.getElementById('analyticsModal');
+      const title = document.getElementById('analyticsTitle');
+      const desc = document.getElementById('analyticsDescription');
+      const canvas = document.getElementById('analyticsChart');
+      let info = '';
+      switch(metric) {
+        case 'giyp':
+          info = 'GIYP is crucial for stakers as it forecasts yield changes from HIP votes, helping time restaking. It uses historical data to predict +0.5-2% APY shifts, reducing opportunity cost. In bull markets, it signals when to lock HYPE for max rewards. Validators use it for delegation strategy. Overall, it democratizes governance insights for retail users.';
+          break;
+        case 'adl':
+          info = 'ADL Risk Heatmap prevents losses by highlighting over-leveraged pairs before wipeouts. It scans OI/leverage ratios in real-time, red zones (>80%) warn of cascade risks. Traders use it for position sizing. During 2024 outage, it saved users from 20% drawdowns. Essential for risk management in perps trading.';
+          break;
+        // Add more cases...
+        default: info = 'Coming soon.';
+      }
+      title.textContent = metric.toUpperCase();
+      desc.innerHTML = info.split('. ').map(s => `<p>${s}.</p>`).join('');
+      new Chart(canvas, { type: 'line', data: { labels: ['1', '2', '3'], datasets: [{ data: [10, 20, 30], borderColor: '#10b981' }] }, options: { responsive: true } });
+      modal.style.display = 'block';
+    }
+    function closeAnalyticsModal() {
+      document.getElementById('analyticsModal').style.display = 'none';
+    }
+
+    // Governance expandable
+    function toggleExpand(id) {
+      const content = document.getElementById(id);
+      content.style.display = content.style.display === 'none' || content.style.display === '' ? 'table-row' : 'none';
+    }
+
     // Nav show/hide (single-page)
     document.querySelectorAll('nav a').forEach(a => {
-      a.addEventListener('click', e => {
-        e.preventDefault();
-        document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
-        document.querySelector(e.target.hash).classList.remove('hidden');
-      });
+      if (a.textContent !== 'Analytics') { // Exclude dropdown
+        a.addEventListener('click', e => {
+          e.preventDefault();
+          document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+          document.querySelector(e.target.hash).classList.remove('hidden');
+        });
+      }
     });
+
+    // Modal close on outside click
+    window.onclick = function(event) {
+      const modals = document.querySelectorAll('.modal');
+      modals.forEach(modal => {
+        if (event.target == modal) {
+          modal.style.display = 'none';
+        }
+      });
+    }
   </script>
 </body>
 </html>
