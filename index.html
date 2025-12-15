@@ -1,842 +1,552 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" class="antialiased">
 <head>
-  <meta charset="UTF-8" />
-  <title>HyperHub – Hyperliquid Metrics</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HyperHub — Unlock Hyperliquid Insights</title>
+  <meta name="description" content="HyperHub — Track, Govern, Thrive.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22black%22/><circle cx=%2250%22 cy=%2250%22 r=%2230%22 fill=%22%2300FF7F%22/></svg>">
 
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            hhbg: '#0F1117',
+            hhpanel: '#16181D',
+            hhgreen: '#00FF7F',
+            hhgreen2: '#00CC66',
+            hhred: '#FF0033',
+            hhtext: '#FFFFFF',
+            hhmuted: '#9CA3AF'
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    body {
-      background-color: #020617; /* Slate 950 */
-      font-family: 'Inter', sans-serif;
-      color: #e2e8f0;
-    }
+    body { font-family: 'Inter', sans-serif; background-color: #0F1117; color: white; }
+
+    /* Glassmorphism utilities */
     .glass {
-      background: radial-gradient(circle at top left, rgba(30, 41, 59, 0.4), transparent 100%),
-                  rgba(15, 23, 42, 0.6);
-      border: 1px solid rgba(148, 163, 184, 0.1);
-      backdrop-filter: blur(12px);
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      background: rgba(22, 24, 29, 0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 0.75rem; /* rounded-xl */
     }
-    .card-hover {
-      transition: all 0.2s ease-in-out;
-      cursor: pointer;
+    .glass:hover {
+      border-color: rgba(0, 255, 127, 0.2);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     }
-    .card-hover:hover {
-      transform: translateY(-2px);
-      border-color: rgba(52, 211, 153, 0.3); /* Emerald tint */
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-    }
-    .chart-wrapper {
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0F1117; }
+    ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #00FF7F; }
+
+    /* Chart Containers */
+    .chart-container {
       position: relative;
+      height: 250px;
       width: 100%;
-      height: 200px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .chart-wrapper canvas {
-        cursor: zoom-in;
-    }
-    .info-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 9999px;
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      color: #94a3b8;
-      font-size: 10px;
-      width: 16px;
-      height: 16px;
-      cursor: help;
-    }
-    .info-badge:hover {
-      border-color: #34d399;
-      color: #34d399;
     }
 
-    /* Modal styles */
-    #chartModal {
-        transition: opacity 0.3s ease;
+    /* Modal Transition */
+    .modal {
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease-in-out;
     }
-    #chartModal.hidden {
-        opacity: 0;
-        pointer-events: none;
-    }
-    #chartModal:not(.hidden) {
-        opacity: 1;
-        pointer-events: auto;
+    .modal.open {
+      opacity: 1;
+      visibility: visible;
     }
 
-    /* Governance Table Styles */
-    .gov-row {
-        transition: background-color 0.15s;
-        cursor: pointer;
-    }
-    .gov-row:hover {
-        background-color: rgba(255,255,255,0.03);
-    }
-    .gov-detail-row {
-        background-color: rgba(0,0,0,0.2);
-    }
-
-    /* News Item Hover */
-    .news-item:hover {
-        background-color: rgba(255,255,255,0.03);
-    }
-
-    /* Banner Gradient */
-    .rpc-banner {
-        background: linear-gradient(90deg, rgba(6, 78, 59, 0.4) 0%, rgba(15, 23, 42, 0) 100%);
-    }
+    /* Utility for clickable links */
+    .link-hover { transition: color 0.2s; }
+    .link-hover:hover { color: #00FF7F; text-decoration: underline; }
   </style>
 </head>
 
-<body class="min-h-screen flex flex-col">
+<body class="flex flex-col min-h-screen">
 
-  <header class="border-b border-white/5 bg-slate-950/80 backdrop-blur sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
-      <div class="flex items-center gap-2">
-        <div class="w-3 h-3 rounded-sm bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
-        <span class="font-bold text-sm tracking-wide text-gray-100">HyperHub</span>
+  <header class="sticky top-0 z-50 glass border-b border-white/5 bg-hhbg/80 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-2">
+          <div class="w-3 h-3 bg-hhgreen rotate-45 shadow-[0_0_8px_rgba(0,255,127,0.5)]"></div>
+          <span class="text-xl font-bold tracking-tight text-white">HyperHub</span>
+        </div>
+        <nav class="hidden md:flex space-x-8">
+          <a href="#dashboard" class="text-sm font-medium text-gray-300 hover:text-hhgreen transition">Dashboard</a>
+          <a href="#insights" class="text-sm font-medium text-gray-300 hover:text-hhgreen transition">Insights</a>
+          <a href="#governance" class="text-sm font-medium text-gray-300 hover:text-hhgreen transition">Governance</a>
+          <a href="#news" class="text-sm font-medium text-gray-300 hover:text-hhgreen transition">News</a>
+        </nav>
+        <div class="flex items-center gap-4">
+            <button class="px-3 py-1 text-xs font-semibold rounded bg-hhgreen/10 text-hhgreen border border-hhgreen/20">v1.0.2</button>
+        </div>
       </div>
-      <nav class="flex items-center gap-6 text-xs font-medium text-gray-400">
-        <a href="#dashboard" id="nav-dashboard" class="hover:text-emerald-400 transition-colors text-emerald-400">Dashboard</a>
-        <a href="#governance" id="nav-governance" class="hover:text-emerald-400 transition-colors">Governance</a>
-      </nav>
     </div>
   </header>
 
-  <main class="flex-1 max-w-7xl mx-auto w-full px-4 pb-16 pt-6 relative">
+  <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
 
-    <div id="view-dashboard" class="space-y-6 animate-fade-in">
+    <section id="dashboard" class="mb-10">
+      <div class="mb-6">
+        <h1 class="text-3xl font-bold text-white">Market Overview</h1>
+        <p class="text-hhmuted text-sm">Live Hyperliquid metrics · Dec 15, 2025</p>
+      </div>
 
-        <section class="space-y-3">
-            <div class="flex items-end justify-between">
-                <div>
-                    <h1 class="text-xl font-bold text-gray-100">Market Overview</h1>
-                    <p class="text-xs text-gray-500">Realtime Hyperliquid metrics</p>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div class="glass p-4">
+          <div class="text-xs text-hhmuted uppercase tracking-wider">HYPE Price</div>
+          <div class="text-xl font-bold text-white mt-1">$30.42</div>
+          <div class="text-xs text-hhgreen mt-1">▲ 4.2% (24h)</div>
+        </div>
+        <div class="glass p-4">
+          <div class="text-xs text-hhmuted uppercase tracking-wider">Market Cap</div>
+          <div class="text-xl font-bold text-white mt-1">$3.04B</div>
+          <div class="text-xs text-gray-400 mt-1">Rank #32</div>
+        </div>
+        <div class="glass p-4">
+          <div class="text-xs text-hhmuted uppercase tracking-wider">24h Vol</div>
+          <div class="text-xl font-bold text-white mt-1">$142.5M</div>
+          <div class="text-xs text-hhred mt-1">▼ 1.2%</div>
+        </div>
+        <div class="glass p-4">
+          <div class="text-xs text-hhmuted uppercase tracking-wider">Open Interest</div>
+          <div class="text-xl font-bold text-white mt-1">$450M</div>
+          <div class="text-xs text-hhgreen mt-1">High Leverage</div>
+        </div>
+        <div class="glass p-4">
+          <div class="text-xs text-hhmuted uppercase tracking-wider">Staking APY</div>
+          <div class="text-xl font-bold text-hhgreen mt-1">14.8%</div>
+          <div class="text-xs text-gray-400 mt-1">via HIP-3</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="mb-8">
+        <details class="group">
+            <summary class="flex items-center cursor-pointer text-hhgreen font-medium select-none">
+                <span>View Quick Analytics Summary</span>
+                <span class="ml-2 transition group-open:rotate-180">▼</span>
+            </summary>
+            <div class="mt-4 p-4 glass border border-hhgreen/20">
+                <p class="text-sm text-gray-300 leading-relaxed">
+                    <strong>Weekly Recap:</strong> Market sentiment remains bullish due to the upcoming HIP-3 implementation. Whale accumulation has increased by 15% over the last 7 days. Arbitrage opportunities are shifting from CEXs to DEXs like Aster due to high volatility on perp pairs. Staking yields are projected to increase by 0.8% post-vote.
+                </p>
+                <div class="h-40 mt-4 relative w-full">
+                    <canvas id="summaryChart"></canvas>
                 </div>
             </div>
+        </details>
+    </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 auto-rows-fr">
-                <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between h-full min-h-[140px]">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">HYPE Price</span>
-                        <span class="info-badge" title="Sourced from CoinGecko API">?</span>
-                    </div>
-                    <div>
-                        <div class="text-2xl font-bold text-white tracking-tight" id="hypePrice">$30.00</div>
-                        <div class="flex items-center gap-2 mt-1">
-                            <span class="text-xs font-medium text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded" id="hypeChange">+5.0%</span>
-                            <span class="text-[10px] text-gray-500">24h</span>
-                        </div>
-                    </div>
-                </div>
+    <section id="insights" class="mb-12">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-white">Exclusive Insights</h2>
+        <span class="text-xs text-gray-500 bg-gray-800 px-2 py-1 rounded">Mock Data (Dec 7-13)</span>
+      </div>
 
-                <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between h-full min-h-[140px]">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Trend</span>
-                        <span class="info-badge" title="24h price movement direction">?</span>
-                    </div>
-                    <div>
-                        <div class="text-lg font-semibold text-gray-200">Bullish</div>
-                        <div class="text-xs text-gray-500 mt-1">Prev Close: <span class="text-gray-300">$28.57</span></div>
-                        <div class="w-full bg-gray-700/30 h-1.5 mt-3 rounded-full overflow-hidden">
-                            <div class="bg-emerald-500 h-full w-[75%]"></div>
-                        </div>
-                    </div>
-                </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between h-full min-h-[140px]">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">24h Volume</span>
-                        <span class="info-badge" title="Total trading volume across all pairs">?</span>
-                    </div>
-                    <div>
-                        <div class="text-2xl font-bold text-white tracking-tight" id="volumeValue">$500M</div>
-                        <div class="text-xs text-emerald-400 mt-1">High Activity</div>
-                    </div>
-                </div>
-
-                <div class="glass card-hover rounded-xl p-4 flex flex-col justify-between h-full min-h-[140px]">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Market Cap</span>
-                        <span class="info-badge" title="Circulating Supply * Price">?</span>
-                    </div>
-                    <div>
-                        <div class="text-2xl font-bold text-white tracking-tight" id="mcValue">$3B</div>
-                        <div class="text-xs text-gray-500 mt-1">FDV: <span class="text-gray-400">$6B</span></div>
-                    </div>
-                </div>
+        <div class="glass p-6 flex flex-col hover:bg-white/5 transition duration-300">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                GIYP Predictor
+                <span class="text-[10px] bg-blue-900 text-blue-300 px-1.5 py-0.5 rounded border border-blue-700">Governance</span>
+              </h3>
+              <p class="text-xs text-hhmuted mt-1">Governance Impact on Yield</p>
             </div>
-        </section>
+            <button onclick="openModal('giyp')" class="text-hhgreen text-sm hover:underline">Expand ↗</button>
+          </div>
 
-        <div class="glass rpc-banner rounded-xl p-6 border-l-4 border-l-emerald-500 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
-            <div class="z-10 relative">
-                <h3 class="text-xl font-bold text-white">Need Faster Execution?</h3>
-                <p class="text-sm text-gray-300 mt-1 max-w-xl">Stop losing money on public RPC latency. Get direct access to Hyperliquid nodes for ultra-low latency trading.</p>
+          <div class="mb-3 p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+            <p class="text-xs text-blue-200">
+              <span class="font-bold">HIP-3 Correlation:</span> Lower inflation = <span class="text-hhgreen">+0.8%</span> staking yield boost (revenue-neutral for users).
+            </p>
+          </div>
+
+          <div class="chart-container flex-grow">
+            <canvas id="giypChart"></canvas>
+          </div>
+        </div>
+
+        <div class="glass p-6 flex flex-col hover:bg-white/5 transition duration-300">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                HSI Index
+                <span class="text-[10px] bg-purple-900 text-purple-300 px-1.5 py-0.5 rounded border border-purple-700">Sentiment</span>
+              </h3>
+              <p class="text-xs text-hhmuted mt-1">Hyper Sentiment Index (5-Factor)</p>
             </div>
-            <a href="https://rubynodes.io" target="_blank" class="z-10 relative bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg shadow-emerald-500/20 whitespace-nowrap text-sm">
-                Get 14-Day Free RPC Trial
+            <button onclick="openModal('hsi')" class="text-hhgreen text-sm hover:underline">Expand ↗</button>
+          </div>
+
+          <div class="text-xs text-gray-400 mb-2">
+            Social, Whale, OI, Funding, Volume
+          </div>
+
+          <div class="chart-container flex-grow">
+            <canvas id="hsiChart"></canvas>
+          </div>
+        </div>
+
+        <div class="glass p-6 flex flex-col hover:bg-white/5 transition duration-300">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                Arbitrage Scanner (AOS)
+                <span class="text-[10px] bg-hhgreen/20 text-hhgreen px-1.5 py-0.5 rounded border border-hhgreen/30">Live Alpha</span>
+              </h3>
+              <p class="text-xs text-hhmuted mt-1">DEX Spread Opportunities</p>
+            </div>
+            <button onclick="openModal('aos')" class="text-hhgreen text-sm hover:underline">Expand ↗</button>
+          </div>
+
+          <div class="mb-3 p-2 bg-gray-800/50 rounded border border-gray-700">
+             <p class="text-xs text-gray-400">Largest spreads found on <strong>Aster</strong> & <strong>dYdX</strong> (Perps).</p>
+          </div>
+
+          <div class="chart-container flex-grow">
+            <canvas id="aosChart"></canvas>
+          </div>
+        </div>
+
+        <div class="glass p-6 flex flex-col justify-center items-center text-center relative overflow-hidden group border-hhgreen/30">
+          <div class="absolute inset-0 bg-gradient-to-br from-hhgreen/5 to-transparent pointer-events-none"></div>
+          <div class="relative z-10">
+            <div class="text-hhgreen text-4xl mb-3">⚡</div>
+            <h3 class="text-xl font-bold text-white">Need Faster Execution?</h3>
+            <p class="text-sm text-gray-400 mt-2 mb-6 max-w-xs mx-auto">
+              Stop losing money on public RPC latency. Get direct access to Hyperliquid nodes.
+            </p>
+            <a href="https://rubynodes.io" target="_blank" class="inline-block bg-hhgreen text-black font-bold py-2 px-6 rounded hover:bg-white transition shadow-[0_0_15px_rgba(0,255,127,0.4)]">
+              Get 14-Day Free RPC Trial
             </a>
-            <div class="absolute right-0 bottom-0 top-0 w-1/3 bg-gradient-to-l from-emerald-900/20 to-transparent pointer-events-none"></div>
+          </div>
         </div>
 
-        <section class="space-y-3">
-            <div>
-                <h1 class="text-xl font-bold text-gray-100">Exclusive Insights</h1>
-                <p class="text-xs text-gray-500">Advanced analytics & Sentiment</p>
-            </div>
+      </div>
+    </section>
 
-            <div class="glass rounded-xl p-5 border-l-4 border-l-emerald-500">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="col-span-1 flex flex-col justify-center space-y-4">
-                        <div>
-                            <div class="flex items-center gap-2 mb-1">
-                                <h2 class="text-lg font-bold text-white">HSI Index</h2>
-                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">BULLISH</span>
-                            </div>
-                            <div class="text-4xl font-black text-white" id="HSISent">75<span class="text-lg text-gray-500 font-normal">/100</span></div>
-                        </div>
-                        <p class="text-xs text-gray-400 leading-relaxed">
-                            <strong>Hyperliquid Sentiment Index (HSI):</strong> A composite score derived from social momentum, whale wallet movements, and open interest ratios.
-                            <br><br>
-                            Click the chart to expand and see the detailed breakdown.
-                        </p>
+    <section id="news" class="mb-12">
+        <h2 class="text-xl font-bold text-white mb-4 border-l-4 border-hhgreen pl-3">Curated News</h2>
+        <div class="glass p-6">
+            <ul class="space-y-4">
+                <li class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-800 pb-3 last:border-0 last:pb-0">
+                    <div>
+                        <a href="https://reddit.com/r/Hyperliquid/comments/mock123" target="_blank" class="text-white font-medium hover:text-hhgreen transition text-sm sm:text-base">
+                            HIP-6 Passed: Fee burning mechanism explained for HYPE holders
+                        </a>
+                        <div class="text-xs text-gray-500 mt-1">Reddit · 2 hours ago</div>
                     </div>
-                    <div class="col-span-2 relative h-64 flex items-center justify-center">
-                        <div class="chart-wrapper" style="height: 100%; width: 100%;">
-                            <canvas id="HSIGauge"></canvas>
-                        </div>
+                    <span class="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded mt-2 sm:mt-0 w-fit">Community</span>
+                </li>
+                <li class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-800 pb-3 last:border-0 last:pb-0">
+                    <div>
+                        <a href="#" class="text-white font-medium hover:text-hhgreen transition text-sm sm:text-base">
+                            Hyperliquid Strategies: $30M Share Buyback Program Announced
+                        </a>
+                        <div class="text-xs text-gray-500 mt-1">CoinTelegraph · 5 hours ago</div>
                     </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-                <div class="glass rounded-xl p-4 card-hover" onclick="openChartModalFromId('giypChart')">
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <div class="text-[11px] font-bold text-gray-500 uppercase">GIYP Predictor</div>
-                            <div class="text-lg font-bold text-emerald-400">+0.5% Yield</div>
-                        </div>
-                        <span class="info-badge" title="Governance Impact Yield Predictor - Projected APY Impact based on voting">?</span>
+                    <span class="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded mt-2 sm:mt-0 w-fit">Market</span>
+                </li>
+                <li class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-800 pb-3 last:border-0 last:pb-0">
+                    <div>
+                        <a href="#" class="text-white font-medium hover:text-hhgreen transition text-sm sm:text-base">
+                            Whale Alert: 2M HYPE moved to unknown wallet
+                        </a>
+                        <div class="text-xs text-gray-500 mt-1">TheBlock · 8 hours ago</div>
                     </div>
-                    <div class="chart-wrapper">
-                        <canvas id="giypChart"></canvas>
+                    <span class="text-xs bg-hhgreen/10 text-hhgreen px-2 py-1 rounded mt-2 sm:mt-0 w-fit">On-Chain</span>
+                </li>
+                <li class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-800 pb-3 last:border-0 last:pb-0">
+                    <div>
+                        <a href="#" class="text-white font-medium hover:text-hhgreen transition text-sm sm:text-base">
+                            Aster DEX integrates Hyperliquid L1 for faster settlements
+                        </a>
+                        <div class="text-xs text-gray-500 mt-1">Twitter (X) · 12 hours ago</div>
                     </div>
-                </div>
-
-                <div class="glass rounded-xl p-4 card-hover" onclick="openChartModalFromId('adlHeatmap')">
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <div class="text-[11px] font-bold text-gray-500 uppercase">ADL Risk Heatmap</div>
-                            <div class="text-lg font-bold text-red-400">High Leverage</div>
-                        </div>
-                        <span class="info-badge" title="Auto-Deleveraging Risk Zones by Asset">?</span>
+                    <span class="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded mt-2 sm:mt-0 w-fit">Ecosystem</span>
+                </li>
+                 <li class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-800 pb-3 last:border-0 last:pb-0">
+                    <div>
+                        <a href="#" class="text-white font-medium hover:text-hhgreen transition text-sm sm:text-base">
+                            Official: beHYPE staking rewards update (Dec 2025)
+                        </a>
+                        <div class="text-xs text-gray-500 mt-1">Hyperliquid Blog · 1 day ago</div>
                     </div>
-                    <div class="chart-wrapper">
-                        <canvas id="adlHeatmap"></canvas>
-                    </div>
-                </div>
-
-                <div class="glass rounded-xl p-4 card-hover" onclick="openChartModalFromId('wfsiChart')">
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <div class="text-[11px] font-bold text-gray-500 uppercase">Whale Flow (WFSI)</div>
-                            <div class="text-lg font-bold text-emerald-400">Score: 85</div>
-                        </div>
-                        <span class="info-badge" title="Whale Flow Sentiment Index - Net Inflow over time">?</span>
-                    </div>
-                    <div class="chart-wrapper">
-                        <canvas id="wfsiChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="glass rounded-xl p-4 card-hover" onclick="openChartModalFromId('aosChart')">
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <div class="text-[11px] font-bold text-gray-500 uppercase">Arbitrage Scanner</div>
-                            <div class="text-lg font-bold text-white">Top Spreads</div>
-                        </div>
-                        <span class="info-badge" title="Arbitrage Opportunity Scanner - Price spread vs other CEXs">?</span>
-                    </div>
-                    <div class="chart-wrapper">
-                        <canvas id="aosChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="glass rounded-xl p-4 card-hover" onclick="openChartModalFromId('smsChart')">
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <div class="text-[11px] font-bold text-gray-500 uppercase">Social Momentum</div>
-                            <div class="text-lg font-bold text-emerald-400">90 (Spike)</div>
-                        </div>
-                        <span class="info-badge" title="Social Momentum Score - Volume of mentions">?</span>
-                    </div>
-                    <div class="chart-wrapper">
-                        <canvas id="smsChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="glass rounded-xl p-4 card-hover" onclick="openChartModalFromId('lstChart')">
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <div class="text-[11px] font-bold text-gray-500 uppercase">LST Optimizer</div>
-                            <div class="text-lg font-bold text-white">beHYPE: 15.2%</div>
-                        </div>
-                        <span class="info-badge" title="Liquid Staking Yield Comparison (APY %)">?</span>
-                    </div>
-                    <div class="chart-wrapper">
-                        <canvas id="lstChart"></canvas>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <section class="space-y-3 pt-4">
-            <div>
-                <h1 class="text-xl font-bold text-gray-100">Community Updates</h1>
-                <p class="text-xs text-gray-500">Latest news from Reddit & Official Channels</p>
-            </div>
-
-            <div class="glass rounded-xl p-4">
-                <ul class="space-y-1">
-                    <li class="news-item flex items-center justify-between p-3 rounded cursor-pointer border-b border-white/5 last:border-0">
-                        <div class="flex items-center gap-3">
-                            <span class="text-orange-500">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.736 6.979C9.208 6.193 9.696 6 10 6c.304 0 .792.193 1.264.979a1 1 0 001.715-1.029C12.279 4.784 11.232 4 10 4s-2.279.784-2.979 1.95c-.285.475-.507 1.002-.67 1.55H6a1 1 0 000 2h.013a9.358 9.358 0 000 1H6a1 1 0 100 2h.351c.163.548.385 1.075.67 1.55C7.721 15.216 8.768 16 10 16s2.279-.784 2.979-1.95a1 1 0 10-1.715-1.029c-.472.786-.96.979-1.264.979-.304 0-.792-.193-1.264-.979a4.265 4.265 0 01-.264-.521H10a1 1 0 100-2H8.017a7.36 7.36 0 010-1H10a1 1 0 100-2H8.472c.08-.185.167-.36.264-.521z" clip-rule="evenodd"/></svg>
-                            </span>
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-200">HIP-4: Fee Adjustment Proposal Passed</h4>
-                                <p class="text-[10px] text-gray-500">r/hyperliquid • 2 hours ago</p>
-                            </div>
-                        </div>
-                        <a href="#" class="text-xs text-emerald-400 hover:underline">Read &rarr;</a>
-                    </li>
-                    <li class="news-item flex items-center justify-between p-3 rounded cursor-pointer border-b border-white/5 last:border-0">
-                        <div class="flex items-center gap-3">
-                            <span class="text-blue-400">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                            </span>
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-200">New ATH in Daily Volume ($1.2B)</h4>
-                                <p class="text-[10px] text-gray-500">DeFiLlama • 5 hours ago</p>
-                            </div>
-                        </div>
-                        <a href="#" class="text-xs text-emerald-400 hover:underline">Read &rarr;</a>
-                    </li>
-                    <li class="news-item flex items-center justify-between p-3 rounded cursor-pointer border-b border-white/5 last:border-0">
-                        <div class="flex items-center gap-3">
-                            <span class="text-purple-400">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                            </span>
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-200">New Validator Staking Guide Released</h4>
-                                <p class="text-[10px] text-gray-500">Official Blog • 8 hours ago</p>
-                            </div>
-                        </div>
-                        <a href="#" class="text-xs text-emerald-400 hover:underline">Read &rarr;</a>
-                    </li>
-                     <li class="news-item flex items-center justify-between p-3 rounded cursor-pointer border-b border-white/5 last:border-0">
-                        <div class="flex items-center gap-3">
-                            <span class="text-gray-400">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.013 8.013 0 01-5.6-2.3L2 22l.7-5.3A8.008 8.008 0 012 12c0-4.418 3.582-8 8-8s8 3.582 8 8z"></path></svg>
-                            </span>
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-200">Discussion: HYPE vs DYDX tokenomics</h4>
-                                <p class="text-[10px] text-gray-500">r/cryptocurrency • 12 hours ago</p>
-                            </div>
-                        </div>
-                        <a href="#" class="text-xs text-emerald-400 hover:underline">Read &rarr;</a>
-                    </li>
-                     <li class="news-item flex items-center justify-between p-3 rounded cursor-pointer last:border-0">
-                        <div class="flex items-center gap-3">
-                            <span class="text-emerald-400">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                            </span>
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-200">Whale Alert: 5M HYPE moved to cold storage</h4>
-                                <p class="text-[10px] text-gray-500">WhaleAlert • 1 day ago</p>
-                            </div>
-                        </div>
-                        <a href="#" class="text-xs text-emerald-400 hover:underline">Read &rarr;</a>
-                    </li>
-                </ul>
-            </div>
-        </section>
-
-    </div>
-    <div id="view-governance" class="hidden space-y-6 animate-fade-in">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-xl font-bold text-gray-100">Governance</h1>
-                <p class="text-xs text-gray-500">Active HIPs and Validator voting behavior</p>
-            </div>
-            <a href="#" class="text-xs text-emerald-400 hover:underline">View Docs &rarr;</a>
+                    <span class="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded mt-2 sm:mt-0 w-fit">Official</span>
+                </li>
+            </ul>
         </div>
+    </section>
 
-        <div class="glass rounded-xl overflow-hidden border border-white/5">
-            <table class="w-full text-sm text-left text-gray-400">
-                <thead class="text-xs text-gray-500 uppercase bg-white/5">
-                    <tr>
-                        <th class="px-6 py-3">HIP ID</th>
-                        <th class="px-6 py-3">Proposal Title</th>
-                        <th class="px-6 py-3">Status</th>
-                        <th class="px-6 py-3 text-right">Vote Ratio (Aye/Nay)</th>
-                        <th class="px-6 py-3 text-center">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-white/5">
-                    <tr class="gov-row bg-slate-900/40" onclick="toggleGovRow('hip-1')">
-                        <td class="px-6 py-4 font-medium text-white">HIP-1</td>
-                        <td class="px-6 py-4">Increase beHYPE staking rewards</td>
-                        <td class="px-6 py-4"><span class="px-2 py-1 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Active</span></td>
-                        <td class="px-6 py-4 text-right">
-                            <div class="flex items-center justify-end gap-2">
-                                <span class="text-emerald-400">65%</span>
-                                <div class="w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                                    <div class="bg-emerald-500 h-full" style="width: 65%"></div>
-                                </div>
-                                <span class="text-red-400">35%</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 text-center text-xs text-gray-500">Click to expand ▼</td>
-                    </tr>
-                    <tr id="hip-1" class="hidden gov-detail-row">
-                        <td colspan="5" class="px-6 py-4">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-                                <div>
-                                    <h4 class="font-bold text-white mb-2">Proposal Summary</h4>
-                                    <p class="text-gray-400 mb-2">This proposal seeks to increase the base APY for beHYPE liquid staking by allocating a larger portion of protocol fees to the staking pool.</p>
-                                    <div class="text-emerald-400 font-medium">Impact: +1.0% Expected APY Increase</div>
-                                </div>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <h4 class="font-bold text-emerald-400 mb-2">Top Aye Validators</h4>
-                                        <ul class="space-y-1 text-gray-400">
-                                            <li class="flex justify-between"><span>Validator One</span> <span>3.2M VP</span></li>
-                                            <li class="flex justify-between"><span>Node Gurus</span> <span>1.5M VP</span></li>
-                                            <li class="flex justify-between"><span>HyperStakers</span> <span>900k VP</span></li>
-                                        </ul>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-red-400 mb-2">Top Nay Validators</h4>
-                                        <ul class="space-y-1 text-gray-400">
-                                            <li class="flex justify-between"><span>Conservative VC</span> <span>2.1M VP</span></li>
-                                            <li class="flex justify-between"><span>Old School Node</span> <span>800k VP</span></li>
-                                            <li class="flex justify-between"><span>Alpha Labs</span> <span>400k VP</span></li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-
-                    <tr class="gov-row bg-slate-900/40" onclick="toggleGovRow('hip-2')">
-                        <td class="px-6 py-4 font-medium text-white">HIP-2</td>
-                        <td class="px-6 py-4">Adjust fee structure for Makers</td>
-                        <td class="px-6 py-4"><span class="px-2 py-1 rounded text-[10px] bg-gray-500/10 text-gray-400 border border-gray-500/20">Closed</span></td>
-                        <td class="px-6 py-4 text-right">
-                            <div class="flex items-center justify-end gap-2">
-                                <span class="text-emerald-400">72%</span>
-                                <div class="w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                                    <div class="bg-emerald-500 h-full" style="width: 72%"></div>
-                                </div>
-                                <span class="text-red-400">28%</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 text-center text-xs text-gray-500">Click to expand ▼</td>
-                    </tr>
-                    <tr id="hip-2" class="hidden gov-detail-row">
-                        <td colspan="5" class="px-6 py-4">
-                            <div class="text-xs text-gray-400">
-                                Proposal passed successfully. Fee reduction implemented on block #892100.
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+    <section id="governance" class="mb-12">
+        <h2 class="text-xl font-bold text-white mb-4 border-l-4 border-blue-500 pl-3">Active Governance</h2>
+        <div class="glass p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-lg">HIP-3: Adjust Inflation Schedule</h3>
+                    <p class="text-sm text-gray-400 mt-1">Ends in: 14h 30m</p>
+                </div>
+                <button class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded text-sm transition">Vote Now</button>
+            </div>
+            <div class="w-full bg-gray-700 h-2 rounded-full mt-4 overflow-hidden">
+                <div class="bg-hhgreen h-full" style="width: 78%"></div>
+            </div>
+            <div class="flex justify-between text-xs mt-1 text-gray-400">
+                <span>Yes: 78%</span>
+                <span>No: 22%</span>
+            </div>
         </div>
-    </div>
-    <footer class="border-t border-white/5 mt-10 py-6 text-center text-xs text-gray-500">
-        <p>HyperHub by <a href="https://rubynodes.io" target="_blank" class="text-emerald-400 hover:text-emerald-300 font-medium">Ruby Nodes 2025</a></p>
-        <p class="mt-1 opacity-60">Providing professional RPC infrastructure for the Hyperliquid ecosystem.</p>
-    </footer>
+    </section>
 
   </main>
 
-  <div id="chartModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm hidden p-4" onclick="closeModal(event)">
-      <div class="glass w-full max-w-4xl rounded-2xl p-6 relative flex flex-col max-h-[90vh]" onclick="event.stopPropagation()">
-          <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl font-bold z-10">&times;</button>
-
-          <div class="mb-4 pr-10">
-            <h2 id="modalTitle" class="text-2xl font-bold text-white">Metric Detail</h2>
-            <p id="modalDesc" class="text-sm text-gray-400 mt-2 leading-relaxed">Historical data analysis</p>
-          </div>
-
-          <div class="flex-1 relative min-h-[400px] w-full bg-slate-900/50 rounded-lg p-2 flex items-center justify-center">
-              <canvas id="modalCanvas"></canvas>
-          </div>
+  <footer class="border-t border-white/5 bg-black/40 py-8 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+      <div class="text-sm text-gray-500">
+        Made by Ruby Nodes – <a href="https://rubynodes.io" class="text-emerald-400 hover:underline">rubynodes.io</a>
       </div>
+      <div class="text-xs text-gray-600 mt-2">
+        Disclaimer: This is a dashboard for informational purposes. Not financial advice.
+      </div>
+    </div>
+  </footer>
+
+  <div id="modalOverlay" class="modal fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="bg-hhpanel border border-gray-700 w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+        <div class="flex justify-between items-center p-6 border-b border-gray-700">
+            <div>
+                <h3 id="modalTitle" class="text-2xl font-bold text-white">Analysis</h3>
+                <p id="modalSubtitle" class="text-gray-400 text-sm mt-1">Detailed breakdown</p>
+            </div>
+            <button onclick="closeModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+        </div>
+
+        <div class="p-6 overflow-y-auto">
+            <div id="modalDescription" class="mb-6 text-sm text-gray-300 bg-gray-800 p-4 rounded-lg">
+                </div>
+            <div class="h-80 w-full relative">
+                <canvas id="modalCanvas"></canvas>
+            </div>
+        </div>
+    </div>
   </div>
 
   <script>
-    // --- NAVIGATION LOGIC ---
-    const navDash = document.getElementById('nav-dashboard');
-    const navGov = document.getElementById('nav-governance');
-    const viewDash = document.getElementById('view-dashboard');
-    const viewGov = document.getElementById('view-governance');
-
-    function switchView(viewName) {
-        if(viewName === 'dashboard') {
-            viewDash.classList.remove('hidden');
-            viewGov.classList.add('hidden');
-            navDash.classList.add('text-emerald-400');
-            navGov.classList.remove('text-emerald-400');
-        } else {
-            viewDash.classList.add('hidden');
-            viewGov.classList.remove('hidden');
-            navDash.classList.remove('text-emerald-400');
-            navGov.classList.add('text-emerald-400');
-        }
-    }
-
-    navDash.addEventListener('click', (e) => { e.preventDefault(); switchView('dashboard'); });
-    navGov.addEventListener('click', (e) => { e.preventDefault(); switchView('governance'); });
-
-    // --- GOVERNANCE LOGIC ---
-    function toggleGovRow(id) {
-        const el = document.getElementById(id);
-        if(el) {
-            el.classList.toggle('hidden');
-        }
-    }
-
-    // --- CHART DESCRIPTIONS ---
-    const chartDescriptions = {
-        'HSIGauge': "The Hyperliquid Sentiment Index (HSI) is a comprehensive metric combining on-chain data and social signals. It helps traders gauge market emotion by weighting Open Interest changes, Whale wallet inflows, and social media momentum.",
-        'giypChart': "The Governance Impact Yield Predictor (GIYP) visualizes the current voting distribution for active proposals. A strong 'Aye' consensus typically signals upcoming protocol improvements that may boost yield.",
-        'adlHeatmap': "The ADL Risk Heatmap displays the estimated liquidation risk for top asset pairs. Higher bars indicate a concentration of highly leveraged long positions, suggesting increased risk of Auto-Deleveraging events.",
-        'wfsiChart': "The Whale Flow Sentiment Index (WFSI) tracks the net inflow of stablecoins into Hyperliquid from known large wallets. Positive spikes indicate smart money accumulation.",
-        'aosChart': "The Arbitrage Opportunity Scanner (AOS) highlights the current price spread percentage between Hyperliquid and other major CEXs. Larger bars indicate greater profit potential for arbitrageurs.",
-        'smsChart': "The Social Momentum Score (SMS) tracks the frequency of Hyperliquid mentions across social platforms. Sharp spikes often correlate with high volatility events.",
-        'lstChart': "The LST Optimizer compares the current Annual Percentage Yield (APY) of the leading HYPE Liquid Staking Tokens."
+    // --- Chart Configurations ---
+    const commonOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#9CA3AF' } }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9CA3AF' } },
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9CA3AF' } }
+      }
     };
 
-    // --- CHART CONFIGURATION & LOGIC ---
-    let mainCharts = {};
-    let modalChartInstance = null;
+    let charts = {}; // Store chart instances
 
-    // Common styling
-    const commonOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                titleColor: '#34d399',
-                bodyColor: '#fff',
-                borderColor: 'rgba(52, 211, 153, 0.2)',
-                borderWidth: 1,
-                padding: 10,
-                displayColors: false,
-                callbacks: {
-                    label: function(context) {
-                        let label = context.dataset.label || '';
-                        if (label) {
-                            label += ': ';
-                        }
-                        if (context.parsed.y !== null) {
-                            label += context.parsed.y;
-                        } else if (context.parsed.r !== null) {
-                            label += context.parsed.r; // for radar
-                        } else {
-                            label += context.raw; // fallback
-                        }
-                        return label;
-                    }
+    document.addEventListener("DOMContentLoaded", () => {
+
+      // 1. GIYP Chart (Mixed: Bar + Line)
+      const ctxGiyp = document.getElementById('giypChart').getContext('2d');
+      charts.giyp = new Chart(ctxGiyp, {
+        type: 'bar',
+        data: {
+          labels: ['HIP-1', 'HIP-2', 'HIP-3 (Proj)'],
+          datasets: [
+            {
+              label: 'Yield Impact (%)',
+              data: [0.3, -0.1, 0.8],
+              type: 'line',
+              borderColor: '#00FF7F',
+              borderWidth: 2,
+              tension: 0.4,
+              yAxisID: 'y1'
+            },
+            {
+              label: 'Vote Participation (M)',
+              data: [12, 15, 22],
+              backgroundColor: 'rgba(59, 130, 246, 0.5)',
+              yAxisID: 'y'
+            }
+          ]
+        },
+        options: {
+            ...commonOptions,
+            scales: {
+                y: { ...commonOptions.scales.y, title: {display: true, text: 'Votes (M)'} },
+                y1: {
+                    position: 'right',
+                    grid: { display: false },
+                    ticks: { color: '#00FF7F', callback: (val) => val + '%' }
                 }
             }
+        }
+      });
+
+      // 2. HSI Chart (Radar - 5 Points)
+      const ctxHsi = document.getElementById('hsiChart').getContext('2d');
+      charts.hsi = new Chart(ctxHsi, {
+        type: 'radar',
+        data: {
+          labels: ['Social Momentum', 'Whale Activity', 'OI Ratios', 'Funding Rates', 'Volume Flows'],
+          datasets: [{
+            label: 'Current Strength (0-100)',
+            data: [80, 70, 65, 55, 85], // Mock data as requested
+            backgroundColor: 'rgba(0, 255, 127, 0.2)',
+            borderColor: '#00FF7F',
+            pointBackgroundColor: '#fff'
+          }]
         },
-        scales: {
-            x: { display: false },
-            y: { display: false }
-        }
-    };
-
-    function initCharts() {
-        // 1. HSI Gauge (Radar)
-        const ctxHSI = document.getElementById('HSIGauge');
-        if(ctxHSI) {
-            mainCharts['HSIGauge'] = new Chart(ctxHSI, {
-                type: 'radar',
-                data: {
-                    labels: ['Sentiment', 'Whales', 'OI', 'Funding', 'Social'],
-                    datasets: [{
-                        label: 'HSI Score',
-                        data: [80, 70, 65, 75, 85],
-                        backgroundColor: 'rgba(52, 211, 153, 0.2)',
-                        borderColor: '#34d399',
-                        pointBackgroundColor: '#34d399',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    ...commonOptions,
-                    scales: {
-                        r: {
-                            angleLines: { color: 'rgba(255,255,255,0.1)' },
-                            grid: { color: 'rgba(255,255,255,0.1)' },
-                            pointLabels: { color: '#94a3b8', font: { size: 10 } },
-                            ticks: { display: false, backdropColor: 'transparent' }
-                        }
-                    },
-                    onClick: (e) => openChartModal(mainCharts['HSIGauge'])
-                }
-            });
-        }
-
-        // 2. GIYP (Doughnut - Vote Distribution)
-        const ctxGIYP = document.getElementById('giypChart');
-        if(ctxGIYP) {
-            mainCharts['giypChart'] = new Chart(ctxGIYP, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Aye Votes', 'Nay Votes', 'Abstain'],
-                    datasets: [{
-                        data: [65, 25, 10],
-                        backgroundColor: ['#34d399', '#f87171', '#94a3b8'],
-                        borderWidth: 0,
-                        hoverOffset: 4
-                    }]
-                },
-                options: {
-                    ...commonOptions,
-                    cutout: '75%',
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
-
-        // 3. ADL Risk (Bar - Vertical)
-        const ctxADL = document.getElementById('adlHeatmap');
-        if(ctxADL) {
-            mainCharts['adlHeatmap'] = new Chart(ctxADL, {
-                type: 'bar',
-                data: {
-                    labels: ['HYPE', 'BTC', 'ETH', 'SOL', 'ARB'],
-                    datasets: [{
-                        label: 'Risk Level',
-                        data: [85, 60, 90, 40, 20],
-                        backgroundColor: (ctx) => {
-                            const val = ctx.raw;
-                            return val > 75 ? '#f87171' : (val > 50 ? '#fbbf24' : '#34d399');
-                        },
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    ...commonOptions,
-                    scales: {
-                        x: { display: true, ticks: {color: '#94a3b8', font:{size:9}}, grid: {display:false} },
-                        y: { display: true, title: {display: true, text: 'Risk Score (0-100)', color: '#64748b', font:{size:8}}, ticks:{display:false}, grid:{display:false} }
-                    }
-                }
-            });
-        }
-
-        // 4. WFSI (Line)
-        const ctxWFSI = document.getElementById('wfsiChart');
-        if(ctxWFSI) {
-            mainCharts['wfsiChart'] = new Chart(ctxWFSI, {
-                type: 'line',
-                data: {
-                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', 'Now'],
-                    datasets: [{
-                        label: 'Net Inflow ($M)',
-                        data: [1.2, 1.5, 1.1, 2.3, 2.8, 3.5, 4.2],
-                        borderColor: '#34d399',
-                        backgroundColor: 'rgba(52, 211, 153, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 0
-                    }]
-                },
-                options: {
-                    ...commonOptions,
-                    scales: {
-                        x: { display: true, ticks: {display: false}, title: {display: true, text: 'Last 24 Hours', color: '#64748b', font:{size:9}} },
-                        y: { display: true, ticks: {display: false}, title: {display: true, text: 'Net Flow ($)', color: '#64748b', font:{size:9}} }
-                    }
-                }
-            });
-        }
-
-        // 5. AOS (Horizontal Bar - Spreads)
-        const ctxAOS = document.getElementById('aosChart');
-        if(ctxAOS) {
-            mainCharts['aosChart'] = new Chart(ctxAOS, {
-                type: 'bar',
-                indexAxis: 'y', // Horizontal
-                data: {
-                    labels: ['Binance', 'Bybit', 'dYdX', 'OKX'],
-                    datasets: [{
-                        label: 'Spread %',
-                        data: [0.45, 0.32, 0.15, -0.10],
-                        backgroundColor: (ctx) => ctx.raw >= 0 ? '#34d399' : '#f87171',
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    ...commonOptions,
-                    scales: {
-                        x: { display: true, title: {display: true, text: 'Spread %', color:'#64748b', font:{size:9}}, ticks: {color:'#94a3b8', font:{size:8}}, grid: {display: false} },
-                        y: { display: true, ticks: {color: '#94a3b8', font: {size: 9}}, grid: {display: false} }
-                    }
-                }
-            });
-        }
-
-        // 6. SMS (Line Spike)
-        const ctxSMS = document.getElementById('smsChart');
-        if(ctxSMS) {
-            mainCharts['smsChart'] = new Chart(ctxSMS, {
-                type: 'line',
-                data: {
-                    labels: ['12h', '10h', '8h', '6h', '4h', '2h', 'Now'],
-                    datasets: [{
-                        label: 'Mentions',
-                        data: [40, 42, 45, 55, 70, 88, 90],
-                        borderColor: '#34d399',
-                        borderWidth: 2,
-                        tension: 0.1,
-                        pointRadius: 2
-                    }]
-                },
-                options: commonOptions
-            });
-        }
-
-        // 7. LST (Bar Chart APY)
-        const ctxLST = document.getElementById('lstChart');
-        if(ctxLST) {
-            mainCharts['lstChart'] = new Chart(ctxLST, {
-                type: 'bar',
-                data: {
-                    labels: ['beHYPE', 'kHYPE', 'stHYPE'],
-                    datasets: [{
-                        label: 'APY %',
-                        data: [15.2, 12.5, 11.8],
-                        backgroundColor: ['#34d399', '#64748b', '#475569'],
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    ...commonOptions,
-                    scales: {
-                        x: { display: true, ticks: {color: '#94a3b8', font: {size: 9}}, grid: {display: false} },
-                        y: { display: true, title: {display:true, text:'APY %', color:'#64748b', font:{size:8}}, ticks: {display:false} }
-                    }
-                }
-            });
-        }
-    }
-
-    // --- MODAL LOGIC ---
-    const modal = document.getElementById('chartModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalDesc = document.getElementById('modalDesc');
-
-    function openChartModalFromId(canvasId) {
-        if(mainCharts[canvasId]) {
-            openChartModal(mainCharts[canvasId]);
-        }
-    }
-
-    function openChartModal(sourceChart) {
-        modal.classList.remove('hidden');
-
-        // 1. Set Title & Description
-        const canvasId = sourceChart.canvas.id;
-        // Try to get title from the card HTML text if possible, else fallback
-        const cardTitle = sourceChart.canvas.closest('.glass')?.querySelector('.uppercase')?.textContent || "Metric Detail";
-        modalTitle.textContent = cardTitle;
-        modalDesc.textContent = chartDescriptions[canvasId] || "Detailed historical analysis.";
-
-        // 2. Destroy previous modal chart instance
-        if (modalChartInstance) {
-            modalChartInstance.destroy();
-            modalChartInstance = null;
-        }
-
-        // 3. Prepare Config for Modal (Cloning)
-        const ctxModal = document.getElementById('modalCanvas');
-        const originalConfig = sourceChart.config;
-
-        // Deep clone data to avoid reference issues
-        const newConfigData = JSON.parse(JSON.stringify(originalConfig.data));
-
-        // Setup new options (enable axes, legend, etc for detailed view)
-        const newOptions = {
+        options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: { display: true, labels: { color: '#fff' } },
-                tooltip: originalConfig.options.plugins.tooltip
-            },
             scales: {
-                x: {
-                    display: true,
-                    grid: { color: 'rgba(255,255,255,0.05)' },
-                    ticks: { color: '#94a3b8' }
-                },
-                y: {
-                    display: true,
-                    grid: { color: 'rgba(255,255,255,0.05)' },
-                    ticks: { color: '#94a3b8' }
-                }
-            }
-        };
-
-        // Specific adjustments per chart type
-        if(originalConfig.type === 'radar') {
-            newOptions.scales = {
                 r: {
-                    grid: { color: 'rgba(255,255,255,0.1)' },
                     angleLines: { color: 'rgba(255,255,255,0.1)' },
-                    pointLabels: { color: '#fff', font: { size: 14 } }
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    pointLabels: { color: '#ffffff', font: { size: 11 } },
+                    ticks: { display: false, backdropColor: 'transparent' },
+                    min: 0,
+                    max: 100
                 }
-            };
-        } else if (originalConfig.type === 'doughnut') {
-            newOptions.scales = {}; // No axes for doughnut
+            },
+            plugins: { legend: { display: false } }
         }
+      });
 
-        // 4. Create New Chart Instance
-        modalChartInstance = new Chart(ctxModal, {
-            type: originalConfig.type,
-            data: newConfigData,
-            options: newOptions
+      // 3. AOS Chart (Bar - DEX Focus)
+      const ctxAos = document.getElementById('aosChart').getContext('2d');
+      charts.aos = new Chart(ctxAos, {
+        type: 'bar',
+        data: {
+          labels: ['Aster (DEX)', 'Lighter', 'dYdX v4'],
+          datasets: [{
+            label: 'Spread Potential (%)',
+            data: [0.85, 0.45, 0.60],
+            backgroundColor: ['#00FF7F', '#374151', '#00CC66'], // Highlight best one
+            borderRadius: 4
+          }]
+        },
+        options: {
+            ...commonOptions,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => `HL-${ctx.label} spread: ${ctx.raw}% profit potential`
+                    }
+                },
+                legend: { display: false }
+            }
+        }
+      });
+
+      // 4. Analytics Summary Chart (Small Line)
+      const ctxSum = document.getElementById('summaryChart').getContext('2d');
+      new Chart(ctxSum, {
+          type: 'line',
+          data: {
+              labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+              datasets: [{
+                  label: 'Net Sentiment',
+                  data: [45, 48, 52, 50, 65, 70, 78], // Rising trend
+                  borderColor: '#00FF7F',
+                  tension: 0.4,
+                  fill: true,
+                  backgroundColor: 'rgba(0, 255, 127, 0.1)'
+              }]
+          },
+          options: {
+              ...commonOptions,
+              scales: { x: { display: false }, y: { display: false } },
+              plugins: { legend: { display: false } }
+          }
+      });
+
+    });
+
+    // --- Modal Logic ---
+    const modalData = {
+        giyp: {
+            title: "GIYP: Governance Impact Yield Predictor",
+            subtitle: "Correlation Analysis: Governance vs. APY",
+            desc: "GIYP analyzes HIP attachment to value. Currently, <strong>HIP-3 reduces inflation</strong>, which directly lowers token emission but increases HYPE scarcity. Our model predicts a net <strong>+1.2% Real Yield</strong> impact for stakers despite nominal rate drops. <br><br><em>Data Source: On-chain governance logs & historical emission schedules.</em>",
+            cloneChart: 'giyp'
+        },
+        hsi: {
+            title: "HSI: Hyper Sentiment Index",
+            subtitle: "5-Factor Multi-dimensional Analysis",
+            desc: "<strong>Social Momentum (20%):</strong> Tracks X/Reddit buzz for hype signals.<br><strong>Whale Activity (30%):</strong> Monitors large wallet transfers (>50k HYPE).<br><strong>OI Ratios (20%):</strong> Open interest long/short balance.<br><strong>Funding Rates (15%):</strong> Perp funding for sentiment bias.<br><strong>Volume Flows (15%):</strong> Trading volume trends vs. average.",
+            cloneChart: 'hsi'
+        },
+        aos: {
+            title: "Arbitrage Opportunity Scanner (AOS)",
+            subtitle: "DEX vs. Hyperliquid Spreads",
+            desc: "The AOS scans decentralized exchanges (Aster, Lighter, dYdX) for price discrepancies against Hyperliquid perps. <br><br><strong>Current Signal:</strong> High volatility is creating 0.8% spreads on Aster. <br><em>Note: Real-time scraping implementation pending.</em>",
+            cloneChart: 'aos'
+        }
+    };
+
+    let modalChartInstance = null;
+
+    function openModal(key) {
+        const data = modalData[key];
+        if(!data) return;
+
+        document.getElementById('modalTitle').textContent = data.title;
+        document.getElementById('modalSubtitle').textContent = data.subtitle;
+        document.getElementById('modalDescription').innerHTML = data.desc;
+
+        // Show Overlay
+        const overlay = document.getElementById('modalOverlay');
+        overlay.classList.add('open');
+
+        // Render Chart in Modal
+        const ctx = document.getElementById('modalCanvas').getContext('2d');
+        if(modalChartInstance) modalChartInstance.destroy();
+
+        // Clone config from existing charts
+        const originalChart = charts[data.cloneChart];
+        modalChartInstance = new Chart(ctx, {
+            type: originalChart.config.type,
+            data: originalChart.config.data, // Sharing data object for demo
+            options: {
+                ...originalChart.config.options,
+                maintainAspectRatio: false,
+                scales: originalChart.config.options.scales // Ensure scales copy over (e.g. radar)
+            }
         });
     }
 
-    function closeModal(e) {
-        // Close if clicking overlay or close button
-        if (!e || e.target.id === 'chartModal' || e.target.tagName === 'BUTTON') {
-            modal.classList.add('hidden');
-        }
+    function closeModal() {
+        document.getElementById('modalOverlay').classList.remove('open');
     }
 
-    // --- INITIALIZATION ---
-    document.addEventListener('DOMContentLoaded', () => {
-        initCharts();
+    // Close on click outside
+    document.getElementById('modalOverlay').addEventListener('click', (e) => {
+        if(e.target.id === 'modalOverlay') closeModal();
     });
 
   </script>
