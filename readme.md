@@ -1,36 +1,43 @@
 # HyperHub — made by Ruby Nodes
 
-**HyperHub** is a dark-mode, responsive dashboard for the Hyperliquid community.
-Slogan: “Unlock Hyperliquid Insights: Track, Govern, Thrive.”
-Tagline: Made by Ruby Nodes  
-Domain mention: https://hyperhub.app
+HyperHub – Hyperliquid Metrics Dashboard
+HyperHub is a sleek, dark-themed web dashboard designed for monitoring and analyzing Hyperliquid metrics. It provides real-time market overviews, exclusive insights through interactive charts, governance tracking, and community updates. Built with a focus on responsiveness and visual polish, it's ideal for crypto traders and enthusiasts tracking Hyperliquid's ecosystem.
 
-This repository contains a small Flask backend that proxies public data sources and a single-page frontend built with Tailwind CSS and Chart.js.
+Features
 
----
+Market Overview: Displays real-time metrics like HYPE price, 24h change, volume, and market cap, sourced from mock data (with placeholders for APIs like CoinGecko).
+Exclusive Insights: Advanced analytics including:
+HSI Index (Hyperliquid Sentiment Index) with a radar chart for multi-component sentiment analysis.
+GIYP (Governance Impact Yield Predictor) with stacked bar charts and yield impact overlays.
+ADL Risk Heatmap, Whale Flow Sentiment Index (WFSI), Arbitrage Opportunity Scanner (AOS), Social Momentum Score (SMS), and LST Yield Optimizer, each with custom visualizations.
 
-## Features implemented (lightweight, free-data-first)
-- **Realtime Dashboard**: HYPE price, 24h change, volume, market cap (CoinGecko).
-- **News Aggregator**: RSS from CoinTelegraph, TheBlock, Hyperliquid blog, Reddit r/Hyperliquid (placeholders).
-- **Sentiment Analysis**: Simple dictionary-based sentiment from headlines and Reddit titles.
-- **Whale Activity Monitor**: Placeholder simulated whale data (replace with Dune/Coinalyze queries).
-- **Open Interest Tracker**: Simulated OI series (replace with CoinGlass/Coinalyze).
-- **Optimized RPC Offering**: Subtle promotional card linking to rubynodes.io.
-- **Education**: Static cards for onboarding content.
-- **HSI Index**: Hyperliquid sentiment index combining sentiment, whales, and OI.
-- **Governance Tracker**: HIPs with aye/nay lists (simulated placeholders).
-- **Responsive**: Mobile-first, sidebar/hamburger, dark mode.
+Governance Tracker: Interactive table for Hyperliquid Improvement Proposals (HIPs), showing vote ratios, statuses, and expandable details on validators and impacts.
+Community Updates: Aggregated news feed from Reddit, official channels, and whale alerts.
+Interactive Modals: Clickable charts open expanded views with detailed descriptions.
+RPC Banner: Promotional section for low-latency RPC access via Ruby Nodes.
+Responsive Design: Mobile-friendly layout with Tailwind CSS.
+Dark Theme: Glassmorphism effects for a modern, crypto-inspired UI.
 
----
+All data is currently mocked based on historical December 2025 trends. Comments in the code indicate where real APIs (e.g., CoinGecko, CoinGlass) or scraping could be integrated.
+Technologies Used
 
-## Quick start (local)
+HTML5: Core structure.
 
-1. **Clone or copy files** into a folder (e.g., `hyperhub/`).
+Tailwind CSS: Styling and responsive design.
+Chart.js: Interactive charts for metrics and insights.
+JavaScript: Dynamic navigation, modals, and chart initialization.
 
-2. **Create virtualenv** (recommended):
+No external dependencies beyond CDNs for Tailwind and Chart.js.
 
-```bash
-python -m venv venv
-source venv/bin/activate   # macOS / Linux
-venv\Scripts\activate      # Windows
+Development Notes
 
+Mock Data: Uses static values simulating December 2025 trends (e.g., HYPE at $30, market cap $3B). For real-time data:JavaScript// Example: Real API integration
+async function fetchHypePrice() {
+  const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=hyperliquid&vs_currencies=usd');
+  // Update DOM elements
+}
+Charts: Configured for responsiveness; click events trigger modals.
+Browser Compatibility: Tested on Chrome, Firefox, and Safari. No server required.
+Limitations: Static site—no backend. For production, host on Vercel/Netlify or add a server for dynamic data.
+
+Built by Ruby Nodes – Professional RPC infrastructure for Hyperliquid. Visit rubynodes.io for more.
