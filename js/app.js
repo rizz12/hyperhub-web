@@ -230,6 +230,7 @@
   }
 
   // PRICE FETCH (CoinGecko)
+  // Returns true if successful, false if failed (to allow fallback to mock data)
   async function fetchPrice() {
     try {
       const res = await fetch(API.price, {
@@ -238,9 +239,7 @@
 
       if (!res.ok) {
         console.warn("fetchPrice: HTTP error", res.status, res.statusText);
-        hypePriceEl.textContent = "API error";
-        cardPriceEl.textContent = "API error";
-        return;
+        return false; // Signal failure to allow fallback
       }
 
       const data = await res.json();
@@ -253,32 +252,38 @@
       const mcap = item.market_cap ?? null;
       const change = item.price_change_percentage_24h ?? null;
 
+      // If no valid price data, signal failure
       if (price == null) {
-        hypePriceEl.textContent = "No price";
-        cardPriceEl.textContent = "No price";
-      } else {
-        const pStr = "$" + Number(price).toFixed(2);
-        hypePriceEl.textContent = pStr;
-        cardPriceEl.textContent = pStr;
-        // Update ticker
-        const tickerPriceEl = document.getElementById('tickerPrice');
-        if (tickerPriceEl) tickerPriceEl.textContent = pStr;
+        console.warn("fetchPrice: No price data in response");
+        return false;
       }
 
-      cardVolumeEl.textContent = vol == null ? "--" : fmtUSD(vol);
-      cardMarketCapEl.textContent = mcap == null ? "--" : fmtUSD(mcap);
+      // Update price displays
+      const pStr = "$" + Number(price).toFixed(2);
+      if (hypePriceEl) hypePriceEl.textContent = pStr;
+      if (cardPriceEl) cardPriceEl.textContent = pStr;
+      
+      // Update ticker price
+      const tickerPriceEl = document.getElementById('tickerPrice');
+      if (tickerPriceEl) tickerPriceEl.textContent = pStr;
 
-      // Update ticker values
+      // Update volume and market cap
+      if (cardVolumeEl) cardVolumeEl.textContent = vol == null ? "--" : fmtUSD(vol);
+      if (cardMarketCapEl) cardMarketCapEl.textContent = mcap == null ? "--" : fmtUSD(mcap);
+
+      // Update ticker volume and market cap
       const tickerVolEl = document.getElementById('tickerVol');
       const tickerMCEl = document.getElementById('tickerMC');
       if (tickerVolEl) tickerVolEl.textContent = vol == null ? "$450M" : fmtUSD(vol);
       if (tickerMCEl) tickerMCEl.textContent = mcap == null ? "$3B" : fmtUSD(mcap);
 
+      // Update change percentage
       if (change == null) {
-        hypeChangeEl.textContent = "--";
+        if (hypeChangeEl) hypeChangeEl.textContent = "--";
       } else {
         const chStr = (change >= 0 ? "+" : "") + change.toFixed(2) + "%";
-        hypeChangeEl.textContent = chStr;
+        if (hypeChangeEl) hypeChangeEl.textContent = chStr;
+        
         // Update ticker change
         const tickerChangeEl = document.getElementById('tickerChange');
         if (tickerChangeEl) {
@@ -290,13 +295,11 @@
       if (lastUpdatedEl) {
         lastUpdatedEl.textContent = new Date().toLocaleTimeString();
       }
+
+      return true; // Signal success
     } catch (e) {
       console.warn("fetchPrice error", e);
-      hypePriceEl.textContent = "API error";
-      cardPriceEl.textContent = "API error";
-      cardVolumeEl.textContent = "--";
-      cardMarketCapEl.textContent = "--";
-      hypeChangeEl.textContent = "--";
+      return false; // Signal failure to allow fallback
     }
   }
 
@@ -576,8 +579,20 @@
 
   // FETCH ALL (current static version)
   async function fetchAll() {
-    fetchPrice();
-    updateTickerMock(); // Ensure ticker shows mock data
+    // Attempt to fetch real price data, fallback to mock if API fails
+    const priceFetchSuccess = await fetchPrice();
+    if (!priceFetchSuccess) {
+      // Only use mock data if API call failed
+      console.log("Price API failed, using mock data for ticker");
+      updateTickerMock();
+    }
+    // Note: OI and Funding values are not available from CoinGecko API,
+    // so we set them with mock data regardless
+    const tickerOIEl = document.getElementById('tickerOI');
+    const tickerFundingEl = document.getElementById('tickerFunding');
+    if (tickerOIEl && !tickerOIEl.textContent) tickerOIEl.textContent = "$1.2B";
+    if (tickerFundingEl && !tickerFundingEl.textContent) tickerFundingEl.textContent = "0.012%";
+    
     fetchNewsDemo();
     fetchWhalesDemo();
     fetchOIDemo();
