@@ -257,19 +257,34 @@
         hypePriceEl.textContent = "No price";
         cardPriceEl.textContent = "No price";
       } else {
-        const pStr = "$" + Number(price).toFixed(4);
+        const pStr = "$" + Number(price).toFixed(2);
         hypePriceEl.textContent = pStr;
         cardPriceEl.textContent = pStr;
+        // Update ticker
+        const tickerPriceEl = document.getElementById('tickerPrice');
+        if (tickerPriceEl) tickerPriceEl.textContent = pStr;
       }
 
       cardVolumeEl.textContent = vol == null ? "--" : fmtUSD(vol);
       cardMarketCapEl.textContent = mcap == null ? "--" : fmtUSD(mcap);
+
+      // Update ticker values
+      const tickerVolEl = document.getElementById('tickerVol');
+      const tickerMCEl = document.getElementById('tickerMC');
+      if (tickerVolEl) tickerVolEl.textContent = vol == null ? "$450M" : fmtUSD(vol);
+      if (tickerMCEl) tickerMCEl.textContent = mcap == null ? "$3B" : fmtUSD(mcap);
 
       if (change == null) {
         hypeChangeEl.textContent = "--";
       } else {
         const chStr = (change >= 0 ? "+" : "") + change.toFixed(2) + "%";
         hypeChangeEl.textContent = chStr;
+        // Update ticker change
+        const tickerChangeEl = document.getElementById('tickerChange');
+        if (tickerChangeEl) {
+          tickerChangeEl.textContent = "(" + chStr + ")";
+          tickerChangeEl.className = change >= 0 ? "text-emerald-400 font-semibold" : "text-red-400 font-semibold";
+        }
       }
 
       if (lastUpdatedEl) {
@@ -539,9 +554,30 @@
     }
   }
 
+  // Update Ticker with Mock Data (Dec 2025)
+  function updateTickerMock() {
+    const tickerPriceEl = document.getElementById('tickerPrice');
+    const tickerChangeEl = document.getElementById('tickerChange');
+    const tickerVolEl = document.getElementById('tickerVol');
+    const tickerMCEl = document.getElementById('tickerMC');
+    const tickerOIEl = document.getElementById('tickerOI');
+    const tickerFundingEl = document.getElementById('tickerFunding');
+    
+    if (tickerPriceEl) tickerPriceEl.textContent = "$30.00";
+    if (tickerChangeEl) {
+      tickerChangeEl.textContent = "(+5.2%)";
+      tickerChangeEl.className = "text-emerald-400 font-semibold";
+    }
+    if (tickerVolEl) tickerVolEl.textContent = "$450M";
+    if (tickerMCEl) tickerMCEl.textContent = "$3B";
+    if (tickerOIEl) tickerOIEl.textContent = "$1.2B";
+    if (tickerFundingEl) tickerFundingEl.textContent = "0.012%";
+  }
+
   // FETCH ALL (current static version)
   async function fetchAll() {
     fetchPrice();
+    updateTickerMock(); // Ensure ticker shows mock data
     fetchNewsDemo();
     fetchWhalesDemo();
     fetchOIDemo();

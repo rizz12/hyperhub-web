@@ -4,17 +4,31 @@
   <meta charset="UTF-8" />
   <title>HyperHub – Hyperliquid Metrics</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       background-color: #020617; /* Slate 950 */
-      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-family: 'JetBrains Mono', 'Roboto Mono', 'Monaco', monospace;
       color: #e2e8f0;
     }
     .terminal {
-      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-family: 'JetBrains Mono', 'Roboto Mono', 'Monaco', monospace;
       letter-spacing: 0.02em;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', 'Roboto Mono', 'Monaco', monospace;
+      font-variant-numeric: tabular-nums;
+    }
+    @keyframes pulse-green {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    .pulse-green {
+      animation: pulse-green 2s ease-in-out infinite;
     }
     .glass {
       background: radial-gradient(circle at top left, rgba(30, 41, 59, 0.4), transparent 100%),
@@ -94,6 +108,99 @@
     .terminal-card {
         padding: 0.75rem;
     }
+    .bento-card {
+        padding: 0.75rem;
+        border: 1px solid rgba(148, 163, 184, 0.08);
+    }
+    .card-title {
+        font-size: 0.625rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: #64748b;
+        letter-spacing: 0.05em;
+        padding-bottom: 0.375rem;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        margin-bottom: 0.5rem;
+    }
+    .ticker-bar {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.75rem;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    .ticker-segment {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .ticker-separator {
+        color: #475569;
+        font-weight: 300;
+    }
+    .rpc-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    .rpc-dot.public {
+        background: #f59e0b;
+        box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+    }
+    .rpc-dot.ruby {
+        background: #22c55e;
+        box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+    }
+    .status-badge {
+        padding: 0.125rem 0.375rem;
+        border-radius: 0.125rem;
+        font-size: 0.625rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .status-badge.buy-dip {
+        background: rgba(34, 197, 94, 0.15);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    .status-badge.breakout {
+        background: rgba(59, 130, 246, 0.15);
+        color: #3b82f6;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+    .compact-table {
+        font-size: 0.7rem;
+    }
+    .compact-table th {
+        font-size: 0.625rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: #64748b;
+        padding: 0.375rem 0.5rem;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    .compact-table td {
+        padding: 0.375rem 0.5rem;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.05);
+    }
+    .news-list {
+        max-height: 300px;
+        overflow-y: auto;
+        font-size: 0.7rem;
+    }
+    .news-list::-webkit-scrollbar {
+        width: 4px;
+    }
+    .news-list::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.5);
+    }
+    .news-list::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.3);
+        border-radius: 2px;
+    }
     .beta-badge {
         display: inline-flex;
         align-items: center;
@@ -160,298 +267,270 @@
 </head>
 <body class="min-h-screen flex flex-col">
   <header class="border-b border-white/5 bg-slate-950/80 backdrop-blur sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto flex items-center justify-between px-4 py-2">
-      <div class="flex items-center gap-2">
-        <div class="w-3 h-3 rounded-sm bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
-        <span class="font-bold text-sm tracking-wide text-gray-100 terminal">HyperHub</span>
-      </div>
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-3 terminal">
-          <span class="rpc-status public">Public RPC: 145ms</span>
-          <span class="rpc-status ruby">Ruby RPC: 18ms</span>
+    <div class="max-w-[1920px] mx-auto">
+      <div class="flex items-center justify-between px-4 py-2">
+        <div class="flex items-center gap-2">
+          <div class="w-3 h-3 rounded-sm bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+          <span class="font-bold text-sm tracking-wide text-gray-100 terminal">HyperHub</span>
         </div>
-        <nav class="flex items-center gap-6 text-xs font-medium text-gray-400">
-          <a href="#dashboard" id="nav-dashboard" class="hover:text-emerald-400 transition-colors text-emerald-400">Dashboard</a>
-          <a href="#governance" id="nav-governance" class="hover:text-emerald-400 transition-colors">Governance</a>
-        </nav>
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-4 terminal text-xs">
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] uppercase text-gray-500 font-semibold">RPC MONITOR:</span>
+              <div class="flex items-center gap-2">
+                <span class="rpc-dot public"></span>
+                <span class="text-gray-300 mono">Public: 145ms</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="rpc-dot ruby pulse-green"></span>
+                <span class="text-emerald-400 mono">Ruby: 12ms</span>
+              </div>
+            </div>
+            <a href="https://rubynodes.io" target="_blank" class="px-2 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded text-[10px] font-bold uppercase transition-colors">
+              Get Ruby RPC
+            </a>
+          </div>
+          <nav class="flex items-center gap-6 text-xs font-medium text-gray-400">
+            <a href="#dashboard" id="nav-dashboard" class="hover:text-emerald-400 transition-colors text-emerald-400">Dashboard</a>
+            <a href="#governance" id="nav-governance" class="hover:text-emerald-400 transition-colors">Governance</a>
+          </nav>
+        </div>
+      </div>
+      <div class="ticker-bar bg-slate-900/40 border-t border-white/5">
+        <div class="ticker-segment mono">
+          <span class="text-gray-400">HYPE:</span>
+          <span class="text-white font-semibold" id="tickerPrice">$30.00</span>
+          <span class="text-emerald-400 font-semibold" id="tickerChange">(+5.2%)</span>
+        </div>
+        <span class="ticker-separator">|</span>
+        <div class="ticker-segment mono">
+          <span class="text-gray-400">MC:</span>
+          <span class="text-white font-semibold" id="tickerMC">$3B</span>
+        </div>
+        <span class="ticker-separator">|</span>
+        <div class="ticker-segment mono">
+          <span class="text-gray-400">Vol:</span>
+          <span class="text-white font-semibold" id="tickerVol">$450M</span>
+        </div>
+        <span class="ticker-separator">|</span>
+        <div class="ticker-segment mono">
+          <span class="text-gray-400">OI:</span>
+          <span class="text-white font-semibold" id="tickerOI">$1.2B</span>
+        </div>
+        <span class="ticker-separator">|</span>
+        <div class="ticker-segment mono">
+          <span class="text-gray-400">Funding:</span>
+          <span class="text-white font-semibold" id="tickerFunding">0.012%</span>
+        </div>
       </div>
     </div>
   </header>
-  <main class="flex-1 max-w-7xl mx-auto w-full px-4 pb-16 pt-6 relative">
-    <div id="view-dashboard" class="space-y-4 animate-fade-in">
-        <section class="space-y-2">
-            <div class="glass rounded-lg terminal-card border border-white/10">
-                <div class="ticker-row py-2 px-3">
-                    <div class="ticker-item">
-                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider terminal">HYPE</span>
-                        <span class="text-base font-bold text-white terminal" id="hypePrice">$30.00</span>
-                        <span class="text-xs font-medium text-emerald-400 terminal" id="hypeChange">+5.0%</span>
-                    </div>
-                    <div class="ticker-item border-l border-white/10 pl-4">
-                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider terminal">24h Vol</span>
-                        <span class="text-base font-bold text-white terminal" id="volumeValue">$500M</span>
-                    </div>
-                    <div class="ticker-item border-l border-white/10 pl-4">
-                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider terminal">MCap</span>
-                        <span class="text-base font-bold text-white terminal" id="mcValue">$3B</span>
-                    </div>
-                    <div class="ticker-item border-l border-white/10 pl-4">
-                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider terminal">Trend</span>
-                        <span class="text-base font-semibold text-emerald-400 terminal">Bullish</span>
-                    </div>
+  <main class="flex-1 max-w-[1920px] mx-auto w-full px-4 pb-16 pt-4 relative">
+    <div id="view-dashboard" class="space-y-3 animate-fade-in">
+        <div class="grid grid-cols-12 gap-3">
+            <div class="col-span-12 md:col-span-3 glass rounded-lg bento-card card-hover" onclick="openChartModalFromId('HSIGauge')">
+                <div class="card-title terminal">HSI INDEX</div>
+                <div class="flex items-center justify-between mb-2">
+                    <div class="text-2xl font-black text-white mono" id="HSISent">75<span class="text-sm text-gray-500 font-normal">/100</span></div>
+                    <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 terminal">BULLISH</span>
+                </div>
+                <div class="chart-wrapper" style="height: 180px;">
+                    <canvas id="HSIGauge"></canvas>
                 </div>
             </div>
-        </section>
-        <div class="glass rpc-banner rounded-lg terminal-card p-4 border-l-4 border-l-emerald-500 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-4">
-            <div class="z-10 relative">
-                <h3 class="text-base font-bold text-white terminal">Need Faster Execution?</h3>
-                <p class="text-xs text-gray-300 mt-1 max-w-xl terminal">Stop losing money on public RPC latency. Get direct access to Hyperliquid nodes for ultra-low latency trading.</p>
-            </div>
-            <a href="https://rubynodes.io" target="_blank" class="z-10 relative bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-2 px-4 rounded-lg transition-colors shadow-lg shadow-emerald-500/20 whitespace-nowrap text-xs terminal">
-                Get 14-Day Free RPC Trial
-            </a>
-            <div class="absolute right-0 bottom-0 top-0 w-1/3 bg-gradient-to-l from-emerald-900/20 to-transparent pointer-events-none"></div>
-        </div>
-        <section class="space-y-2">
-            <div>
-                <h1 class="text-lg font-bold text-gray-100 terminal">Exclusive Insights</h1>
-                <p class="text-xs text-gray-500 terminal">Advanced analytics & Sentiment</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-                <div class="glass rounded-lg terminal-card border border-white/10 card-hover" onclick="openChartModalFromId('HSIGauge')">
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <div class="text-[10px] font-bold text-gray-500 uppercase terminal">HSI Index</div>
-                            <div class="flex items-center gap-2 mt-1">
-                                <div class="text-2xl font-black text-white terminal" id="HSISent">75<span class="text-sm text-gray-500 font-normal">/100</span></div>
-                                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 terminal">BULLISH</span>
-                            </div>
-                        </div>
-                        <span class="info-badge" title="Hyperliquid Sentiment Index">?</span>
-                    </div>
-                    <div class="chart-wrapper" style="height: 120px;">
-                        <canvas id="HSIGauge"></canvas>
-                    </div>
-                </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div class="glass rounded-lg terminal-card border border-white/10 card-hover" onclick="openChartModalFromId('squeezeRadar')">
-                    <div class="flex justify-between items-start mb-1">
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <div class="text-[10px] font-bold text-gray-500 uppercase terminal">Squeeze Radar</div>
-                                <span class="beta-badge">BETA: Demo Data</span>
-                            </div>
-                            <div class="text-xs font-medium text-gray-300 terminal mt-1">Funding vs Price</div>
-                        </div>
+            <div class="col-span-12 md:col-span-5 glass rounded-lg bento-card card-hover" onclick="openChartModalFromId('squeezeRadar')">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="card-title terminal">SQUEEZE RADAR</div>
+                    <div class="flex items-center gap-2">
+                        <span class="beta-badge">BETA</span>
                         <span class="info-badge" title="Funding Rate (bars) vs Price (line)">?</span>
                     </div>
-                    <div class="chart-wrapper" style="height: 140px;">
-                        <canvas id="squeezeRadar"></canvas>
-                    </div>
                 </div>
-                <div class="glass rounded-lg terminal-card border border-white/10 card-hover" onclick="openChartModalFromId('whaleRetailVolume')">
-                    <div class="flex justify-between items-start mb-1">
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <div class="text-[10px] font-bold text-gray-500 uppercase terminal">Whale vs Retail</div>
-                                <span class="beta-badge">BETA: Demo Data</span>
-                            </div>
-                            <div class="text-xs font-medium text-gray-300 terminal mt-1">Volume Distribution</div>
-                        </div>
-                        <span class="info-badge" title="Whale vs Retail Volume - Area chart">?</span>
-                    </div>
-                    <div class="chart-wrapper" style="height: 140px;">
-                        <canvas id="whaleRetailVolume"></canvas>
-                    </div>
-                </div>
-                <div class="glass rounded-lg terminal-card border border-white/10 card-hover" onclick="openChartModalFromId('adlHeatmap')">
-                    <div class="flex justify-between items-start mb-1">
-                        <div>
-                            <div class="text-[10px] font-bold text-gray-500 uppercase terminal">ADL Risk Heatmap</div>
-                            <div class="text-xs font-medium text-red-400 terminal mt-1">High Leverage</div>
-                        </div>
-                        <span class="info-badge" title="Auto-Deleveraging Risk Zones by Asset">?</span>
-                    </div>
-                    <div class="chart-wrapper" style="height: 140px;">
-                        <canvas id="adlHeatmap"></canvas>
-                    </div>
-                </div>
-                <div class="glass rounded-lg terminal-card border border-white/10 card-hover" onclick="openChartModalFromId('wfsiChart')">
-                    <div class="flex justify-between items-start mb-1">
-                        <div>
-                            <div class="text-[10px] font-bold text-gray-500 uppercase terminal">Whale Flow (WFSI)</div>
-                            <div class="text-xs font-medium text-emerald-400 terminal mt-1">Score: 85</div>
-                        </div>
-                        <span class="info-badge" title="Whale Flow Sentiment Index - Net Inflow over time">?</span>
-                    </div>
-                    <div class="chart-wrapper" style="height: 140px;">
-                        <canvas id="wfsiChart"></canvas>
-                    </div>
-                </div>
-                <div class="glass rounded-lg terminal-card border border-white/10 card-hover" onclick="openChartModalFromId('aosChart')">
-                    <div class="flex justify-between items-start mb-1">
-                        <div>
-                            <div class="text-[10px] font-bold text-gray-500 uppercase terminal">Arbitrage Scanner</div>
-                            <div class="text-xs font-medium text-gray-300 terminal mt-1">Top Spreads</div>
-                        </div>
-                        <span class="info-badge" title="Arbitrage Opportunity Scanner - Price spread vs other CEXs">?</span>
-                    </div>
-                    <div class="chart-wrapper" style="height: 140px;">
-                        <canvas id="aosChart"></canvas>
-                    </div>
-                    <a href="https://rubynodes.io" target="_blank" class="mt-2 block w-full text-center text-[10px] font-bold text-emerald-400 hover:text-emerald-300 bg-emerald-400/5 hover:bg-emerald-400/10 py-1.5 px-2 rounded border border-emerald-400/20 transition-colors terminal">
-                        Execution too slow? Get Ruby RPC →
-                    </a>
-                </div>
-                <div class="glass rounded-lg terminal-card border border-white/10 card-hover" onclick="openChartModalFromId('smsChart')">
-                    <div class="flex justify-between items-start mb-1">
-                        <div>
-                            <div class="text-[10px] font-bold text-gray-500 uppercase terminal">Social Momentum</div>
-                            <div class="text-xs font-medium text-emerald-400 terminal mt-1">90 (Spike)</div>
-                        </div>
-                        <span class="info-badge" title="Social Momentum Score - Volume of mentions">?</span>
-                    </div>
-                    <div class="chart-wrapper" style="height: 140px;">
-                        <canvas id="smsChart"></canvas>
-                    </div>
-                </div>
-                <div class="glass rounded-lg terminal-card border border-white/10 card-hover" onclick="openChartModalFromId('lstChart')">
-                    <div class="flex justify-between items-start mb-1">
-                        <div>
-                            <div class="text-[10px] font-bold text-gray-500 uppercase terminal">LST Optimizer</div>
-                            <div class="text-xs font-medium text-white terminal mt-1">beHYPE: 15.2%</div>
-                        </div>
-                        <span class="info-badge" title="Liquid Staking Yield Comparison (APY %)">?</span>
-                    </div>
-                    <div class="chart-wrapper" style="height: 140px;">
-                        <canvas id="lstChart"></canvas>
-                    </div>
+                <div class="chart-wrapper" style="height: 180px;">
+                    <canvas id="squeezeRadar"></canvas>
                 </div>
             </div>
+            <div class="col-span-12 md:col-span-4 glass rounded-lg bento-card card-hover" onclick="openChartModalFromId('whaleRetailVolume')">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="card-title terminal">WHALE VS RETAIL</div>
+                    <div class="flex items-center gap-2">
+                        <span class="beta-badge">BETA</span>
+                        <span class="info-badge" title="Volume distribution">?</span>
+                    </div>
+                </div>
+                <div class="chart-wrapper" style="height: 180px;">
+                    <canvas id="whaleRetailVolume"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="grid grid-cols-12 gap-3">
+            <div class="col-span-12 md:col-span-3 glass rounded-lg bento-card card-hover" onclick="openChartModalFromId('adlHeatmap')">
+                <div class="card-title terminal">ADL RISK HEATMAP</div>
+                <div class="text-xs text-red-400 mono mb-2">High Leverage</div>
+                <div class="chart-wrapper" style="height: 180px;">
+                    <canvas id="adlHeatmap"></canvas>
+                </div>
+            </div>
+            <div class="col-span-12 md:col-span-3 glass rounded-lg bento-card card-hover" onclick="openChartModalFromId('wfsiChart')">
+                <div class="card-title terminal">WHALE FLOW (WFSI)</div>
+                <div class="text-lg text-emerald-400 mono mb-2">Score: 85</div>
+                <div class="chart-wrapper" style="height: 180px;">
+                    <canvas id="wfsiChart"></canvas>
+                </div>
+            </div>
+            <div class="col-span-12 md:col-span-6 glass rounded-lg bento-card">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="card-title terminal">AOS SCANNER</div>
+                    <span class="info-badge" title="Arbitrage Opportunity Scanner">?</span>
+                </div>
+                <table class="w-full compact-table terminal">
+                    <thead>
+                        <tr>
+                            <th class="text-left">Exchange</th>
+                            <th class="text-right">Spread</th>
+                            <th class="text-right">Potential</th>
+                        </tr>
+                    </thead>
+                    <tbody class="mono">
+                        <tr class="hover:bg-white/5 cursor-pointer bg-emerald-500/5">
+                            <td class="text-left">
+                                <span class="text-white font-semibold">Aster</span>
+                                <span class="ml-2 px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 text-[9px] rounded uppercase">Hot</span>
+                            </td>
+                            <td class="text-right text-emerald-400 font-semibold">0.5%</td>
+                            <td class="text-right text-white font-semibold">$12.5K</td>
+                        </tr>
+                        <tr class="hover:bg-white/5 cursor-pointer">
+                            <td class="text-left text-gray-300">Lighter</td>
+                            <td class="text-right text-gray-400">0.3%</td>
+                            <td class="text-right text-gray-400">$7.5K</td>
+                        </tr>
+                        <tr class="hover:bg-white/5 cursor-pointer">
+                            <td class="text-left text-gray-300">Binance</td>
+                            <td class="text-right text-gray-400">0.7%</td>
+                            <td class="text-right text-gray-400">$17.5K</td>
+                        </tr>
+                        <tr class="hover:bg-white/5 cursor-pointer">
+                            <td class="text-left text-gray-300">Bybit</td>
+                            <td class="text-right text-gray-400">0.6%</td>
+                            <td class="text-right text-gray-400">$15K</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <a href="https://rubynodes.io" target="_blank" class="mt-2 block w-full text-center text-[10px] font-bold text-emerald-400 hover:text-emerald-300 bg-emerald-400/5 hover:bg-emerald-400/10 py-1.5 px-2 rounded border border-emerald-400/20 transition-colors terminal">
+                    Execution too slow? Get Ruby RPC →
+                </a>
+            </div>
+        </div>
+        <div class="grid grid-cols-12 gap-3">
+            <div class="col-span-12 md:col-span-6 glass rounded-lg bento-card card-hover" onclick="openChartModalFromId('smsChart')">
+                <div class="card-title terminal">SOCIAL MOMENTUM</div>
+                <div class="text-lg text-emerald-400 mono mb-2">90 (Spike)</div>
+                <div class="chart-wrapper" style="height: 180px;">
+                    <canvas id="smsChart"></canvas>
+                </div>
+            </div>
+            <div class="col-span-12 md:col-span-6 glass rounded-lg bento-card card-hover" onclick="openChartModalFromId('lstChart')">
+                <div class="card-title terminal">LST OPTIMIZER</div>
+                <div class="text-lg text-white mono mb-2">beHYPE: 15.2%</div>
+                <div class="chart-wrapper" style="height: 180px;">
+                    <canvas id="lstChart"></canvas>
+                </div>
+            </div>
+        </div>
         </section>
-        <section class="space-y-3 pt-4">
-            <div>
-                <h1 class="text-lg font-bold text-gray-100 terminal">Whale Watch</h1>
-                <p class="text-xs text-gray-500 terminal">Large transactions & market movements</p>
-            </div>
-            <div class="glass rounded-lg terminal-card border border-white/10">
-                <div class="space-y-2 py-2">
-                    <div class="flex items-center justify-between px-3 py-2 hover:bg-white/5 rounded cursor-pointer">
-                        <div class="flex items-center gap-3">
-                            <span class="text-emerald-400 terminal">HYPE/USDC</span>
-                            <span class="text-xs text-gray-400 terminal">LONG</span>
-                            <span class="text-xs font-bold text-white terminal">$250K</span>
-                            <span class="whale-tag buy-dip terminal">Buy the Dip</span>
+        <div class="grid grid-cols-12 gap-3">
+            <div class="col-span-12 md:col-span-6 glass rounded-lg bento-card">
+                <div class="card-title terminal">WHALE WATCH</div>
+                <div class="space-y-0.5">
+                    <div class="flex items-center justify-between px-2 py-1.5 hover:bg-white/5 rounded cursor-pointer mono text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="text-emerald-400 font-semibold">HYPE/USDC</span>
+                            <span class="text-gray-500">LONG</span>
+                            <span class="text-white font-bold">$250K</span>
+                            <span class="status-badge buy-dip">BUY DIP</span>
                         </div>
-                        <span class="text-[10px] text-gray-500 terminal">3m ago</span>
+                        <span class="text-gray-500 text-[10px]">3m</span>
                     </div>
-                    <div class="flex items-center justify-between px-3 py-2 hover:bg-white/5 rounded cursor-pointer">
-                        <div class="flex items-center gap-3">
-                            <span class="text-emerald-400 terminal">HYPE/ETH</span>
-                            <span class="text-xs text-gray-400 terminal">SHORT</span>
-                            <span class="text-xs font-bold text-white terminal">$180K</span>
+                    <div class="flex items-center justify-between px-2 py-1.5 hover:bg-white/5 rounded cursor-pointer mono text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="text-emerald-400 font-semibold">HYPE/ETH</span>
+                            <span class="text-gray-500">SHORT</span>
+                            <span class="text-white font-bold">$180K</span>
                         </div>
-                        <span class="text-[10px] text-gray-500 terminal">40m ago</span>
+                        <span class="text-gray-500 text-[10px]">40m</span>
                     </div>
-                    <div class="flex items-center justify-between px-3 py-2 hover:bg-white/5 rounded cursor-pointer">
-                        <div class="flex items-center gap-3">
-                            <span class="text-emerald-400 terminal">BTC/USDC</span>
-                            <span class="text-xs text-gray-400 terminal">LONG</span>
-                            <span class="text-xs font-bold text-white terminal">$500K</span>
-                            <span class="whale-tag breakout terminal">Breakout Buy</span>
+                    <div class="flex items-center justify-between px-2 py-1.5 hover:bg-white/5 rounded cursor-pointer mono text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="text-emerald-400 font-semibold">BTC/USDC</span>
+                            <span class="text-gray-500">LONG</span>
+                            <span class="text-white font-bold">$500K</span>
+                            <span class="status-badge breakout">BREAKOUT</span>
                         </div>
-                        <span class="text-[10px] text-gray-500 terminal">2h ago</span>
+                        <span class="text-gray-500 text-[10px]">2h</span>
                     </div>
-                    <div class="flex items-center justify-between px-3 py-2 hover:bg-white/5 rounded cursor-pointer">
-                        <div class="flex items-center gap-3">
-                            <span class="text-emerald-400 terminal">ETH/USDC</span>
-                            <span class="text-xs text-gray-400 terminal">SHORT</span>
-                            <span class="text-xs font-bold text-white terminal">$320K</span>
+                    <div class="flex items-center justify-between px-2 py-1.5 hover:bg-white/5 rounded cursor-pointer mono text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="text-emerald-400 font-semibold">ETH/USDC</span>
+                            <span class="text-gray-500">SHORT</span>
+                            <span class="text-white font-bold">$320K</span>
                         </div>
-                        <span class="text-[10px] text-gray-500 terminal">3h ago</span>
+                        <span class="text-gray-500 text-[10px]">3h</span>
                     </div>
-                    <div class="flex items-center justify-between px-3 py-2 hover:bg-white/5 rounded cursor-pointer">
-                        <div class="flex items-center gap-3">
-                            <span class="text-emerald-400 terminal">SOL/USDC</span>
-                            <span class="text-xs text-gray-400 terminal">LONG</span>
-                            <span class="text-xs font-bold text-white terminal">$210K</span>
-                            <span class="whale-tag buy-dip terminal">Buy the Dip</span>
+                    <div class="flex items-center justify-between px-2 py-1.5 hover:bg-white/5 rounded cursor-pointer mono text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="text-emerald-400 font-semibold">SOL/USDC</span>
+                            <span class="text-gray-500">LONG</span>
+                            <span class="text-white font-bold">$210K</span>
+                            <span class="status-badge buy-dip">BUY DIP</span>
                         </div>
-                        <span class="text-[10px] text-gray-500 terminal">6h ago</span>
+                        <span class="text-gray-500 text-[10px]">6h</span>
                     </div>
                 </div>
             </div>
-        </section>
-        <section class="space-y-3 pt-4">
-            <div>
-                <h1 class="text-lg font-bold text-gray-100 terminal">Community Updates</h1>
-                <p class="text-xs text-gray-500 terminal">Latest news from Reddit & Official Channels</p>
+            <div class="col-span-12 md:col-span-6 glass rounded-lg bento-card">
+                <div class="card-title terminal">NEWS</div>
+                <div class="news-list">
+                    <ul class="space-y-0.5">
+                        <li class="news-item flex items-center justify-between px-2 py-1.5 hover:bg-white/5 rounded cursor-pointer border-b border-white/5 last:border-0">
+                            <div>
+                                <div class="text-xs font-medium text-gray-200 mono">HIP-4: Fee Adjustment Proposal Passed</div>
+                                <div class="text-[10px] text-gray-500 terminal mt-0.5">r/hyperliquid • 2h</div>
+                            </div>
+                            <a href="#" class="text-[10px] text-emerald-400 hover:text-emerald-300 terminal">→</a>
+                        </li>
+                        <li class="news-item flex items-center justify-between px-2 py-1.5 hover:bg-white/5 rounded cursor-pointer border-b border-white/5 last:border-0">
+                            <div>
+                                <div class="text-xs font-medium text-gray-200 mono">New ATH in Daily Volume ($1.2B)</div>
+                                <div class="text-[10px] text-gray-500 terminal mt-0.5">DeFiLlama • 5h</div>
+                            </div>
+                            <a href="#" class="text-[10px] text-emerald-400 hover:text-emerald-300 terminal">→</a>
+                        </li>
+                        <li class="news-item flex items-center justify-between px-2 py-1.5 hover:bg-white/5 rounded cursor-pointer border-b border-white/5 last:border-0">
+                            <div>
+                                <div class="text-xs font-medium text-gray-200 mono">New Validator Staking Guide Released</div>
+                                <div class="text-[10px] text-gray-500 terminal mt-0.5">Official Blog • 8h</div>
+                            </div>
+                            <a href="#" class="text-[10px] text-emerald-400 hover:text-emerald-300 terminal">→</a>
+                        </li>
+                        <li class="news-item flex items-center justify-between px-2 py-1.5 hover:bg-white/5 rounded cursor-pointer border-b border-white/5 last:border-0">
+                            <div>
+                                <div class="text-xs font-medium text-gray-200 mono">Discussion: HYPE vs DYDX tokenomics</div>
+                                <div class="text-[10px] text-gray-500 terminal mt-0.5">r/cryptocurrency • 12h</div>
+                            </div>
+                            <a href="#" class="text-[10px] text-emerald-400 hover:text-emerald-300 terminal">→</a>
+                        </li>
+                        <li class="news-item flex items-center justify-between px-2 py-1.5 hover:bg-white/5 rounded cursor-pointer last:border-0">
+                            <div>
+                                <div class="text-xs font-medium text-gray-200 mono">Whale Alert: 5M HYPE moved to cold storage</div>
+                                <div class="text-[10px] text-gray-500 terminal mt-0.5">WhaleAlert • 1d</div>
+                            </div>
+                            <a href="#" class="text-[10px] text-emerald-400 hover:text-emerald-300 terminal">→</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
-            <div class="glass rounded-lg terminal-card border border-white/10 p-3">
-                <ul class="space-y-1">
-                    <li class="news-item flex items-center justify-between p-3 rounded cursor-pointer border-b border-white/5 last:border-0">
-                        <div class="flex items-center gap-3">
-                            <span class="text-orange-500">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.736 6.979C9.208 6.193 9.696 6 10 6c.304 0 .792.193 1.264.979a1 1 0 001.715-1.029C12.279 4.784 11.232 4 10 4s-2.279.784-2.979 1.95c-.285.475-.507 1.002-.67 1.55H6a1 1 0 000 2h.013a9.358 9.358 0 000 1H6a1 1 0 100 2h.351c.163.548.385 1.075.67 1.55C7.721 15.216 8.768 16 10 16s2.279-.784 2.979-1.95a1 1 0 10-1.715-1.029c-.472.786-.96.979-1.264.979-.304 0-.792-.193-1.264-.979a4.265 4.265 0 01-.264-.521H10a1 1 0 100-2H8.017a7.36 7.36 0 010-1H10a1 1 0 100-2H8.472c.08-.185.167-.36.264-.521z" clip-rule="evenodd"/></svg>
-                            </span>
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-200">HIP-4: Fee Adjustment Proposal Passed</h4>
-                                <p class="text-[10px] text-gray-500">r/hyperliquid • 2 hours ago</p>
-                            </div>
-                        </div>
-                        <a href="#" class="text-xs text-emerald-400 hover:underline">Read &rarr;</a>
-                    </li>
-                    <li class="news-item flex items-center justify-between p-3 rounded cursor-pointer border-b border-white/5 last:border-0">
-                        <div class="flex items-center gap-3">
-                            <span class="text-blue-400">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                            </span>
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-200">New ATH in Daily Volume ($1.2B)</h4>
-                                <p class="text-[10px] text-gray-500">DeFiLlama • 5 hours ago</p>
-                            </div>
-                        </div>
-                        <a href="#" class="text-xs text-emerald-400 hover:underline">Read &rarr;</a>
-                    </li>
-                    <li class="news-item flex items-center justify-between p-3 rounded cursor-pointer border-b border-white/5 last:border-0">
-                        <div class="flex items-center gap-3">
-                            <span class="text-purple-400">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                            </span>
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-200">New Validator Staking Guide Released</h4>
-                                <p class="text-[10px] text-gray-500">Official Blog • 8 hours ago</p>
-                            </div>
-                        </div>
-                        <a href="#" class="text-xs text-emerald-400 hover:underline">Read &rarr;</a>
-                    </li>
-                     <li class="news-item flex items-center justify-between p-3 rounded cursor-pointer border-b border-white/5 last:border-0">
-                        <div class="flex items-center gap-3">
-                            <span class="text-gray-400">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.013 8.013 0 01-5.6-2.3L2 22l.7-5.3A8.008 8.008 0 012 12c0-4.418 3.582-8 8-8s8 3.582 8 8z"></path></svg>
-                            </span>
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-200">Discussion: HYPE vs DYDX tokenomics</h4>
-                                <p class="text-[10px] text-gray-500">r/cryptocurrency • 12 hours ago</p>
-                            </div>
-                        </div>
-                        <a href="#" class="text-xs text-emerald-400 hover:underline">Read &rarr;</a>
-                    </li>
-                     <li class="news-item flex items-center justify-between p-3 rounded cursor-pointer last:border-0">
-                        <div class="flex items-center gap-3">
-                            <span class="text-emerald-400">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                            </span>
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-200">Whale Alert: 5M HYPE moved to cold storage</h4>
-                                <p class="text-[10px] text-gray-500">WhaleAlert • 1 day ago</p>
-                            </div>
-                        </div>
-                        <a href="#" class="text-xs text-emerald-400 hover:underline">Read &rarr;</a>
-                    </li>
-                </ul>
-            </div>
-        </section>
+        </div>
     </div>
     <div id="view-governance" class="hidden space-y-4 animate-fade-in">
         <div class="flex items-center justify-between">
@@ -748,12 +827,12 @@
         // 3. Whale vs Retail Volume (Area chart)
         const ctxWhaleRetail = document.getElementById('whaleRetailVolume');
         if(ctxWhaleRetail) {
-            const whaleVolume = [40, 55, 30, 80, 45, 90, 110];
-            const retailVolume = [20, 25, 15, 30, 20, 25, 30];
+            const whaleVolume = [40, 55, 30, 80, 110];
+            const retailVolume = [20, 25, 15, 30, 25];
             mainCharts['whaleRetailVolume'] = new Chart(ctxWhaleRetail, {
                 type: 'line',
                 data: {
-                    labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                    labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'],
                     datasets: [
                         {
                             label: 'Whale Volume',
