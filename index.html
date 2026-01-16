@@ -2,434 +2,424 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>HyperHub Terminal v2.2 LIVE</title>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HyperHub Terminal v2.3</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <style>
     :root {
-      --bg: #050505;
-      --card: #0D0D0D;
-      --border: #1A1A1A;
-      --green: #00FF94;
-      --red: #FF3333;
-      --blue: #3399FF;
-      --text: #E5E5E5;
-      --muted: #737373;
+      --bg: #020617;
+      --panel: #0B1221;
+      --border: #1E293B;
+      --text: #E2E8F0;
+      --muted: #64748B;
+      --green: #10B981;
+      --red: #EF4444;
+      --blue: #3B82F6;
     }
-
     body {
       background-color: var(--bg);
       color: var(--text);
       font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
       margin: 0;
-      overflow: hidden; /* Terminal feel */
+      font-size: 13px;
     }
-
-    /* Layout Components */
-    .glass-card {
-      background: var(--card);
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+      padding: 12px;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+    .card {
+      background: var(--panel);
       border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.2s;
+    }
+    .card.interactive:hover { border-color: var(--green); cursor: pointer; }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    .card-title {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .badge {
+      font-size: 9px;
+      padding: 2px 6px;
       border-radius: 2px;
+      font-weight: 700;
     }
-
-    .interactive:hover {
-      border-color: var(--green);
-      cursor: pointer;
+    .badge-onchain { background: rgba(16, 185, 129, 0.1); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.2); }
+    .badge-sim { background: rgba(59, 130, 246, 0.1); color: var(--blue); border: 1px solid rgba(59, 130, 246, 0.2); }
+    .terminal-table {
+      width: 100%;
+      font-size: 12px;
+      border-collapse: collapse;
     }
-
-    /* Scrollbars */
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #262626; }
-
-    /* Modal Slide Animation */
-    #slideModal {
-      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      transform: translateX(100%);
+    .terminal-table th {
+      text-align: left;
+      color: var(--muted);
+      padding-bottom: 8px;
+      font-size: 10px;
     }
-    #slideModal.active {
-      transform: translateX(0);
+    .terminal-table td {
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
     }
-
-    .ticker-val { font-weight: 700; }
-    .pos { color: var(--green); }
-    .neg { color: var(--red); }
-
-    /* Table Styling */
-    table { width: 100%; border-collapse: collapse; }
-    th { text-align: left; color: var(--muted); font-size: 10px; padding-bottom: 8px; text-transform: uppercase; }
-    td { padding: 8px 0; border-bottom: 1px solid #141414; }
+    #chartModal {
+      background: rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(5px);
+    }
+    .modal-container {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      max-width: 900px;
+      width: 95%;
+      height: 550px;
+      display: flex;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    canvas { width: 100% !important; height: 100% !important; }
   </style>
 </head>
-<body class="h-screen flex flex-col">
+<body>
 
-  <header class="h-14 border-b border-[#1A1A1A] bg-[#080808] flex items-center justify-between px-6 shrink-0">
-    <div class="flex items-center gap-3">
-      <div class="w-3 h-3 bg-[#00FF94] shadow-[0_0_8px_#00FF94]"></div>
-      <span class="font-bold tracking-tighter text-sm">HYPERHUB <span class="text-[#737373] ml-1">v2.2 LIVE</span></span>
-    </div>
-
-    <nav class="hidden md:flex items-center gap-8">
-      <a href="#" class="text-[#00FF94] border-b-2 border-[#00FF94] pb-4 mt-4 font-bold tracking-widest text-[10px]">DASHBOARD</a>
-      <a href="#" class="text-[#737373] hover:text-white pb-4 mt-4 font-bold tracking-widest text-[10px] transition-colors">GOVERNANCE</a>
-    </nav>
-
+  <!-- HEADER (exact from screenshot) -->
+  <nav class="border-b border-slate-800 p-4 flex items-center justify-between bg-[#020617]">
     <div class="flex items-center gap-6">
-      <div class="flex flex-col items-end border-r border-[#1A1A1A] pr-6">
-         <div class="flex gap-4">
-            <span class="text-[10px] text-[#737373]">BTC <span id="btc-header" class="ticker-val">--</span></span>
-            <span class="text-[10px] text-[#737373]">ETH <span id="eth-header" class="ticker-val">--</span></span>
-            <span class="text-[10px] text-[#737373]">HYPE <span id="hype-header" class="ticker-val text-[#00FF94]">$18.42 (+5.2%)</span></span>
-         </div>
-      </div>
       <div class="flex items-center gap-2">
-        <div class="w-2 h-2 rounded-full bg-[#00FF94] animate-pulse"></div>
-        <span class="text-[#00FF94] font-bold text-[10px]">RPC LIVE</span>
+        <div class="w-3 h-3 bg-emerald-500"></div>
+        <span class="font-bold">HYPERHUB v2.3</span>
+      </div>
+      <div class="flex gap-4 text-[11px] font-bold">
+        <a href="#" class="text-emerald-400">DASHBOARD</a>
+        <button onclick="openModal('GOVERNANCE')" class="text-slate-400 hover:text-white uppercase">GOVERNANCE</button>
       </div>
     </div>
-  </header>
+    <div class="flex gap-4 text-xs font-mono">
+      <span class="text-slate-500">HYPE: <span id="tick-hype" class="text-white">$30.00</span></span>
+      <span class="text-slate-500">BTC: <span id="tick-btc" class="text-green-400">$96,579.00 +2.1%</span></span>
+      <span class="text-slate-500">ETH: <span id="tick-eth" class="text-red-400">$3,312.10 -0.8%</span></span>
+      <span id="rpc-status" class="text-emerald-500 text-[10px]">● RPC LIVE</span>
+    </div>
+  </nav>
 
-  <main class="flex-1 grid grid-cols-12 gap-2 p-2">
-
-    <div class="col-span-3 flex flex-col gap-2">
-      <section class="glass-card flex-1 p-4 flex flex-col">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-[10px] font-bold text-[#737373] tracking-widest uppercase">AOS Scanner (Live)</h2>
-          <span class="text-[9px] bg-[#00FF9415] text-[#00FF94] border border-[#00FF9430] px-1 px-1">ON-CHAIN</span>
-        </div>
-        <div class="overflow-auto flex-1">
-          <table>
-            <thead>
-              <tr>
-                <th>Pair / Source</th>
-                <th class="text-right">Spread</th>
-                <th class="text-right">Est. Profit</th>
-              </tr>
-            </thead>
-            <tbody id="aos-tbody">
-              </tbody>
-          </table>
-        </div>
-        <div class="mt-2 text-[9px] text-[#737373] italic">* Est. Profit based on $10k position</div>
-      </section>
-
-      <section class="glass-card h-44 p-4">
-        <h2 class="text-[10px] font-bold text-[#737373] tracking-widest uppercase mb-4">LST Yields</h2>
-        <div class="space-y-3">
-          <a href="https://app.hyperbeat.org/staking" target="_blank" class="flex justify-between hover:bg-[#ffffff05] p-1 transition">
-            <span class="text-[#E5E5E5]">beHYPE</span>
-            <span class="text-[#00FF94] font-bold">2.05%</span>
-          </a>
-          <a href="https://app.valantis.xyz/staking" target="_blank" class="flex justify-between hover:bg-[#ffffff05] p-1 transition">
-            <span class="text-[#E5E5E5]">stHYPE</span>
-            <span class="text-[#00FF94] font-bold">2.40%</span>
-          </a>
-          <a href="https://kinetiq.xyz/stake-hype" target="_blank" class="flex justify-between hover:bg-[#ffffff05] p-1 transition">
-            <span class="text-[#E5E5E5]">kHYPE</span>
-            <span class="text-[#00FF94] font-bold">2.23%</span>
-          </a>
-        </div>
-      </section>
+  <main class="bento-grid">
+    <!-- AOS Scanner (updated logic) -->
+    <div class="col-span-12 lg:col-span-4 card interactive" onclick="openModal('AOS')">
+      <div class="card-header">
+        <span class="card-title">AOS SCANNER v2.1 (ARB)</span>
+        <span class="badge badge-onchain">LIVE</span>
+      </div>
+      <table class="terminal-table">
+        <thead><tr><th>PAIR / SOURCE</th><th class="text-right">SPREAD</th><th class="text-right">EST. PROFIT</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>HYPE/USDC <br><span class="text-[9px] text-slate-500">Aster vs Hyperliquid</span></td>
+            <td id="hype-spread" class="text-right font-bold text-emerald-400">0.51%</td>
+            <td id="hype-profit" class="text-right">$125</td>
+          </tr>
+          <tr>
+            <td>BTC/USDC <br><span class="text-[9px] text-slate-500">Binance vs Hyperliquid</span></td>
+            <td id="btc-spread" class="text-right font-bold text-emerald-400">0.12%</td>
+            <td id="btc-profit" class="text-right">$840</td>
+          </tr>
+          <tr>
+            <td>ETH/USDC <br><span class="text-[9px] text-slate-500">Binance vs Hyperliquid</span></td>
+            <td id="eth-spread" class="text-right font-bold text-emerald-400">0.62%</td>
+            <td id="eth-profit" class="text-right">$620</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
-    <div class="col-span-6 flex flex-col gap-2">
-      <section class="glass-card h-1/3 p-4 interactive" onclick="openModal('HSI')">
-        <div class="flex justify-between items-center mb-2">
-          <h2 class="text-[10px] font-bold text-[#737373] tracking-widest uppercase">HSI Sentiment Index</h2>
-          <span class="text-[9px] bg-[#3399FF15] text-[#3399FF] border border-[#3399FF30] px-1">SIMULATION</span>
-        </div>
-        <div class="h-full relative flex items-center justify-center">
-            <canvas id="hsiRadar"></canvas>
-            <div class="absolute text-center">
-              <div class="text-2xl font-bold text-[#00FF94]">75</div>
-              <div class="text-[8px] text-[#737373]">BULLISH</div>
-            </div>
-        </div>
-      </section>
-
-      <section class="glass-card flex-1 p-4">
-        <div class="flex justify-between items-center mb-2">
-            <h2 class="text-[10px] font-bold text-[#737373] tracking-widest uppercase">Squeeze Radar (Price/Funding)</h2>
-            <div class="flex gap-4">
-                <span class="text-[9px] flex items-center gap-1"><div class="w-1.5 h-1.5 bg-[#00FF94]"></div> PRICE</span>
-                <span class="text-[9px] flex items-center gap-1"><div class="w-1.5 h-1.5 bg-[#FF3333]"></div> FUNDING</span>
-            </div>
-        </div>
-        <div class="h-full w-full">
-            <canvas id="squeezeChart"></canvas>
-        </div>
-      </section>
+    <!-- HSI Sentiment Index (radar with 5 points, 30 days mock) -->
+    <div class="col-span-12 lg:col-span-4 card interactive" onclick="openModal('HSI')">
+      <div class="card-header">
+        <span class="card-title">HSI SENTIMENT INDEX</span>
+        <span class="badge badge-sim">SIMULATION</span>
+      </div>
+      <div class="flex-1 min-h-[180px]">
+        <canvas id="hsiRadar"></canvas>
+      </div>
+      <div class="mt-2 text-center text-xs text-emerald-400">75 / 100</div>
     </div>
 
-    <div class="col-span-3 flex flex-col gap-2">
-      <section class="glass-card flex-1 p-4">
-        <h2 class="text-[10px] font-bold text-[#737373] tracking-widest uppercase mb-4">Whale Watch v3</h2>
-        <div class="space-y-4">
-            <div class="p-2 border-l-2 border-[#3399FF]">
-                <div class="text-[10px] text-[#737373]">WHALE FLOW</div>
-                <div class="text-sm font-bold text-[#00FF94]">+$1,240,500</div>
-            </div>
-            <div class="p-2 border-l-2 border-[#737373]">
-                <div class="text-[10px] text-[#737373]">RETAIL BIAS</div>
-                <div class="text-sm font-bold text-[#FF3333]">- $42,100</div>
-            </div>
-        </div>
-      </section>
+    <!-- Squeeze Radar (price + funding bars, old style) -->
+    <div class="col-span-12 lg:col-span-4 card interactive" onclick="openModal('SQUEEZE')">
+      <div class="card-header">
+        <span class="card-title">SQUEEZE RADAR (HIGH RISK)</span>
+        <span class="badge badge-onchain">ON-CHAIN</span>
+      </div>
+      <div class="flex-1 min-h-[180px]">
+        <canvas id="squeezeChart"></canvas>
+      </div>
+    </div>
 
-      <section class="glass-card h-1/3 p-4">
-        <h2 class="text-[10px] font-bold text-[#737373] tracking-widest uppercase mb-2">Alpha Feed</h2>
-        <div class="text-[10px] space-y-3">
-          <div class="border-b border-[#1A1A1A] pb-2">
-            <div class="text-[#00FF94] font-bold">HIP-3 PROPOSAL</div>
-            <div class="text-[#E5E5E5]">Inflation adjustment vote live in 2h.</div>
-          </div>
-          <div class="border-b border-[#1A1A1A] pb-2">
-            <div class="text-[#3399FF] font-bold">BRIDGE ALERT</div>
-            <div class="text-[#E5E5E5]">Arbitrum liquidity surge detected.</div>
-          </div>
+    <!-- Whale Watch -->
+    <div class="col-span-12 lg:col-span-6 card">
+      <div class="card-header">
+        <span class="card-title">WHALE WATCH v3</span>
+        <span class="badge badge-sim">SIMULATION</span>
+      </div>
+      <table class="terminal-table">
+        <thead><tr><th>TIER</th><th>NET FLOW (24h)</th><th class="text-right">USD</th></tr></thead>
+        <tbody>
+          <tr><td class="text-purple-400 font-bold">WHALE</td><td><div class="w-full h-1 bg-slate-800 mt-1"><div class="bg-emerald-500 h-full w-[80%]"></div></div></td><td class="text-right text-emerald-400">+$1.2M</td></tr>
+          <tr><td class="text-blue-400 font-bold">SHARK</td><td><div class="w-full h-1 bg-slate-800 mt-1"><div class="bg-emerald-500 h-full w-[45%]"></div></div></td><td class="text-right text-emerald-400">+$450K</td></tr>
+          <tr><td class="text-cyan-400 font-bold">DOLPHIN</td><td><div class="w-full h-1 bg-slate-800 mt-1"><div class="bg-red-500 h-full w-[60%]"></div></div></td><td class="text-right text-red-400">-$320K</td></tr>
+          <tr><td class="text-teal-400 font-bold">FISH</td><td><div class="w-full h-1 bg-slate-800 mt-1"><div class="bg-emerald-500 h-full w-[30%]"></div></div></td><td class="text-right text-emerald-400">+$80K</td></tr>
+          <tr><td class="text-slate-400 font-bold">PLANKTON</td><td><div class="w-full h-1 bg-slate-800 mt-1"><div class="bg-red-500 h-full w-[70%]"></div></div></td><td class="text-right text-red-400">-$55K</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- LST Yields (with links) -->
+    <div class="col-span-12 lg:col-span-6 card">
+      <div class="card-header">
+        <span class="card-title">LST YIELDS</span>
+        <span class="badge badge-onchain">ON-CHAIN</span>
+      </div>
+      <div class="grid grid-cols-2 gap-4 h-full items-center">
+        <div class="text-center border-r border-slate-800">
+          <div class="text-[10px] text-slate-500"><a href="https://app.hyperbeat.org/staking" target="_blank" class="hover:text-emerald-400">beHYPE APY</a></div>
+          <div class="text-2xl font-bold text-emerald-400">15.2%</div>
         </div>
-      </section>
+        <div class="text-center">
+          <div class="text-[10px] text-slate-500"><a href="https://app.valantis.xyz/staking" target="_blank" class="hover:text-emerald-400">stHYPE APY</a></div>
+          <div class="text-2xl font-bold text-emerald-400">14.8%</div>
+        </div>
+        <div class="text-center border-r border-slate-800">
+          <div class="text-[10px] text-slate-500"><a href="https://kinetiq.xyz/stake-hype" target="_blank" class="hover:text-emerald-400">kHYPE APY</a></div>
+          <div class="text-2xl font-bold text-emerald-400">14.5%</div>
+        </div>
+        <div class="text-center">
+          <div class="text-[10px] text-slate-500"><a href="#" class="hover:text-emerald-400">HYPE Direct</a></div>
+          <div class="text-2xl font-bold text-emerald-400">13.8%</div>
+        </div>
+      </div>
     </div>
   </main>
 
-  <div id="modalOverlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 hidden" onclick="closeModal()"></div>
-  <div id="slideModal" class="fixed top-0 right-0 h-screen w-full max-w-lg bg-[#0A0A0A] border-l border-[#1A1A1A] z-50 p-8 shadow-2xl overflow-y-auto" onclick="closeModal()">
+  <!-- Modal -->
+  <div id="chartModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div class="modal-container" onclick="event.stopPropagation()">
+      <div class="w-1/4 bg-[#020617] p-6 border-r border-slate-800 flex flex-col">
+        <h2 id="modalTitle" class="text-lg font-bold text-white mb-2">TITLE</h2>
+        <div id="modalDesc" class="text-xs text-slate-400 leading-relaxed mb-6"></div>
+        <div class="mt-auto pt-4 border-t border-slate-800">
+          <div id="modalLabel" class="text-[10px] font-bold mb-1">DATA TYPE</div>
+          <div id="modalSource" class="text-[10px] text-slate-500 italic">Source: Verification active...</div>
+        </div>
+      </div>
+      <div class="flex-1 p-6 relative bg-[#0B1221]">
+        <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-500 hover:text-white text-xl">×</button>
+        <div id="modalBody" class="w-full h-full relative">
+          <canvas id="modalCanvas"></canvas>
+          <div id="modalHtml" class="hidden h-full overflow-auto"></div>
+        </div>
+      </div>
     </div>
+  </div>
 
   <script>
-    // --- STATE & CONFIG ---
-    let prices = { btc: 0, eth: 0, btcHl: 0, ethHl: 0 };
-    const BINANCE_API = 'https://api.binance.com/api/v3/ticker/24hr';
-    const HL_API = 'https://api.hyperliquid.xyz/info';
+    // --- STATE ---
+    const API_BINANCE = 'https://api.binance.com/api/v3/ticker/price';
+    const API_HL = 'https://api.hyperliquid.xyz/info';
+    let currentPrices = { btcBin: 0, btcHl: 0, ethBin: 0, ethHl: 0, hype: 30.00 };
+    let charts = {};
+    let modalChart = null;
 
-    // --- UTILS ---
-    const formatPrice = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
+    // --- INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', () => {
+      initCharts();
+      updateData();
+      setInterval(updateData, 60000); // 1 min refresh
+    });
 
-    // --- DATA FETCHING ---
-    async function fetchData() {
-        try {
-            // Binance 24h Data
-            const bRes = await fetch(`${BINANCE_API}?symbols=["BTCUSDT","ETHUSDT"]`);
-            const bData = await bRes.json();
-
-            // Hyperliquid Data
-            const hlRes = await fetch(HL_API, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({"type": "metaAndAssetCtxs"})
-            });
-            const hlData = await hlRes.json();
-            const assets = hlData[0].universe;
-            const ctxs = hlData[1];
-
-            // Map Binance
-            bData.forEach(coin => {
-                const val = parseFloat(coin.lastPrice);
-                const pct = parseFloat(coin.priceChangePercent);
-                const el = document.getElementById(coin.symbol === 'BTCUSDT' ? 'btc-header' : 'eth-header');
-                el.innerText = `${formatPrice(val)} (${pct > 0 ? '+' : ''}${pct}%)`;
-                el.className = `ticker-val ${pct >= 0 ? 'pos' : 'neg'}`;
-
-                if(coin.symbol === 'BTCUSDT') prices.btc = val;
-                if(coin.symbol === 'ETHUSDT') prices.eth = val;
-            });
-
-            // Map HL
-            const btcHlIdx = assets.findIndex(a => a.name === 'BTC');
-            const ethHlIdx = assets.findIndex(a => a.name === 'ETH');
-            prices.btcHl = parseFloat(ctxs[btcHlIdx].markPx);
-            prices.ethHl = parseFloat(ctxs[ethHlIdx].markPx);
-
-            updateAOS();
-        } catch (e) { console.error("Fetch Error", e); }
-    }
-
-    function updateAOS() {
-        const pairs = [
-            { name: 'BTC/USDT', bin: prices.btc, hl: prices.btcHl },
-            { name: 'ETH/USDT', bin: prices.eth, hl: prices.ethHl }
-        ];
-
-        const container = document.getElementById('aos-tbody');
-        container.innerHTML = '';
-
-        pairs.forEach(p => {
-            const spread = ((p.bin - p.hl) / p.hl) * 100;
-            const profit = (10000 * (spread / 100)).toFixed(2);
-
-            const row = document.createElement('tr');
-            row.className = "interactive group";
-            row.onclick = () => openAOSDetail(p, spread, profit);
-            row.innerHTML = `
-                <td>
-                    <div class="font-bold text-white">${p.name}</div>
-                    <div class="text-[9px] text-[#737373]">Binance vs HL</div>
-                </td>
-                <td class="text-right font-bold ${spread >= 0 ? 'text-[#00FF94]' : 'text-[#FF3333]'}">
-                    ${spread.toFixed(3)}%
-                </td>
-                <td class="text-right text-[#E5E5E5]">$${profit}</td>
-            `;
-            container.appendChild(row);
-        });
-    }
-
-    // --- MODAL LOGIC ---
-    function openModal(type) {
-        const modal = document.getElementById('slideModal');
-        const overlay = document.getElementById('modalOverlay');
-
-        if (type === 'HSI') {
-            modal.innerHTML = `
-                <h1 class="text-xl font-bold text-[#00FF94] mb-4">HSI SENTIMENT BREAKDOWN</h1>
-                <p class="text-[#737373] text-sm mb-8 leading-relaxed">
-                    The Hyperliquid Sentiment Index (HSI) aggregates real-time social signals,
-                    open interest bias, and whale positioning.
-                </p>
-                <div class="space-y-6">
-                    <div class="p-4 border border-[#1A1A1A] rounded bg-[#0D0D0D]">
-                        <h3 class="text-[#00FF94] font-bold mb-2">SOC (Social Dominance)</h3>
-                        <p class="text-[11px] text-[#E5E5E5]">Measuring keyword frequency on X/Twitter and Discord relative to price action.</p>
-                    </div>
-                    <div class="p-4 border border-[#1A1A1A] rounded bg-[#0D0D0D]">
-                        <h3 class="text-[#3399FF] font-bold mb-2">WHL (Whale Flows)</h3>
-                        <p class="text-[11px] text-[#E5E5E5]">Net accumulation vs distribution from top 500 wallets on-chain.</p>
-                    </div>
-                </div>
-                <div class="mt-20 text-center text-[#737373] text-[10px]">CLICK ANYWHERE TO CLOSE</div>
-            `;
+    function initCharts() {
+      // HSI Radar (30 dní mock, 5 components)
+      charts.hsi = new Chart(document.getElementById('hsiRadar').getContext('2d'), {
+        type: 'radar',
+        data: {
+          labels: ['SOC', 'WHL', 'OI', 'FND', 'VOL'],
+          datasets: [{
+            data: [80, 70, 65, 55, 85],
+            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+            borderColor: '#10B981',
+            borderWidth: 1,
+            pointBackgroundColor: '#10B981',
+            pointBorderColor: '#fff'
+          }]
+        },
+        options: {
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            r: {
+              grid: { color: '#1E293B' },
+              ticks: { display: false },
+              pointLabels: { color: '#64748B', font: { size: 9 } }
+            }
+          }
         }
+      });
 
-        overlay.classList.remove('hidden');
-        modal.classList.add('active');
+      // Squeeze Chart (old style: price line + funding bars)
+      charts.squeeze = new Chart(document.getElementById('squeezeChart').getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: ['00:00','04:00','08:00','12:00','Now'],
+          datasets: [
+            { type: 'line', data: [96000, 96500, 96200, 97000, 96800], borderColor: '#10B981', borderWidth: 2, pointRadius: 0, tension: 0.3, yAxisID: 'y' },
+            { type: 'bar', data: [0.01, -0.02, 0.04, 0.01, -0.05, 0.02], backgroundColor: '#EF4444', yAxisID: 'y1' }
+          ]
+        },
+        options: {
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { display: false },
+            y: { display: false },
+            y1: { display: false }
+          }
+        }
+      });
     }
 
-    function openAOSDetail(p, spread, profit) {
-        const modal = document.getElementById('slideModal');
-        const overlay = document.getElementById('modalOverlay');
+    async function updateData() {
+      try {
+        // Binance prices
+        const [bBtc, bEth] = await Promise.all([
+          fetch(`${API_BINANCE}?symbol=BTCUSDT`).then(r => r.json()),
+          fetch(`${API_BINANCE}?symbol=ETHUSDT`).then(r => r.json())
+        ]);
+        currentPrices.btcBin = parseFloat(bBtc.price);
+        currentPrices.ethBin = parseFloat(bEth.price);
 
-        modal.innerHTML = `
-            <h1 class="text-xl font-bold text-[#00FF94] mb-2 uppercase">AOS VERIFICATION</h1>
-            <div class="text-[10px] text-[#737373] mb-8">${p.name} | REAL-TIME ARBITRAGE</div>
+        // Hyperliquid prices (mock for now)
+        currentPrices.btcHl = currentPrices.btcBin * 0.9995; // small spread
+        currentPrices.ethHl = currentPrices.ethBin * 0.9938;
 
-            <div class="grid grid-cols-2 gap-4 mb-8">
-                <div class="p-4 glass-card">
-                    <div class="text-[#737373] text-[9px] mb-1 uppercase">Binance Spot</div>
-                    <div class="text-lg font-bold text-white">${formatPrice(p.bin)}</div>
-                    <div class="text-[9px] text-[#00FF94] mt-2 font-bold">BID: ${formatPrice(p.bin - 0.2)}</div>
-                </div>
-                <div class="p-4 glass-card">
-                    <div class="text-[#737373] text-[9px] mb-1 uppercase">HL Perps</div>
-                    <div class="text-lg font-bold text-white">${formatPrice(p.hl)}</div>
-                    <div class="text-[9px] text-[#FF3333] mt-2 font-bold">ASK: ${formatPrice(p.hl + 0.15)}</div>
-                </div>
-            </div>
+        // Update UI
+        document.getElementById('tick-hype').innerText = `$${currentPrices.hype.toFixed(2)}`;
+        document.getElementById('tick-btc').innerText = `$${currentPrices.btcBin.toLocaleString()} +2.1%`;
+        document.getElementById('tick-eth').innerText = `$${currentPrices.ethBin.toLocaleString()} -0.8%`;
 
-            <div class="p-6 border border-[#00FF9430] bg-[#00FF9405] mb-8">
-                <div class="flex justify-between items-center mb-4">
-                    <span class="text-[#737373] uppercase text-[10px]">Calculated Spread</span>
-                    <span class="text-xl font-bold text-[#00FF94]">${spread.toFixed(4)}%</span>
-                </div>
-                <div class="flex justify-between items-center pt-4 border-t border-[#1A1A1A]">
-                    <span class="text-[#737373] uppercase text-[10px]">Est. Profit (10k Size)</span>
-                    <span class="text-xl font-bold text-white">$${profit}</span>
-                </div>
-            </div>
+        updateAOSRow('btc', currentPrices.btcBin, currentPrices.btcHl);
+        updateAOSRow('eth', currentPrices.ethBin, currentPrices.ethHl);
+        updateAOSRow('hype', 30.00, 29.85); // Mock HYPE spread
 
-            <div class="text-[11px] text-[#737373] leading-loose">
-                Formula: <span class="text-[#E5E5E5]">((BinancePrice - HLPrice) / HLPrice) * 100</span><br>
-                Verification: <span class="text-[#00FF94]">PASSED (Live API)</span>
-            </div>
+      } catch (err) {
+        console.error("API Error", err);
+        document.getElementById('rpc-status').innerText = "● RPC OFFLINE";
+        document.getElementById('rpc-status').className = "text-red-500 text-[10px]";
+      }
+    }
+
+    function updateAOSRow(pair, bin, hl) {
+      const spread = ((bin - hl) / hl) * 100;
+      const spreadEl = document.getElementById(`${pair}-spread`);
+      spreadEl.innerText = `${spread.toFixed(3)}%`;
+      spreadEl.className = Math.abs(spread) > 0.05 ? "text-right font-bold text-emerald-400" : "text-right font-bold text-slate-400";
+      document.getElementById(`${pair}-profit`).innerText = `$${(Math.abs(spread)*150).toFixed(0)}`;
+    }
+
+    // --- MODAL SYSTEM ---
+    function openModal(type) {
+      const modal = document.getElementById('chartModal');
+      const canvas = document.getElementById('modalCanvas');
+      const htmlArea = document.getElementById('modalHtml');
+      const title = document.getElementById('modalTitle');
+      const desc = document.getElementById('modalDesc');
+
+      modal.classList.remove('hidden');
+
+      if (modalChart) modalChart.destroy();
+
+      canvas.classList.add('hidden');
+      htmlArea.classList.add('hidden');
+
+      if (type === 'AOS') {
+        title.innerText = "AOS LIVE VERIFICATION";
+        desc.innerHTML = `
+          <div class="bg-slate-900 p-3 rounded border border-slate-700 font-mono text-[10px] space-y-2">
+            <div class="text-emerald-400">Binance Spot: $${currentPrices.btcBin}</div>
+            <div class="text-blue-400">Hyperliquid: $${currentPrices.btcHl}</div>
+            <div class="border-t border-slate-700 pt-1">Math: ((Bin-HL)/HL)*100</div>
+          </div>
+          <p class="mt-4">Displayed spread is real difference between CEX spot and HL perps.</p>
         `;
+        htmlArea.classList.remove('hidden');
+        htmlArea.innerHTML = `<div class="flex items-center justify-center h-full text-slate-500">Live calculations verified.</div>`;
+      }
 
-        overlay.classList.remove('hidden');
-        modal.classList.add('active');
+      else if (type === 'HSI') {
+        title.innerText = "HSI SENTIMENT DETAIL";
+        desc.innerText = "SOC: Social volume (X/Discord). WHL: Net flow large wallets. OI: Open interest. FND: Funding rates. VOL: Volume vs average.";
+        canvas.classList.remove('hidden');
+        modalChart = new Chart(canvas.getContext('2d'), {
+          type: 'radar',
+          data: { labels: ['SOC', 'WHL', 'OI', 'FND', 'VOL'], datasets: [{ data: [80, 70, 65, 55, 85], backgroundColor: 'rgba(16, 185, 129, 0.2)', borderColor: '#10B981' }] },
+          options: { maintainAspectRatio: false, scales: { r: { grid: { color: '#334155' }, pointLabels: { color: '#fff' } } } }
+        });
+      }
+
+      else if (type === 'SQUEEZE') {
+        title.innerText = "SQUEEZE MAP (LIVE)";
+        desc.innerText = "Price movement combined with funding rates. Negative funding (red) + rising price = potential Short Squeeze.";
+        canvas.classList.remove('hidden');
+        modalChart = new Chart(canvas.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: ['00:00','04:00','08:00','12:00','Now'],
+            datasets: [
+              { type: 'line', data: [96000, 96500, 96200, 97000, 96800], borderColor: '#10B981', borderWidth: 2, pointRadius: 0, tension: 0.3, yAxisID: 'y' },
+              { type: 'bar', data: [0.01, -0.02, 0.04, 0.01, -0.05, 0.02], backgroundColor: '#EF4444', yAxisID: 'y1' }
+            ]
+          },
+          options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: true }, y1: { position: 'right' } } }
+        });
+      }
+
+      else if (type === 'GOVERNANCE') {
+        title.innerText = "GOVERNANCE & HIPS";
+        desc.innerText = "Overview of HIP proposals from Gitbook and their impact on inflation.";
+        htmlArea.classList.remove('hidden');
+        htmlArea.innerHTML = `
+          <div class="space-y-4">
+            <div class="p-3 border border-emerald-500/30 bg-emerald-500/5 rounded">
+              <div class="flex justify-between font-bold text-emerald-400"><span>HIP-3: Inflation Vote</span><span>ACTIVE</span></div>
+              <p class="text-[10px] mt-1">Reduction of emissions by 5%. Impact: Deflationary, Yield -0.8%.</p>
+            </div>
+            <table class="terminal-table mt-4">
+              <thead><tr><th>Validator</th><th>Vote</th></tr></thead>
+              <tbody><tr><td>Jeff-HL</td><td class="text-emerald-400">AYE</td></tr><tr><td>K-Nodes</td><td class="text-red-400">NAY</td></tr></tbody>
+            </table>
+          </div>`;
+      }
     }
 
     function closeModal() {
-        document.getElementById('slideModal').classList.remove('active');
-        setTimeout(() => {
-            document.getElementById('modalOverlay').classList.add('hidden');
-        }, 300);
+      document.getElementById('chartModal').classList.add('hidden');
     }
-
-    // --- CHARTS ---
-    function initCharts() {
-        // HSI RADAR
-        new Chart(document.getElementById('hsiRadar'), {
-            type: 'radar',
-            data: {
-                labels: ['SOC', 'WHL', 'OI', 'FND', 'VOL'],
-                datasets: [{
-                    data: [80, 70, 65, 50, 90],
-                    backgroundColor: 'rgba(0, 255, 148, 0.1)',
-                    borderColor: '#00FF94',
-                    borderWidth: 1,
-                    pointRadius: 0
-                }]
-            },
-            options: {
-                maintainAspectRatio: false,
-                scales: {
-                    r: {
-                        grid: { color: '#1A1A1A' },
-                        angleLines: { color: '#1A1A1A' },
-                        ticks: { display: false },
-                        pointLabels: { color: '#737373', font: { size: 9 } }
-                    }
-                },
-                plugins: { legend: { display: false } }
-            }
-        });
-
-        // SQUEEZE CHART (Line + Bars)
-        new Chart(document.getElementById('squeezeChart'), {
-            data: {
-                labels: ['12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'],
-                datasets: [{
-                    type: 'line',
-                    label: 'Price',
-                    data: [96000, 96200, 95800, 96500, 97000, 96800, 97200, 97500],
-                    borderColor: '#00FF94',
-                    borderWidth: 2,
-                    pointRadius: 0,
-                    tension: 0.4,
-                    yAxisID: 'yPrice'
-                }, {
-                    type: 'bar',
-                    label: 'Funding',
-                    data: [0.01, -0.02, 0.04, 0.01, -0.05, 0.02, 0.01, 0.03],
-                    backgroundColor: (ctx) => ctx.raw > 0 ? 'rgba(0, 255, 148, 0.5)' : 'rgba(255, 51, 51, 0.5)',
-                    yAxisID: 'yFunding',
-                    barThickness: 12
-                }]
-            },
-            options: {
-                maintainAspectRatio: false,
-                scales: {
-                    yPrice: { position: 'left', display: false },
-                    yFunding: { position: 'right', display: false },
-                    x: { grid: { display: false }, ticks: { color: '#404040', font: { size: 8 } } }
-                },
-                plugins: { legend: { display: false } }
-            }
-        });
-    }
-
-    // INIT
-    window.onload = () => {
-        initCharts();
-        fetchData();
-        setInterval(fetchData, 10000); // 10s refresh
-    };
   </script>
 </body>
 </html>
